@@ -110,3 +110,66 @@ alter table public.messages add constraint messages_len_chk check (
 -- RLS: mesajlar herkese açık DEĞİL. Ne okuma ne yazma politikası var; ikisi de
 -- yalnızca sunucu tarafındaki secret key ile yapılır.
 alter table public.messages enable row level security;
+
+-- --- Düello ---
+--
+-- İki kişi, aynı 5 şarkı, kolaydan zora. Oyunun geri kalanı sunucuda hiçbir
+-- şey saklamıyor; burası bilinçli bir istisna: iki tarayıcının aynı şarkılarda
+-- buluşmasının başka yolu yok.
+--
+-- ⚠️ Bu, `/api/iletisim`'den sonra İKİNCİ herkese açık yazma yolu. Lobi
+-- kurmak sınırsız satır üretebileceği için `expires_at` ve temizlik şart.
+
+create table if not exists public.duels (
+  code        text primary key,               -- 6 karakter, karışmayan alfabe
+  chip        text        not null,
+  song_ids    text[]      not null,           -- 5 şarkı, kademe 1→5 sırayla
+  status      text        not null default 'bekliyor',
+  created_at  timestamptz not null default now(),
+  started_at  timestamptz,
+  expires_at  timestamptz not null default now() + interval '2 hours',
+  constraint duels_status_chk check (status in ('bekliyor', 'oynaniyor', 'bitti')),
+  -- ⚠️ Şarkı sayısı ŞEMADA sabitleniyor: eksik listeyle kurulan bir lobi
+  -- oyunu ortasında çökertirdi.
+  constraint duels_songs_chk check (array_length(song_ids, 1) = 5)
+);
+
+create index if not exists duels_expire_idx on public.duels (expires_at);
+
+create table if not exists public.duel_players (
+  code       text    not null references public.duels(code) on delete cascade,
+  slot       smallint not null check (slot in (1, 2)),
+  -- Tarayıcıda saklanan gizli anahtar; başkasının yerine cevap yazmayı önler.
+  secret     text    not null,
+  joined_at  timestamptz not null default now(),
+  primary key (code, slot)
+);
+
+create table if not exists public.duel_answers (
+  code          text     not null references public.duels(code) on delete cascade,
+  slot          smallint not null check (slot in (1, 2)),
+  song_index    smallint not null check (song_index between 0 and 4),
+  won           boolean  not null,
+  heard_seconds real     not null,
+  listens       smallint not null,
+  at            timestamptz not null default now(),
+  -- ⚠️ Tek cevap kuralı: aynı şarkıya ikinci kez yazmak skoru bozardı.
+  primary key (code, slot, song_index)
+);
+
+-- RLS: üçü de tamamen kapalı. Ne okuma ne yazma politikası var; her şey
+-- sunucu rotalarından, secret key ile yapılır. Tarayıcı `song_ids`'i
+-- doğrudan okuyamaz.
+alter table public.duels        enable row level security;
+alter table public.duel_players enable row level security;
+alter table public.duel_answers enable row level security;
+
+-- Süresi dolmuş lobileri temizler; cevaplar ve oyuncular cascade ile gider.
+create or replace function public.duel_temizle()
+returns integer language plpgsql as $$
+declare silinen integer;
+begin
+  delete from public.duels where expires_at < now();
+  get diagnostics silinen = row_count;
+  return silinen;
+end $$;

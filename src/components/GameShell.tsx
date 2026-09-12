@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { chipById, TIER_LABELS } from '@/data/categories'
@@ -35,6 +35,37 @@ export function GameShell() {
   }, [reduce])
 
   const cassette = useRef<CassetteHandle>(null)
+  const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
+  const [duelloHata, setDuelloHata] = useState<string | null>(null)
+
+  /**
+   * Lobiyi kur ve düello sayfasına geç.
+   *
+   * ⚠️ Gizli anahtar navigasyondan ÖNCE yazılır. Sonra yazılsaydı düello
+   * sayfası kendi kurduğu lobiye "yabancı" olarak girip ikinci slotu kapardı.
+   */
+  async function duelloBaslat() {
+    setDuelloKuruluyor(true)
+    setDuelloHata(null)
+    try {
+      const res = await fetch('/api/duello', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chip: settings.category }),
+      })
+      const d = (await res.json()) as { kod?: string; gizli?: string; error?: string }
+      if (!res.ok || !d.kod || !d.gizli) throw new Error(d.error ?? 'Lobi kurulamadı.')
+      try {
+        window.localStorage.setItem(`tahmin:duello:${d.kod}`, d.gizli)
+      } catch {
+        /* gizli pencerede kalıcı olmayabilir; sayfa yine de katılma yolunu bulur */
+      }
+      window.location.href = `/duello/${d.kod}`
+    } catch (e) {
+      setDuelloHata((e as Error).message)
+      setDuelloKuruluyor(false)
+    }
+  }
 
   const chip = chipById(settings.category)
   const tierLabel = TIER_LABELS[settings.tier]
@@ -365,7 +396,46 @@ export function GameShell() {
                     >
                       <span aria-hidden style={{ fontSize: 13 }}>↻</span> Şarkıyı değiştir
                     </button>
+
+                    {/*
+                      Düello: aynı seçkiden 5 şarkı, kolaydan zora, iki kişi.
+                      Paylaşım düğmeleri kaldırıldığı için oyunun tek sosyal
+                      çıkışı burası.
+                    */}
+                    <button
+                      type="button"
+                      onClick={() => void duelloBaslat()}
+                      disabled={duelloKuruluyor}
+                      className="nk-skip"
+                      title="Arkadaşınla aynı 5 şarkıyı oyna"
+                      style={{
+                        ...GHOST,
+                        borderColor: 'var(--acc)',
+                        color: 'var(--acc)',
+                        background: 'oklch(0.81 0.12 var(--hue) / 0.08)',
+                        opacity: duelloKuruluyor ? 0.5 : 1,
+                        cursor: duelloKuruluyor ? 'progress' : 'pointer',
+                      }}
+                    >
+                      <span aria-hidden style={{ fontSize: 13 }}>⚔</span>{' '}
+                      {duelloKuruluyor ? 'lobi kuruluyor…' : 'Arkadaşınla oyna'}
+                    </button>
                   </div>
+
+                  {duelloHata && (
+                    <div
+                      role="alert"
+                      style={{
+                        marginTop: 14,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11.5,
+                        color: '#d09a9a',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {duelloHata}
+                    </div>
+                  )}
                 </div>
               )}
               </div>

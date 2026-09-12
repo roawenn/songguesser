@@ -52,8 +52,28 @@ export interface RoundApi {
   onWrong: (fn: () => void) => void
 }
 
-export function useRound(): RoundApi {
+/**
+ * Düello kipi: tur sırası dışarıdan sürülür.
+ *
+ * Düelloda iki oyuncu AYNI beş şarkıyı aynı sırayla oynar; hangi şarkının ne
+ * zaman kurulacağına `useRound` değil, düello sayfası karar verir. Havuz
+ * yüklemesi, otomatik tamamlama ve ses motoru aynen paylaşılır — tur mantığını
+ * ikinci kez yazmak, burada tek tek kazanılmış incelikleri (yarış koruması,
+ * takılma, prefetch) da ikinci kez kazanmak demek olurdu.
+ */
+export interface DizilimOpts {
+  /** Sırayla oynanacak sabit şarkılar. */
+  sequence: Song[]
+  /** Şu an kaçıncı şarkıdayız. */
+  index: number
+}
+
+export function useRound(dizilim?: DizilimOpts): RoundApi {
   const { category, tier, easySearch, volume, setTier } = useSettingsStore()
+
+  const sequence = dizilim?.sequence
+  const seqIndex = dizilim?.index ?? 0
+  const forcedSong = sequence?.[seqIndex] ?? null
 
   const [state, dispatch] = useReducer(gameReducer, { s: 'booting' } as GameState)
   const [pool, setPool] = useState<Song[]>([])
@@ -64,6 +84,15 @@ export function useRound(): RoundApi {
   const wrongHandler = useRef<(() => void) | null>(null)
   /** Sıradaki tur için önceden seçilip sesi önyüklenmiş şarkı. */
   const nextUp = useRef<Song | null>(null)
+  /**
+   * ⚠️ `startRound` bağımlılıksız bir `useCallback`; kimlik değişirse tur
+   * başlatma etkisi yeniden tetiklenir ve tur iki kez kurulur. Dizilim bu
+   * yüzden prop olarak değil ref üzerinden okunuyor.
+   */
+  const sequenceRef = useRef<Song[] | undefined>(undefined)
+  const seqIndexRef = useRef(0)
+  sequenceRef.current = sequence
+  seqIndexRef.current = seqIndex
   /**
    * Geçerli tur kurulumunun sıra numarası.
    *
@@ -105,13 +134,34 @@ export function useRound(): RoundApi {
   // Zorluk kademesi havuzu süzer; küratörlük inceyse komşu kademeler eklenir.
   const filtered = useMemo(() => filterByTier(pool, tier), [pool, tier])
 
+  /**
+   * Metin eşleştirmenin gördüğü havuz.
+   *
+   * ⚠️ Düelloda `filtered`'ın YANINA dizilimin tamamı eklenir. Düello şarkıları
+   * kademe 1'den 5'e yayılıyor, oyuncunun kendi kademesi ise tek bir değer;
+   * eklenmezse `buildIndex` cevabı içermez ve "Kolay arama" açık bir oyuncu
+   * doğru şarkıyı öneri listesinden ASLA seçemez — tur oynanamaz hâle gelir.
+   * `judgeGuess`'in rakip havuzu da aynı sebeple bunu görmeli.
+   */
+  const universe = useMemo(() => {
+    if (!sequence || sequence.length === 0) return filtered
+    const varOlan = new Set(filtered.map((s) => s.id))
+    const eksik = sequence.filter((s) => !varOlan.has(s.id))
+    return eksik.length > 0 ? [...filtered, ...eksik] : filtered
+  }, [filtered, sequence])
+
   // Öneri listesi ve belirsizlik koruması yalnızca oynanabilir havuzu görmeli.
   const index = useMemo(
-    () => (filtered.length > 0 ? buildIndex(filtered) : null),
-    [filtered],
+    () => (universe.length > 0 ? buildIndex(universe) : null),
+    [universe],
   )
 
-  const tooNarrow = !loading && pool.length > 0 && filtered.length < MIN_PLAYABLE
+  /**
+   * ⚠️ Düelloda bastırılır. `GameShell` bu ekranı sonuç panelinden ÖNCE
+   * kontrol ediyor; ince bir kademe düelloyu hiç başlatmadan kilitlerdi.
+   */
+  const tooNarrow =
+    !sequence && !loading && pool.length > 0 && filtered.length < MIN_PLAYABLE
 
   const ladder = useMemo(() => [...STEPS], [])
 
@@ -124,11 +174,12 @@ export function useRound(): RoundApi {
         return
       }
       /**
-       * Meydan okumada şarkı sabittir; `pickNext` atlanır.
+       * `forced` verilirse şarkı sabittir; `pickNext` atlanır — düello bunu
+       * kullanıyor.
        *
        * ⚠️ `nextUp` TÜKETİLMEZ: `arm()` etkin şeride, `prefetch()` boştaki
        * şeride yazıyor. Sabit şarkı etkin şeride kurulurken boştaki adayın sesi
-       * sağlam kalır ve meydan okuma bitince `swapLanes()` onu devralır — iki
+       * sağlam kalır ve sonraki turda `swapLanes()` onu devralır — iki
        * şeritli deck'in avantajı korunur.
        */
       let song = forced ?? null
@@ -175,14 +226,20 @@ export function useRound(): RoundApi {
          * `recycled` adayı atlanır: havuz tükenmişse `played` sıfırlanacak demektir,
          * bu kararı tur gerçekten başlarken vermek gerekir.
          */
-        const upcoming = pickNext(songs, played.current)
-        if (upcoming && !upcoming.recycled) {
-          nextUp.current = upcoming.song
+        // Düelloda sıradaki şarkı zaten belli; rastgele seçmenin anlamı yok.
+        const upcoming = forced
+          ? (sequenceRef.current?.[seqIndexRef.current + 1] ?? null)
+          : (() => {
+              const p = pickNext(songs, played.current)
+              return p && !p.recycled ? p.song : null
+            })()
+        if (upcoming) {
+          nextUp.current = upcoming
           clipPlayer.prefetch({
-            id: upcoming.song.id,
-            url: upcoming.song.p,
-            clipStart: upcoming.song.cs,
-            duration: upcoming.song.du,
+            id: upcoming.id,
+            url: upcoming.p,
+            clipStart: upcoming.cs,
+            duration: upcoming.du,
           })
         }
       } else if (result === 'dead-url') {
@@ -205,10 +262,18 @@ export function useRound(): RoundApi {
   )
 
   useEffect(() => {
-    if (loading || filtered.length === 0) return
+    if (loading) return
+    if (sequence) {
+      // Düello: sıradaki sabit şarkıyı kur. Havuz yalnızca otomatik tamamlama
+      // için lazım, bu yüzden `filtered` boş olsa bile devam edilir.
+      if (!forcedSong) return
+      void startRound(universe, ladder, 0, forcedSong)
+      return
+    }
+    if (filtered.length === 0) return
     void startRound(filtered, ladder)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, ladder, loading])
+  }, [filtered, ladder, loading, sequence, seqIndex, forcedSong])
 
   const clipLength = currentClipLength(state)
 
@@ -240,7 +305,7 @@ export function useRound(): RoundApi {
     (raw: string): Verdict => {
       if (state.s !== 'ready' && state.s !== 'playing') return { kind: 'empty' }
 
-      const verdict = judgeGuess(raw, state.track, filtered, { easySearch })
+      const verdict = judgeGuess(raw, state.track, universe, { easySearch })
 
       if (verdict.kind === 'correct') {
         clipPlayer.stop()
@@ -254,7 +319,7 @@ export function useRound(): RoundApi {
       }
       return verdict
     },
-    [state, filtered, easySearch, markWrong],
+    [state, universe, easySearch, markWrong],
   )
 
   /** Kolay modu: şıktan seçim. Metin eşleştirmesine gerek yok, id yeter. */
@@ -299,6 +364,15 @@ export function useRound(): RoundApi {
     clipPlayer.unlockFromGesture()
     clipPlayer.swapLanes()
 
+    /**
+     * ⚠️ Düelloda `next()` tur KURMAZ ve kademe YÜKSELTMEZ.
+     *
+     * Sırayı düello sayfası sürüyor (`index` artınca etki turu kurar); burada
+     * ayrıca `startRound` çağırmak turu iki kez kurardı. Kademe de oyuncunun
+     * kendi seçimi değil, düellonun rampası — kalıcı ayarına yazılmamalı.
+     */
+    if (sequence) return
+
     // Bildiyse bir üst kademeye çık; İmkansız'da (5) tavan.
     const climbed = state.s === 'won' ? Math.min(5, tier + 1) : tier
     if (climbed !== tier) {
@@ -308,7 +382,7 @@ export function useRound(): RoundApi {
       return
     }
     void startRound(filtered, ladder)
-  }, [state, tier, setTier, filtered, ladder, startRound])
+  }, [state, tier, setTier, filtered, ladder, startRound, sequence])
 
   const clearAmbiguity = useCallback(() => setAmbiguous(null), [])
   const onWrong = useCallback((fn: () => void) => {
