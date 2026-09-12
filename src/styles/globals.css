@@ -180,6 +180,23 @@ button {
 }
 
 /*
+ * Marka + kategoriler + sahne: tek bir dikey kompozisyon.
+ *
+ * ⚠️ `margin: auto` — `align-items: center` DEĞİL. Ekran içeriğe göre kısa
+ * kaldığında ortalama üst kenarı taşırır ve kategoriler kaydırılarak bile
+ * erişilemez hâle gelir; otomatik kenar boşluğu taşan durumda kendini kapatır.
+ */
+.nk-center {
+  margin: auto;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/*
  * Sahne ızgarası: solda ayarlar, ortada oyun, sağda nasıl oynanır.
  *
  * Orta sütun `minmax(0, 560px)`: `1fr` verilirse yan kartlar sahneyi ezer.
@@ -190,22 +207,17 @@ button {
   display: grid;
   grid-template-columns: 310px minmax(0, 560px) 310px;
   /*
-   * Geniş boşluk kasıtlı: yan kartlar sahneden uzaklaşınca sayfa genişliğini
-   * gerçekten kullanıyor ve kaset ortada yalnız kalmıyor. `justify-content`
-   * ızgarayı ortalar, `max-width` de çok geniş ekranlarda dağılmasını önler.
+   * Boşluk songspot ölçüsüne göre: orada yan paneller ekran genişliğinin
+   * ~%20'sinden başlıyor, bizde %23'ten başlıyordu. 150px'lik üst sınır bu
+   * farkı kapatır; `clamp` de ara genişliklerde ızgarayı daraltarak taşmayı
+   * önler — `8vw` tam olarak bu oranı korur.
    */
-  gap: 92px;
+  gap: clamp(56px, 8vw, 150px);
   align-items: start;
   justify-content: center;
   width: 100%;
-  max-width: 1500px;
-  /*
-   * ⚠️ `margin: auto` — `align-items: center` DEĞİL. Ekran içeriğe göre kısa
-   * kaldığında ortalama üst kenarı taşırır ve kategoriler kaydırılarak bile
-   * erişilemez hâle gelir; otomatik kenar boşluğu ise taşan durumda kendini
-   * kapatır.
-   */
-  margin: auto;
+  max-width: 1700px;
+  margin: 0 auto;
   padding: 6px 20px 30px;
   /*
    * ⚠️ `min-width: 0` ZORUNLU — ızgara bir flex öğesi ve flex öğelerinin
@@ -228,12 +240,12 @@ button {
 }
 
 /*
- * ⚠️ Kırılma noktası ızgaranın GERÇEK genişliğinden hesaplanır:
- * 310 + 560 + 310 + 2×92 boşluk + 40 iç dolgu = 1404px. Daha dar bir eşik
- * (ör. 1300) verildiğinde arada kalan genişliklerde üç sütun sığmıyor ve sahne
- * sağa taşıyordu.
+ * ⚠️ Kırılma noktası ızgaranın GERÇEK genişliğinden hesaplanır. 1501px'te
+ * boşluk 8vw = 120px, yani 310 + 560 + 310 + 240 + 40 iç dolgu = 1460px —
+ * kıl payı sığar. Daha dar bir eşik verildiğinde arada kalan genişliklerde üç
+ * sütun sığmıyor ve sahne sağa taşıyor.
  */
-@media (max-width: 1440px) {
+@media (max-width: 1500px) {
   .nk-stage-grid {
     /*
      * ⚠️ Tek iz `minmax(0, 1fr)` — sabit ya da yüzdeli bir max DEĞİL.

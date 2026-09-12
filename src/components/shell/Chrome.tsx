@@ -29,7 +29,7 @@ export function Header() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px 20px 10px',
+        padding: '0 20px 4px',
         width: '100%',
       }}
     >

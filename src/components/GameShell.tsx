@@ -137,25 +137,22 @@ export function GameShell() {
           minHeight: '100vh',
         }}
       >
-        <Header />
-
-        <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
-
         {/*
-         * Üç sütun: ayarlar · sahne · kurallar.
+         * ⚠️ Marka ve kategoriler sayfanın TEPESİNE sabitlenmiyor; oyunla birlikte
+         * tek bir ortalanmış blok oluşturuyorlar.
          *
-         * `flex: 1` + ızgaranın `margin: auto`su sayfanın alt yarısındaki boşluğu
-         * kapatır; eskiden içerik yukarı yapışıyor ve ekranın yarısı boş kalıyordu.
+         * Ayrı durduklarında kategori şeridi yukarıda öksüz kalıyor ve arada
+         * ~190px'lik anlamsız bir boşluk oluşuyordu. Referans aldığımız songspot
+         * düzeninde de marka, çipler ve oyun tek bir kompozisyon.
          */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            width: '100%',
-            paddingBottom: 8,
-          }}
-        >
-          <div className="nk-stage-grid">
+        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 8 }}>
+          <div className="nk-center">
+            <Header />
+
+            <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
+
+            {/* Üç sütun: ayarlar · sahne · kurallar. */}
+            <div className="nk-stage-grid">
             <div className="nk-side">
               <SettingsCard
                 volume={settings.volume}
@@ -334,6 +331,7 @@ export function GameShell() {
 
             <div className="nk-side">
               <HowToCard />
+            </div>
             </div>
           </div>
         </div>
