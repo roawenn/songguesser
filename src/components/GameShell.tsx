@@ -149,7 +149,7 @@ export function GameShell() {
           <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
         </div>
 
-        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 76 }}>
+        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 150 }}>
           <div className="nk-center">
             {/* Üç sütun: ayarlar · sahne · kurallar. */}
             <div className="nk-stage-grid">
@@ -164,13 +164,19 @@ export function GameShell() {
               />
             </div>
 
+            {/*
+             * Sahne dizilimi, aşağı indikçe açılan boşluklarla kuruluyor:
+             * kaset ve kademe sıkı bir ikili (aynı şeyi anlatıyorlar), sonra
+             * çubuk, sonra çalma kontrolleri, en altta tahmin ve çıkışlar.
+             * Tek tip `gap` yerine her adımın kendi payı var — dolayısıyla
+             * `gap: 0` ve öğelerde `marginTop`.
+             */}
             <main
               className="nk-stage"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 30,
                 width: '100%',
               }}
             >
@@ -182,10 +188,18 @@ export function GameShell() {
                 reduce={reduce}
               />
 
-              <TierStrip tier={settings.tier} onTier={settings.setTier} />
+              <div style={{ marginTop: 16 }}>
+                <TierStrip tier={settings.tier} onTier={settings.setTier} />
+              </div>
 
-              {/* Çubuk kasetle çalma kontrolleri arasında kendi nefesini alsın. */}
-              <div style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
+              <div
+                style={{
+                  marginTop: 36,
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
                 <StepIndicator
                   attempt={attempt}
                   steps={steps}
@@ -196,6 +210,15 @@ export function GameShell() {
                 />
               </div>
 
+              <div
+                style={{
+                  marginTop: 34,
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
               {state.s === 'error' ? (
                 <Notice tone="bad">
                   <p style={{ margin: 0, color: '#d09a9a', fontWeight: 500 }}>
@@ -253,7 +276,6 @@ export function GameShell() {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 26,
                     width: '100%',
                   }}
                 >
@@ -267,20 +289,23 @@ export function GameShell() {
                     onPlay={round.play}
                   />
 
-                  <GuessInput
-                    index={round.index}
-                    suggestions={settings.easySearch}
-                    disabled={!live}
-                    ambiguous={round.ambiguous}
-                    onGuess={round.guess}
-                    onPickAmbiguous={(song) => {
-                      round.clearAmbiguity()
-                      round.guessSong(song)
-                    }}
-                  />
+                  <div style={{ marginTop: 44, width: '100%' }}>
+                    <GuessInput
+                      index={round.index}
+                      suggestions={settings.easySearch}
+                      disabled={!live}
+                      ambiguous={round.ambiguous}
+                      onGuess={round.guess}
+                      onPickAmbiguous={(song) => {
+                        round.clearAmbiguity()
+                        round.guessSong(song)
+                      }}
+                    />
+                  </div>
 
                   <div
                     style={{
+                      marginTop: 44,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -288,19 +313,28 @@ export function GameShell() {
                       flexWrap: 'wrap',
                     }}
                   >
+                    {/*
+                      Geç, yanındaki "Şarkıyı değiştir"den farklı olarak BİR HAK
+                      YAKAR. İkisi de aynı nötr griyken yanlışlıkla pas geçmek
+                      kolaydı; bu yüzden kendi rengi var — sahnenin uyarı sarısı,
+                      hangi kategoride olursan ol aynı kalıyor.
+                    */}
                     <button
                       type="button"
                       onClick={round.skip}
                       disabled={!live}
-                      className="nk-skip"
+                      className="nk-pass"
                       style={{
                         ...GHOST,
+                        border: '1px solid rgba(201,162,94,0.38)',
+                        background: 'rgba(201,162,94,0.07)',
+                        color: '#d5b477',
                         opacity: live ? 1 : 0.4,
                         cursor: live ? 'pointer' : 'not-allowed',
                       }}
                     >
                       Geç{' '}
-                      <span style={{ color: '#6a7075', letterSpacing: 0, textTransform: 'none' }}>
+                      <span style={{ color: '#8a7448', letterSpacing: 0, textTransform: 'none' }}>
                         {attempt < ATTEMPTS - 1 ? `→ ${tr(STEPS[attempt + 1]!)}s` : '→ son hak'}
                       </span>
                     </button>
@@ -327,6 +361,7 @@ export function GameShell() {
                   </div>
                 </div>
               )}
+              </div>
             </main>
 
             <div className="nk-side">
@@ -344,6 +379,11 @@ export function GameShell() {
           border-color: var(--acc) !important;
           color: var(--acc) !important;
           background: rgba(255,255,255,0.07) !important;
+        }
+        .nk-pass:hover:not(:disabled) {
+          border-color: rgba(201,162,94,0.7) !important;
+          color: #e8c98c !important;
+          background: rgba(201,162,94,0.14) !important;
         }
       `}</style>
     </div>
