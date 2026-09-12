@@ -1,6 +1,9 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { CHIPS, type ChipId } from '@/data/categories'
+import { decodeChallenge } from '@/game/challenge'
+import { useSettingsStore } from '@/store/useSettingsStore'
 
 /**
  * Oyunu yalnızca tarayıcıda kur.
@@ -36,6 +39,47 @@ function GameSkeleton() {
   )
 }
 
-export function ClientGame() {
-  return <GameShell />
+/**
+ * ⚠️ Modül düzeyi bayrak. React iki kez render edebilir (StrictMode) ve seçkiyi
+ * iki kez yazmanın anlamı yok; ayrıca oyuncu sonradan elle seçki değiştirirse
+ * bunu geri almamalıyız.
+ */
+let seckiUygulandi = false
+
+/**
+ * Dış kaynaktan gelen seçkiyi kalıcı ayara yaz — `GameShell` MOUNT OLMADAN ÖNCE.
+ *
+ * İki giriş var: meydan okuma linki (`/meydan/<kod>`) ve `?secki=rap` (seçki
+ * giriş sayfalarından gelen bağlantılar).
+ *
+ * ⚠️ ZAMANLAMA. Bu iş `useEffect` içinde yapılsaydı `GameShell` çoktan mount
+ * olmuş ve KALICI seçki için bir havuz isteği atılmış olurdu; doğru seçki
+ * sonradan uygulandığında ikinci bir istek daha giderdi. Yukarıdaki yorumun
+ * anlattığı tuzağın aynısı. Burada, `GameShell` tembel yüklenmeden önce
+ * çalışıyor — o an store'a abone hiçbir bileşen olmadığı için render sırasında
+ * yazmak da güvenli.
+ */
+function seckiyiHizala(challenge?: string) {
+  if (seckiUygulandi || typeof window === 'undefined') return
+  seckiUygulandi = true
+
+  const hedef = challenge
+    ? decodeChallenge(challenge)?.result.chip
+    : new URLSearchParams(window.location.search).get('secki')
+
+  if (!hedef || !CHIPS.some((c) => c.id === hedef)) return
+  if (useSettingsStore.getState().category === hedef) return
+
+  /*
+   * ⚠️ Bu KALICI ayarı değiştirir (`nakarat:ayarlar:v3`). Bilinçli: sahne rengi,
+   * çip şeridi, kaset etiketi ve footer hepsi `settings.category`'den türüyor;
+   * gölge bir override üç bileşeni birden kirletirdi. Oyuncu zaten o seçkinin
+   * bağlantısına tıklayarak oraya geçmeyi kabul etmiş sayılır.
+   */
+  useSettingsStore.setState({ category: hedef as ChipId })
+}
+
+export function ClientGame({ challenge }: { challenge?: string } = {}) {
+  seckiyiHizala(challenge)
+  return <GameShell challenge={challenge} />
 }
