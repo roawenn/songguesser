@@ -1,30 +1,26 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { Song } from '@/data/schema'
 import { artworkAt } from '@/data/schema'
-import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
-import { heardLength, listenCount, type Step } from '@/game/machine'
+import { ATTEMPTS, tr } from '@/game/ladder'
+import { heardLength, type Step } from '@/game/machine'
+import type { ChipId } from '@/data/categories'
+import {
+  chipLabel, emojiLine, encodeShare, marksOf, verdictLine, type Mark,
+} from '@/game/share'
 import { Confetti } from './Confetti'
 
 interface Props {
   song: Song
   won: boolean
+  chip: ChipId
   steps: Step[]
-  categoryLabel: string
+  listens: number
+  heardIndex: number
+  ladder: number[]
   reduce: boolean
   onNext: () => void
-}
-
-type Mark = 'ok' | 'play' | 'wrong' | 'skip' | null
-
-/** Sonucu beş kutuya çevirir: doğru / dinlendi / yanlış / pas / kullanılmadı. */
-function marks(steps: Step[], won: boolean): Mark[] {
-  return Array.from({ length: ATTEMPTS }, (_, i) => {
-    if (i < steps.length) return steps[i]!.kind
-    if (i === steps.length && won) return 'ok'
-    return null
-  })
 }
 
 /**
@@ -54,45 +50,56 @@ function praise(heard: number): { headline: string; rank: string } {
 export function ResultPanel({
   song,
   won,
+  chip,
   steps,
-  categoryLabel,
+  listens,
+  heardIndex,
+  ladder,
   reduce,
   onNext,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null)
-  const [copied, setCopied] = useState(false)
-  const grid = marks(steps, won)
-  const listens = listenCount(steps)
-  const heardSeconds = heardLength(steps, [...STEPS])
+  const grid = marksOf(steps, won)
+  const heardSeconds = heardLength(heardIndex, ladder)
   const { headline, rank } = praise(heardSeconds)
+  const categoryLabel = chipLabel(chip)
 
-  // Ne kadar az adım harcadıysa konfeti o kadar coşkulu.
+  // Ne kadar az hak harcadıysa konfeti o kadar coşkulu.
   const intensity = won ? 1 - Math.min(steps.length, ATTEMPTS) / ATTEMPTS : 0
 
-  function copyShare() {
-    const line = grid
-      .map((m) =>
-        m === 'ok' ? '🟩' : m === 'wrong' ? '🟥' : m === 'play' ? '🟦' : m === 'skip' ? '⬜' : '⬛',
-      )
-      .join('')
-    // ⚠️ Şarkı adı ASLA paylaşım metnine girmez — cevabı sızdırır.
-    const score = won
-      ? heardSeconds > 0
-        ? `${tr(heardSeconds)} sn dinledim`
-        : 'hiç dinlemedim'
-      : 'bilemedim'
-    navigator.clipboard
-      ?.writeText(`nakarat · ${categoryLabel}\n${line}\n${score}`)
-      .then(() => setCopied(true))
-      .catch(() => setCopied(false))
-  }
+  /**
+   * Twitter'da paylaş.
+   *
+   * ⚠️ Şarkı adı ASLA metne girmez — cevabı sızdırır. Kutular ve süre yeter.
+   *
+   * Tweet'e doğrudan görsel eklenemez; bunun yerine sonucu kodlayan bir
+   * bağlantı paylaşılır ve Twitter o sayfanın kartını (kendi üretilen
+   * görselini) açar. Böylece hiçbir şey sunucuda saklanmadan paylaşılabilir
+   * bir kart oluşur — sonucun tamamı URL'in içindedir.
+   */
+  function share() {
+    const result = {
+      chip,
+      marks: grid,
+      won,
+      heardSeconds,
+      listens,
+    }
+    const origin = typeof window === 'undefined' ? '' : window.location.origin
+    const url = `${origin}/paylas/${encodeShare(result)}`
 
-  // "Kopyalandı" kalıcı olmasın: birkaç saniye sonra düğme eski hâline döner.
-  useEffect(() => {
-    if (!copied) return
-    const id = setTimeout(() => setCopied(false), 2400)
-    return () => clearTimeout(id)
-  }, [copied])
+    const text = [
+      `nakarat · ${categoryLabel}`,
+      emojiLine(grid),
+      `${verdictLine(result)} · ${listens} kez dinledim`,
+    ].join('\n')
+
+    const intent =
+      'https://twitter.com/intent/tweet?' +
+      new URLSearchParams({ text, url }).toString()
+
+    window.open(intent, '_blank', 'noopener,noreferrer')
+  }
 
   const anim = (delay: number) =>
     reduce ? undefined : `nk-slide .42s cubic-bezier(.22,1,.36,1) ${delay}s both`
@@ -281,24 +288,24 @@ export function ResultPanel({
           animation: anim(0.26),
         }}
       >
-        {grid.map((m, i) => (
+        {grid.map((m: Mark, i) => (
           <div
             key={i}
             style={{
               width: 22,
               height: 22,
               borderRadius: 3,
-              border: `1px solid ${m ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}`,
+              border: `1px solid ${
+                m === 'bos' ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.14)'
+              }`,
               background:
-                m === 'ok'
+                m === 'dogru'
                   ? 'var(--acc)'
-                  : m === 'play'
-                    ? 'oklch(0.81 0.12 var(--hue) / 0.3)'
-                    : m === 'wrong'
-                      ? 'rgba(160,90,90,0.45)'
-                      : m === 'skip'
-                        ? 'rgba(255,255,255,0.1)'
-                        : 'transparent',
+                  : m === 'yanlis'
+                    ? 'rgba(160,90,90,0.45)'
+                    : m === 'pas'
+                      ? 'rgba(255,255,255,0.1)'
+                      : 'transparent',
               // Kutular sırayla belirsin.
               animation: reduce
                 ? undefined
@@ -308,22 +315,29 @@ export function ResultPanel({
         ))}
         <button
           type="button"
-          onClick={copyShare}
-          className="nk-ghost"
+          onClick={share}
+          className="nk-share"
           style={{
             marginLeft: 'auto',
-            padding: '9px 14px',
-            border: '1px solid rgba(255,255,255,0.12)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '9px 15px',
+            border: '1px solid var(--acc)',
             borderRadius: 5,
-            background: 'transparent',
-            color: '#b9bec2',
+            background: 'oklch(0.81 0.12 var(--hue) / 0.1)',
+            color: 'var(--acc)',
             fontFamily: 'var(--font-mono)',
             fontSize: 11,
             letterSpacing: '.1em',
             textTransform: 'uppercase',
           }}
         >
-          {copied ? 'kopyalandı' : 'sonucu kopyala'}
+          {/* X/Twitter kuş yerine güncel logo — tek path, ek varlık yok. */}
+          <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.9 2h3.3l-7.2 8.3L23.4 22h-6.6l-5.2-6.8L5.6 22H2.3l7.7-8.8L1.9 2h6.8l4.7 6.2L18.9 2Zm-1.2 18h1.8L7.4 3.8H5.4L17.7 20Z" />
+          </svg>
+          Sonucu paylaş
         </button>
       </div>
 
@@ -394,6 +408,7 @@ export function ResultPanel({
       <style>{`
         .nk-ghost:hover { border-color: var(--acc) !important; color: var(--acc) !important; }
         .nk-next:hover { filter: brightness(1.1); }
+        .nk-share:hover { background: oklch(0.81 0.12 var(--hue) / 0.2) !important; }
       `}</style>
     </div>
   )

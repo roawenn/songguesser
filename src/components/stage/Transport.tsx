@@ -2,10 +2,11 @@
 
 import { useEffect, useRef } from 'react'
 import { clipPlayer } from '@/audio/ClipPlayer'
-import { ATTEMPTS, tr } from '@/game/ladder'
+import { tr } from '@/game/ladder'
 
 interface Props {
-  attempt: number
+  /** Kaç kez sonuna kadar dinlendi. Etiketteki sayı budur. */
+  listens: number
   clipLength: number
   playing: boolean
   disabled: boolean
@@ -21,7 +22,7 @@ interface Props {
  * çalma sırasında tüm ağacı yeniden render ederdi.
  */
 export function Transport({
-  attempt,
+  listens,
   clipLength,
   playing,
   disabled,
@@ -141,11 +142,7 @@ export function Transport({
           }}
           role={stalled ? 'status' : undefined}
         >
-          {stalled
-            ? 'bağlantı takıldı · hakkın gitmedi'
-            : attempt >= ATTEMPTS
-              ? 'son tahmin'
-              : `${attempt + 1}. deneme`}
+          {stalled ? 'bağlantı takıldı · hakkın gitmedi' : `${listens + 1}. deneme`}
         </div>
       </div>
 

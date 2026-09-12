@@ -1,29 +1,43 @@
 import type { Song } from '@/data/schema'
 
 /**
- * Bir adımı ne tüketti?
+ * Bir kademeyi ne tüketti?
  *
- * - `play`  → klip sonuna kadar dinlendi
- * - `wrong` → yanlış tahmin
- * - `skip`  → pas geçildi
+ * ⚠️ Dinlemek BU LİSTEDE YOK ve olmamalı. Oyuncu bulunduğu kademeyi istediği
+ * kadar tekrar dinleyebilir; klip yalnızca yanlış tahmin ya da pas ile uzar.
+ * Dinleme sayısı ayrıca tutulur (`listens`) çünkü gösterilen "N. deneme"
+ * etiketi onu sayar, kademeyi değil.
  */
-export type StepKind = 'play' | 'wrong' | 'skip'
+export type StepKind = 'wrong' | 'skip'
 
 export interface Step {
   kind: StepKind
-  /** Kullanıcının yazdığı ham metin (dinleme ve pasta boş). */
+  /** Kullanıcının yazdığı ham metin (pasta boş). */
   text: string
   /** Sanatçı doğru ama şarkı yanlış mıydı? */
   sameArtist: boolean
 }
 
+/** Tur boyunca biriken sayaçlar. Kademeden bağımsızdır. */
+interface Round {
+  track: Song
+  ladder: number[]
+  /** Merdivendeki konum — yalnızca yanlış tahmin ve pas ilerletir. */
+  attempt: number
+  steps: Step[]
+  /** Kaç kez sonuna kadar dinlendi. */
+  listens: number
+  /** Gerçekten duyulan en yüksek kademe; -1 = hiç dinlenmedi. */
+  heardIndex: number
+}
+
 export type GameState =
   | { s: 'booting' }
   | { s: 'arming'; track: Song; ladder: number[] }
-  | { s: 'ready'; track: Song; ladder: number[]; attempt: number; steps: Step[] }
-  | { s: 'playing'; track: Song; ladder: number[]; attempt: number; steps: Step[] }
-  | { s: 'won'; track: Song; ladder: number[]; attempt: number; steps: Step[] }
-  | { s: 'lost'; track: Song; ladder: number[]; attempt: number; steps: Step[] }
+  | ({ s: 'ready' } & Round)
+  | ({ s: 'playing' } & Round)
+  | ({ s: 'won' } & Round)
+  | ({ s: 'lost' } & Round)
   | { s: 'empty' }
   | { s: 'error'; reason: 'pool' | 'audio' | 'offline' }
 
@@ -32,61 +46,54 @@ export type Action =
   | { type: 'ARM_OK' }
   | { type: 'ARM_FAIL'; reason: 'pool' | 'audio' | 'offline' }
   | { type: 'PLAY' }
-  /** Klip sonuna kadar çalındı — BİR ADIM TÜKETİR. */
+  /** Klip sonuna kadar çalındı — yalnızca dinleme sayacını artırır. */
   | { type: 'CLIP_END' }
-  /** ⚠️ Takılma ASLA bir adıma mal olmaz. */
+  /** ⚠️ Takılma hiçbir sayacı artırmaz. */
   | { type: 'CLIP_STALL' }
   | { type: 'WRONG'; text: string; sameArtist: boolean }
   | { type: 'CORRECT' }
   | { type: 'SKIP' }
   | { type: 'EMPTY_POOL' }
 
-/** Oyuncunun kaç adımı var? Merdivenin kademe sayısı kadar. */
+/** Oyuncunun kaç hakkı var? Merdivenin kademe sayısı kadar. */
 export function attemptsFor(ladder: number[]): number {
   return ladder.length
 }
 
-/** Şu an çalınacak klip uzunluğu. Adımlar bittiyse 0. */
+/** Tur içinde miyiz? */
+export function inRound(state: GameState): state is Extract<GameState, { s: 'ready' | 'playing' }> {
+  return state.s === 'ready' || state.s === 'playing'
+}
+
+/** Şu an çalınacak klip uzunluğu. */
 export function currentClipLength(state: GameState): number {
-  if (state.s !== 'ready' && state.s !== 'playing') return 0
+  if (!inRound(state) && state.s !== 'won' && state.s !== 'lost') return 0
+  if (state.s === 'won' || state.s === 'lost') return 0
   return state.ladder[Math.min(state.attempt, state.ladder.length - 1)]!
 }
 
-/**
- * Çal düğmesi basılabilir mi?
- *
- * Her dinleme bir adım tüketir, dolayısıyla adımlar bitince dinleme de biter.
- * Tur o noktada kaybedilmez — oyuncunun bir tahmin hakkı daha kalır.
- */
+/** Çal düğmesi basılabilir mi? Tur sürdüğü sürece evet — dinlemek bedava. */
 export function canPlay(state: GameState): state is Extract<GameState, { s: 'ready' }> {
-  return state.s === 'ready' && state.attempt < state.ladder.length
+  return state.s === 'ready'
 }
 
-/** Kaç kez dinlendi? Sonuç kartındaki "N kez dinledin" için. */
-export function listenCount(steps: Step[]): number {
-  return steps.reduce((n, s) => n + (s.kind === 'play' ? 1 : 0), 0)
+/** Gerçekten duyulan en uzun klip (sn). Hiç dinlenmediyse 0. */
+export function heardLength(heardIndex: number, ladder: number[]): number {
+  return heardIndex < 0 ? 0 : (ladder[Math.min(heardIndex, ladder.length - 1)] ?? 0)
 }
 
-/** En uzun duyulan klip (sn). Hiç dinlenmediyse 0. */
-export function heardLength(steps: Step[], ladder: number[]): number {
-  let max = 0
-  steps.forEach((s, i) => {
-    if (s.kind === 'play') max = Math.max(max, ladder[i] ?? 0)
-  })
-  return max
-}
-
-/** Yanlış tahmin ve pas için: adımı tüket, son adımsa turu bitir. */
-function advance(
-  track: Song,
-  ladder: number[],
-  attempt: number,
-  steps: Step[],
-): GameState {
-  if (attempt + 1 >= ladder.length) {
-    return { s: 'lost', track, ladder, attempt: attempt + 1, steps }
-  }
-  return { s: 'ready', track, ladder, attempt: attempt + 1, steps }
+/**
+ * Yanlış tahmin ve pas için: kademeyi tüket, son kademeyse turu bitir.
+ *
+ * ⚠️ `s` spread'den SONRA yazılır. `round` çağrı yerinde tam durum nesnesidir,
+ * yani içinde `s: 'ready'` de vardır; `{ s: 'lost', ...next }` yazılsaydı
+ * spread onu geri ezer ve tur asla bitmezdi. TypeScript bunu yakalayamıyor
+ * çünkü `Round` tipinde `s` alanı yok.
+ */
+function advance(round: Round, steps: Step[]): GameState {
+  const next = { ...round, attempt: round.attempt + 1, steps }
+  const over = round.attempt + 1 >= round.ladder.length
+  return { ...next, s: over ? 'lost' : 'ready' }
 }
 
 export function gameReducer(state: GameState, action: Action): GameState {
@@ -96,7 +103,15 @@ export function gameReducer(state: GameState, action: Action): GameState {
 
     case 'ARM_OK':
       if (state.s !== 'arming') return state
-      return { s: 'ready', track: state.track, ladder: state.ladder, attempt: 0, steps: [] }
+      return {
+        s: 'ready',
+        track: state.track,
+        ladder: state.ladder,
+        attempt: 0,
+        steps: [],
+        listens: 0,
+        heardIndex: -1,
+      }
 
     case 'ARM_FAIL':
       return { s: 'error', reason: action.reason }
@@ -108,48 +123,39 @@ export function gameReducer(state: GameState, action: Action): GameState {
       if (!canPlay(state)) return state
       return { ...state, s: 'playing' }
 
-    case 'CLIP_END': {
+    case 'CLIP_END':
       if (state.s !== 'playing') return state
-      const steps = [...state.steps, { kind: 'play' as const, text: '', sameArtist: false }]
-      // ⚠️ Dinlemek turu BİTİRMEZ. Son adım da tükense oyuncunun bir tahmin
-      // hakkı kalır; tur yalnızca yanlış tahmin ya da pas ile kaybedilir.
+      // Kademe DEĞİŞMEZ: aynı uzunluk istendiği kadar tekrar dinlenebilir.
       return {
+        ...state,
         s: 'ready',
-        track: state.track,
-        ladder: state.ladder,
-        attempt: state.attempt + 1,
-        steps,
+        listens: state.listens + 1,
+        heardIndex: Math.max(state.heardIndex, state.attempt),
       }
-    }
 
     case 'CLIP_STALL':
-      // Adım sayacı DEĞİŞMEZ. Oyuncu ağ hatası yüzünden hak kaybetmemeli.
+      // Ağ hatası oyuncuya hiçbir şeye mal olmaz — dinleme bile sayılmaz.
       if (state.s !== 'playing') return state
       return { ...state, s: 'ready' }
 
     case 'CORRECT':
-      if (state.s !== 'ready' && state.s !== 'playing') return state
-      return {
-        s: 'won',
-        track: state.track,
-        ladder: state.ladder,
-        attempt: state.attempt,
-        steps: state.steps,
-      }
+      if (!inRound(state)) return state
+      return { ...state, s: 'won' }
 
     case 'WRONG': {
-      if (state.s !== 'ready' && state.s !== 'playing') return state
-      const steps = [
+      if (!inRound(state)) return state
+      return advance(state, [
         ...state.steps,
         { kind: 'wrong' as const, text: action.text, sameArtist: action.sameArtist },
-      ]
-      return advance(state.track, state.ladder, state.attempt, steps)
+      ])
     }
 
     case 'SKIP': {
-      if (state.s !== 'ready' && state.s !== 'playing') return state
-      const steps = [...state.steps, { kind: 'skip' as const, text: '', sameArtist: false }]
-      return advance(state.track, state.ladder, state.attempt, steps)
+      if (!inRound(state)) return state
+      return advance(state, [
+        ...state.steps,
+        { kind: 'skip' as const, text: '', sameArtist: false },
+      ])
     }
 
     default:

@@ -31,7 +31,7 @@ export interface RoundApi {
   tooNarrow: boolean
   index: ReturnType<typeof buildIndex> | null
   clipLength: number
-  /** Dinleme hakkı kaldı mı? Adımlar bitince Çal kapanır, tur bitmez. */
+  /** Çal basılabilir mi? Tur sürdüğü sürece evet — dinlemek bedava. */
   canPlay: boolean
   loading: boolean
   /** Son tahmin belirsizse adaylar burada — hak tüketilmedi. */
@@ -44,6 +44,8 @@ export interface RoundApi {
   guess: (raw: string) => Verdict
   guessSong: (song: Song) => void
   skip: () => void
+  /** Aynı seçkide başka bir şarkıya geç — bedava, hak tüketmez. */
+  reroll: () => void
   next: () => void
   clearAmbiguity: () => void
   /** Yanlış tahminde kaseti sarsmak için kayıt olunur. */
@@ -238,6 +240,21 @@ export function useRound(): RoundApi {
     setAmbiguous(null)
   }, [state])
 
+  /**
+   * Şarkıyı değiştir: aynı seçki, aynı zorluk, yeni parça.
+   *
+   * Pas geçmekten farkı bedava olması — tur kaybedilmez, kademe tüketilmez.
+   * Tanımadığı bir şarkıyı beş hak boyunca zorlamak yerine oyuncu turu
+   * tamamen bırakabilsin diye var.
+   */
+  const reroll = useCallback(() => {
+    // iOS: önyükleme bir gesture içinde başlamalı — bu tıklama o gesture.
+    clipPlayer.unlockFromGesture()
+    clipPlayer.stop()
+    clipPlayer.swapLanes()
+    void startRound(filtered, ladder)
+  }, [filtered, ladder, startRound])
+
   const next = useCallback(() => {
     // iOS: önyükleme bir gesture içinde başlamalı — "Sıradaki" tıklaması bu.
     clipPlayer.unlockFromGesture()
@@ -268,6 +285,6 @@ export function useRound(): RoundApi {
   return {
     state, pool, filtered, tooNarrow, index, clipLength, loading, ambiguous, stalled, tapeCode,
     canPlay: canPlay(state),
-    play, guess, guessSong, skip, next, clearAmbiguity, onWrong,
+    play, guess, guessSong, skip, reroll, next, clearAmbiguity, onWrong,
   }
 }

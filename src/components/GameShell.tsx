@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { chipById, TIER_LABELS } from '@/data/categories'
@@ -12,7 +12,7 @@ import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
 import { ResultPanel } from './reveal/ResultPanel'
 import { Header, ControlStrip, Footer } from './shell/Chrome'
-import { Sheet, type SheetTab } from './shell/Sheet'
+import { SettingsCard, HowToCard } from './shell/SidePanels'
 
 export function GameShell() {
   const round = useRound()
@@ -21,10 +21,9 @@ export function GameShell() {
   /**
    * ⚠️ Sistemin `prefers-reduced-motion` tercihi KASITLI olarak okunmuyor.
    *
-   * Windows'ta "Animasyon efektleri" kapalı olan makinelerde Chrome bu tercihi
-   * bildiriyor ve makara dönüşü, konfeti, kart patlaması — kısacası oyunun
-   * bütün geri bildirimi tek bayrakla ölüyordu. Kısıtlamak isteyen Ayarlar'dan
-   * kapatır; karar oyuncunun.
+   * Windows'ta "Animasyon efektleri" kapalı olan makinelerde Chrome bunu
+   * bildiriyor ve makara dönüşü, konfeti, kart patlaması — oyunun bütün geri
+   * bildirimi tek bayrakla ölüyordu. Kısıtlamak isteyen Ayarlar'dan kapatır.
    */
   const reduce = settings.reduce
 
@@ -35,7 +34,6 @@ export function GameShell() {
     else root.removeAttribute('data-motion')
   }, [reduce])
 
-  const [sheet, setSheet] = useState<SheetTab | null>(null)
   const cassette = useRef<CassetteHandle>(null)
 
   const chip = chipById(settings.category)
@@ -54,8 +52,8 @@ export function GameShell() {
       const t = e.target as HTMLElement | null
       if (t?.tagName === 'INPUT' || t?.tagName === 'TEXTAREA') return
       // ⚠️ Boşluk, odaktaki düğmeyi tetiklemenin standart yolu. Burada
-      // yutulursa klavyeyle gezen oyuncu "Sıradaki şarkı", "Geç" ve Ayarlar'daki
-      // anahtarların hiçbirini çalıştıramaz.
+      // yutulursa klavyeyle gezen oyuncu "Sıradaki şarkı", "Geç" ve
+      // Ayarlar'daki anahtarların hiçbirini çalıştıramaz.
       if (t?.closest('button, a, [role="switch"], [role="slider"], [contenteditable]')) return
       if (e.code === 'Space') {
         e.preventDefault()
@@ -70,19 +68,18 @@ export function GameShell() {
   const playing = state.s === 'playing'
   const arming = state.s === 'arming' || state.s === 'booting'
   const finished = state.s === 'won' || state.s === 'lost'
-  const inRound = state.s === 'ready' || state.s === 'playing'
-
-  const closeSheet = useCallback(() => setSheet(null), [])
+  const live = state.s === 'ready' || state.s === 'playing'
 
   const attempt = 'attempt' in state ? state.attempt : 0
   const steps = 'steps' in state ? state.steps : []
+  const listens = 'listens' in state ? state.listens : 0
+  const heardIndex = 'heardIndex' in state ? state.heardIndex : -1
 
   /**
    * Ekran okuyucu için tur anlatımı.
    *
-   * Yanlış tahmin, uzayan klip ve sonuç tamamen görsel olarak bildiriliyordu;
-   * projede tek bir `aria-live` yoktu. Metin son adımdan türetiliyor, yani her
-   * eylemden sonra değişiyor ve yeniden okunuyor.
+   * Yanlış tahmin, uzayan klip ve sonuç tamamen görsel olarak bildiriliyordu.
+   * Metin son eylemden türediği için her adımda değişir ve yeniden okunur.
    */
   const announcement = (() => {
     if (state.s === 'won') return `Doğru! ${state.track.a} — ${state.track.t}`
@@ -91,17 +88,9 @@ export function GameShell() {
     if (round.stalled) return 'Bağlantı takıldı, hakkın gitmedi'
     if (state.s !== 'ready') return ''
     const last = steps[steps.length - 1]
+    const head = last?.kind === 'wrong' ? 'Yanlış.' : last?.kind === 'skip' ? 'Pas geçildi.' : ''
     const left = ATTEMPTS - attempt
-    const head =
-      last?.kind === 'wrong'
-        ? 'Yanlış.'
-        : last?.kind === 'skip'
-          ? 'Pas geçildi.'
-          : last?.kind === 'play'
-            ? 'Klip bitti.'
-            : ''
-    if (!round.canPlay) return `${head} Dinleme hakkın bitti, son tahminin.`
-    return `${head} ${left} adım kaldı. Sıradaki klip ${tr(round.clipLength)} saniye.`.trim()
+    return `${head} Klip ${tr(round.clipLength)} saniye. ${left} hakkın kaldı.`.trim()
   })()
 
   return (
@@ -131,7 +120,6 @@ export function GameShell() {
           margin: -1,
           padding: 0,
           overflow: 'hidden',
-          clip: 'rect(0 0 0 0)',
           clipPath: 'inset(50%)',
           whiteSpace: 'nowrap',
           border: 0,
@@ -149,7 +137,7 @@ export function GameShell() {
           minHeight: '100vh',
         }}
       >
-        <Header onMenu={() => setSheet((s) => (s ? null : 'how'))} />
+        <Header />
 
         <ControlStrip
           category={settings.category}
@@ -158,115 +146,35 @@ export function GameShell() {
           onTier={settings.setTier}
         />
 
-        <main
+        {/*
+         * Üç sütun: ayarlar · sahne · kurallar.
+         *
+         * `flex: 1` + dikey ortalama, sayfanın alt yarısındaki boşluğu kapatır;
+         * eskiden içerik yukarı yapışıyor ve ekranın yarısı bomboş kalıyordu.
+         */}
+        <div
           style={{
             flex: 1,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'flex-start',
-            gap: 26,
-            padding: '18px 20px 60px',
             width: '100%',
-            maxWidth: 640,
-            margin: '0 auto',
+            paddingBottom: 8,
           }}
         >
-          <Cassette
-            handleRef={cassette}
-            categoryLabel={chip.label}
-            tapeCode={round.tapeCode}
-            playing={playing}
-            reduce={reduce}
-          />
+          <div className="nk-stage-grid">
+            <div className="nk-side">
+              <SettingsCard
+                volume={settings.volume}
+                reduce={settings.reduce}
+                easySearch={settings.easySearch}
+                onVolume={settings.setVolume}
+                onReduce={settings.setReduce}
+                onEasySearch={settings.setEasySearch}
+              />
+            </div>
 
-          <StepIndicator
-            attempt={attempt}
-            steps={steps}
-            playing={playing}
-            clipLength={round.clipLength}
-            roundKey={'track' in state ? state.track.id : 'yok'}
-          />
-
-          {state.s === 'error' ? (
-            <div
-              style={{
-                maxWidth: 420,
-                textAlign: 'center',
-                padding: 18,
-                border: '1px solid rgba(160,90,90,0.35)',
-                borderRadius: 8,
-                background: 'rgba(160,90,90,0.06)',
-              }}
-            >
-              <p style={{ margin: 0, color: '#d09a9a', fontWeight: 500 }}>
-                {state.reason === 'pool'
-                  ? 'Şarkı listesi yüklenemedi.'
-                  : state.reason === 'audio'
-                    ? 'Tarayıcın bu sesi çalamıyor.'
-                    : 'Şarkı yüklenemedi.'}
-              </p>
-              <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#8c9297' }}>
-                {state.reason === 'audio'
-                  ? 'Güncel bir tarayıcıyla dene.'
-                  : 'Bağlantını kontrol edip tekrar dene.'}
-              </p>
-              {state.reason !== 'audio' && (
-                <button
-                  type="button"
-                  onClick={() => window.location.reload()}
-                  className="nk-skip"
-                  style={{
-                    marginTop: 14,
-                    padding: '10px 18px',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    borderRadius: 5,
-                    background: 'rgba(255,255,255,0.04)',
-                    color: '#dfe2e4',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 12,
-                    letterSpacing: '.12em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Tekrar dene
-                </button>
-              )}
-            </div>
-          ) : round.tooNarrow ? (
-            <div
-              style={{
-                maxWidth: 420,
-                textAlign: 'center',
-                padding: 18,
-                border: '1px solid rgba(201,162,94,0.3)',
-                borderRadius: 8,
-                background: 'rgba(201,162,94,0.06)',
-              }}
-            >
-              <p style={{ margin: 0, color: '#c9a25e', fontWeight: 500 }}>
-                Bu zorlukta yeterli şarkı yok.
-              </p>
-              <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#8c9297' }}>
-                Başka bir seçki ya da zorluk dene.
-              </p>
-            </div>
-          ) : state.s === 'empty' ? (
-            <div style={{ color: '#8c9297', fontSize: 13.5 }}>
-              Bu seçkide şarkı bulunamadı.
-            </div>
-          ) : finished ? (
-            <ResultPanel
-              key={state.track.id}
-              song={state.track}
-              won={state.s === 'won'}
-              steps={steps}
-              categoryLabel={chip.label}
-              reduce={reduce}
-              onNext={round.next}
-            />
-          ) : (
-            <div
+            <main
+              className="nk-stage"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -275,89 +183,164 @@ export function GameShell() {
                 width: '100%',
               }}
             >
-              <Transport
-                attempt={attempt}
-                clipLength={round.clipLength}
+              <Cassette
+                handleRef={cassette}
+                categoryLabel={chip.label}
+                tapeCode={round.tapeCode}
                 playing={playing}
-                disabled={!round.canPlay || playing}
-                arming={arming}
-                stalled={round.stalled}
-                onPlay={round.play}
+                reduce={reduce}
               />
 
-              <GuessInput
-                index={round.index}
-                suggestions={settings.easySearch}
-                disabled={!inRound}
-                ambiguous={round.ambiguous}
-                onGuess={round.guess}
-                onPickAmbiguous={(song) => {
-                  round.clearAmbiguity()
-                  round.guessSong(song)
-                }}
+              <StepIndicator
+                attempt={attempt}
+                steps={steps}
+                playing={playing}
+                clipLength={round.clipLength}
+                heardIndex={heardIndex}
+                roundKey={'track' in state ? state.track.id : 'yok'}
               />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-                <button
-                  type="button"
-                  onClick={round.skip}
-                  disabled={!inRound}
-                  className="nk-skip"
+              {state.s === 'error' ? (
+                <Notice tone="bad">
+                  <p style={{ margin: 0, color: '#d09a9a', fontWeight: 500 }}>
+                    {state.reason === 'pool'
+                      ? 'Şarkı listesi yüklenemedi.'
+                      : state.reason === 'audio'
+                        ? 'Tarayıcın bu sesi çalamıyor.'
+                        : 'Şarkı yüklenemedi.'}
+                  </p>
+                  <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#8c9297' }}>
+                    {state.reason === 'audio'
+                      ? 'Güncel bir tarayıcıyla dene.'
+                      : 'Bağlantını kontrol edip tekrar dene.'}
+                  </p>
+                  {state.reason !== 'audio' && (
+                    <button
+                      type="button"
+                      onClick={() => window.location.reload()}
+                      className="nk-skip"
+                      style={{ ...GHOST, marginTop: 14 }}
+                    >
+                      Tekrar dene
+                    </button>
+                  )}
+                </Notice>
+              ) : round.tooNarrow ? (
+                <Notice tone="warn">
+                  <p style={{ margin: 0, color: '#c9a25e', fontWeight: 500 }}>
+                    Bu zorlukta yeterli şarkı yok.
+                  </p>
+                  <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#8c9297' }}>
+                    Başka bir seçki ya da zorluk dene.
+                  </p>
+                </Notice>
+              ) : state.s === 'empty' ? (
+                <div style={{ color: '#8c9297', fontSize: 13.5 }}>
+                  Bu seçkide şarkı bulunamadı.
+                </div>
+              ) : finished ? (
+                <ResultPanel
+                  key={state.track.id}
+                  song={state.track}
+                  won={state.s === 'won'}
+                  chip={settings.category}
+                  steps={steps}
+                  listens={listens}
+                  heardIndex={heardIndex}
+                  ladder={state.ladder}
+                  reduce={reduce}
+                  onNext={round.next}
+                />
+              ) : (
+                <div
                   style={{
-                    display: 'inline-flex',
+                    display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 9,
-                    padding: '12px 20px',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    borderRadius: 5,
-                    background: 'rgba(255,255,255,0.04)',
-                    color: '#dfe2e4',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 12,
-                    letterSpacing: '.12em',
-                    textTransform: 'uppercase',
-                    opacity: inRound ? 1 : 0.4,
-                    cursor: inRound ? 'pointer' : 'not-allowed',
+                    gap: 20,
+                    width: '100%',
                   }}
                 >
-                  Geç <span style={{ fontSize: 14 }}>→</span>
-                </button>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 11,
-                    color: '#4e5459',
-                  }}
-                >
-                  {attempt >= ATTEMPTS - 1
-                    ? 'son hak'
-                    : `sonraki: ${tr(STEPS[attempt + 1]!)}s`}
-                </span>
-              </div>
+                  <Transport
+                    listens={listens}
+                    clipLength={round.clipLength}
+                    playing={playing}
+                    disabled={!round.canPlay}
+                    arming={arming}
+                    stalled={round.stalled}
+                    onPlay={round.play}
+                  />
+
+                  <GuessInput
+                    index={round.index}
+                    suggestions={settings.easySearch}
+                    disabled={!live}
+                    ambiguous={round.ambiguous}
+                    onGuess={round.guess}
+                    onPickAmbiguous={(song) => {
+                      round.clearAmbiguity()
+                      round.guessSong(song)
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 10,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={round.skip}
+                      disabled={!live}
+                      className="nk-skip"
+                      style={{
+                        ...GHOST,
+                        opacity: live ? 1 : 0.4,
+                        cursor: live ? 'pointer' : 'not-allowed',
+                      }}
+                    >
+                      Geç{' '}
+                      <span style={{ color: '#6a7075', letterSpacing: 0, textTransform: 'none' }}>
+                        {attempt < ATTEMPTS - 1 ? `→ ${tr(STEPS[attempt + 1]!)}s` : '→ son hak'}
+                      </span>
+                    </button>
+
+                    {/*
+                      Şarkı değiştirmek pas geçmekten farklı: hak tüketmez,
+                      turu sıfırdan kurar. Tanımadığı bir parçayı beş hak
+                      boyunca zorlamak zorunda kalmasın.
+                    */}
+                    <button
+                      type="button"
+                      onClick={round.reroll}
+                      disabled={arming}
+                      className="nk-skip"
+                      title="Aynı seçkide başka bir şarkıya geç — hakkın gitmez"
+                      style={{
+                        ...GHOST,
+                        opacity: arming ? 0.4 : 1,
+                        cursor: arming ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <span aria-hidden style={{ fontSize: 13 }}>↻</span> Şarkıyı değiştir
+                    </button>
+                  </div>
+                </div>
+              )}
+            </main>
+
+            <div className="nk-side">
+              <HowToCard />
             </div>
-          )}
-        </main>
+          </div>
+        </div>
 
-        <Footer
-          categoryLabel={chip.label}
-          tierLabel={tierLabel}
-          onHow={() => setSheet('how')}
-        />
+        <Footer categoryLabel={chip.label} tierLabel={tierLabel} />
       </div>
-
-      {sheet && (
-        <Sheet
-          tab={sheet}
-          volume={settings.volume}
-          reduce={settings.reduce}
-          easySearch={settings.easySearch}
-          onTab={setSheet}
-          onVolume={settings.setVolume}
-          onReduce={settings.setReduce}
-          onEasySearch={settings.setEasySearch}
-          onClose={closeSheet}
-        />
-      )}
 
       <style>{`
         .nk-skip:hover:not(:disabled) {
@@ -366,6 +349,39 @@ export function GameShell() {
           background: rgba(255,255,255,0.07) !important;
         }
       `}</style>
+    </div>
+  )
+}
+
+const GHOST = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '11px 18px',
+  border: '1px solid rgba(255,255,255,0.16)',
+  borderRadius: 5,
+  background: 'rgba(255,255,255,0.04)',
+  color: '#dfe2e4',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 11.5,
+  letterSpacing: '.1em',
+  textTransform: 'uppercase' as const,
+}
+
+function Notice({ tone, children }: { tone: 'bad' | 'warn'; children: React.ReactNode }) {
+  const color = tone === 'bad' ? '160,90,90' : '201,162,94'
+  return (
+    <div
+      style={{
+        maxWidth: 420,
+        textAlign: 'center',
+        padding: 18,
+        border: `1px solid rgba(${color},0.35)`,
+        borderRadius: 8,
+        background: `rgba(${color},0.06)`,
+      }}
+    >
+      {children}
     </div>
   )
 }

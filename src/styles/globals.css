@@ -180,6 +180,46 @@ button {
 }
 
 /*
+ * Sahne ızgarası: solda ayarlar, ortada oyun, sağda nasıl oynanır.
+ *
+ * ⚠️ Orta sütun `minmax(0, 560px)`: sabit genişlik verilirse dar ekranda taşar,
+ * `1fr` verilirse yan kartlar sahneyi ezer. Yan sütunlar sahneyi ORTALAMAK için
+ * eşit genişlikte — biri boş olsa bile yer kaplamalı, yoksa kaset kayar.
+ */
+.nk-stage-grid {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 560px) 270px;
+  gap: 26px;
+  align-items: start;
+  justify-content: center;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 6px 20px 40px;
+}
+
+/* Yan kartlar sahneyle birlikte nefes alsın, ekrana yapışmasınlar. */
+.nk-stage-grid > .nk-side {
+  position: sticky;
+  top: 20px;
+}
+
+@media (max-width: 1120px) {
+  .nk-stage-grid {
+    grid-template-columns: minmax(0, 560px);
+    gap: 20px;
+  }
+  /* Kartlar sahnenin ALTINA geçer; ayarlar önce, kurallar sonra. */
+  .nk-stage-grid > .nk-stage {
+    order: 0;
+  }
+  .nk-stage-grid > .nk-side {
+    position: static;
+    order: 1;
+  }
+}
+
+/*
  * Kategori şeridi taşarsa kenarlarda soluklaşma: devamı olduğunu gösterir.
  * `mask-image` kaydırma konumundan bağımsız çalışır ve tıklamayı engellemez.
  */

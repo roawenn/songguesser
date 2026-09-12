@@ -11,6 +11,8 @@ interface Props {
   playing: boolean
   /** Çalan klibin uzunluğu (sn). */
   clipLength: number
+  /** Gerçekten duyulan en yüksek kademe; -1 = hiç dinlenmedi. */
+  heardIndex: number
   /** Şarkı kimliği — değişince "duyulan" işareti sıfırlanır. */
   roundKey: string
 }
@@ -32,18 +34,16 @@ export function StepIndicator({
   steps,
   playing,
   clipLength,
+  heardIndex,
   roundKey,
 }: Props) {
   const sweepRef = useRef<HTMLDivElement>(null)
-  /** Şimdiye kadar duyulan en yüksek kademe; -1 = henüz hiç çalınmadı. */
-  const heard = useRef(-1)
 
   const pctFor = (tierIndex: number) =>
     (Math.min(tierIndex + 1, ATTEMPTS) / ATTEMPTS) * 100
 
-  // Yeni şarkı: duyulan işareti sıfırlanır.
+  // Yeni şarkı: dolgu sıfırlanır. (Duyulan kademe artık oyun durumunda tutulur.)
   useEffect(() => {
-    heard.current = -1
     if (sweepRef.current) sweepRef.current.style.width = '0%'
   }, [roundKey])
 
@@ -52,7 +52,7 @@ export function StepIndicator({
     if (!el) return
 
     if (!playing) {
-      el.style.width = heard.current >= 0 ? `${pctFor(heard.current)}%` : '0%'
+      el.style.width = heardIndex >= 0 ? `${pctFor(heardIndex)}%` : '0%'
       return
     }
 
@@ -67,16 +67,13 @@ export function StepIndicator({
       if (start != null) {
         const p = Math.max(0, Math.min(1, (performance.now() - start) / total))
         el.style.width = `${(p * target).toFixed(2)}%`
-        if (p >= 1) {
-          heard.current = Math.max(heard.current, attempt)
-          return
-        }
+        if (p >= 1) return
       }
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [playing, clipLength, attempt])
+  }, [playing, clipLength, attempt, heardIndex])
 
   const hole = {
     width: 13,
@@ -123,9 +120,7 @@ export function StepIndicator({
                     ? `Yanlış: ${step.text}`
                     : step?.kind === 'skip'
                       ? 'Pas geçildi'
-                      : step?.kind === 'play'
-                        ? `${tr(len)} saniye dinlendi`
-                        : `${tr(len)} saniye`
+                      : `${tr(len)} saniye`
                 }
                 style={{
                   flex: 1,
@@ -133,9 +128,8 @@ export function StepIndicator({
                   border: `1px solid ${
                     i <= attempt ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)'
                   }`,
-                  // Yanlış tahmin ve pas, dolgunun üstünde işaretlenir.
-                  // `play` kasıtlı olarak saydam: o adımı zaten süpüren dolgu
-                  // boyuyor, üstüne ikinci bir vurgu katmanı eklemek gereksiz.
+                  // Yalnızca hak tüketen eylemler işaretlenir. Dinlemek kutu
+                  // doldurmaz — duyulan yeri zaten alttaki dolgu gösteriyor.
                   background:
                     step?.kind === 'wrong'
                       ? 'rgba(160,90,90,0.8)'

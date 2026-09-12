@@ -12,68 +12,39 @@ const MONO_CAPTION = {
   color: '#5c6267',
 }
 
-/** Hamburger + ortada marka. */
-export function Header({ onMenu }: { onMenu: () => void }) {
+/**
+ * Marka.
+ *
+ * Hamburger kaldırıldı: ayarlar ve kurallar artık sahnenin iki yanında kalıcı
+ * kartlar olarak duruyor (bkz. SidePanels). Menü arkasına saklanacak bir şey
+ * kalmadı.
+ */
+export function Header() {
   return (
     <header
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
-        padding: '18px 20px 12px',
-        maxWidth: 1180,
+        justifyContent: 'center',
+        padding: '20px 20px 10px',
         width: '100%',
-        margin: '0 auto',
       }}
     >
-      <button
-        type="button"
-        onClick={onMenu}
-        aria-label="Menü"
-        className="nk-burger"
+      <h1
         style={{
-          display: 'grid',
-          gap: 4,
-          width: 38,
-          height: 38,
-          placeContent: 'center',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 999,
-          background: 'rgba(255,255,255,0.03)',
-          color: '#cfd3d6',
+          fontFamily: 'var(--font-serif)',
+          fontStyle: 'italic',
+          fontWeight: 400,
+          fontSize: 30,
+          lineHeight: 1,
+          letterSpacing: '.01em',
+          color: '#f2f4f5',
+          textShadow: '0 0 28px var(--accSoft)',
+          margin: 0,
         }}
       >
-        <span style={{ display: 'block', width: 15, height: 1.5, background: 'currentColor' }} />
-        <span style={{ display: 'block', width: 15, height: 1.5, background: 'currentColor' }} />
-        <span style={{ display: 'block', width: 9, height: 1.5, background: 'currentColor' }} />
-      </button>
-
-      <div style={{ flex: 1, textAlign: 'center' }}>
-        <h1
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontStyle: 'italic',
-            fontWeight: 400,
-            fontSize: 30,
-            lineHeight: 1,
-            letterSpacing: '.01em',
-            color: '#f2f4f5',
-            textShadow: '0 0 28px var(--accSoft)',
-            margin: 0,
-          }}
-        >
-          nakarat
-        </h1>
-      </div>
-
-      <div style={{ width: 38, flex: 'none' }} />
-
-      <style>{`
-        .nk-burger:hover {
-          border-color: rgba(255,255,255,0.24) !important;
-          background: rgba(255,255,255,0.06) !important;
-        }
-      `}</style>
+        nakarat
+      </h1>
     </header>
   )
 }
@@ -228,49 +199,36 @@ export function ControlStrip({ category, tier, onCategory, onTier }: StripProps)
 interface FooterProps {
   categoryLabel: string
   tierLabel: string
-  onHow: () => void
 }
 
-export function Footer({ categoryLabel, tierLabel, onHow }: FooterProps) {
+/**
+ * İnce künye şeridi.
+ *
+ * "Nasıl oynanır" bağlantısı kaldırıldı: kurallar artık sahnenin sağındaki
+ * kalıcı kartta duruyor, aynı şeyi iki yere koymanın anlamı yok.
+ */
+export function Footer({ categoryLabel, tierLabel }: FooterProps) {
   return (
     <footer
       style={{
-        padding: '0 20px 30px',
+        padding: '0 20px 26px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 18,
+        gap: 16,
         flexWrap: 'wrap',
         fontFamily: 'var(--font-mono)',
-        fontSize: 11,
-        color: '#5e6469',
+        fontSize: 10.5,
+        color: '#4e5459',
       }}
     >
       <span>
-        Seçki: <span style={{ color: '#9aa0a5' }}>{categoryLabel}</span>
+        Seçki: <span style={{ color: '#7b8186' }}>{categoryLabel}</span>
       </span>
-      <span style={{ color: '#34393d' }}>/</span>
+      <span style={{ color: '#2b3034' }}>/</span>
       <span>
-        Zorluk: <span style={{ color: '#9aa0a5' }}>{tierLabel}</span>
+        Zorluk: <span style={{ color: '#7b8186' }}>{tierLabel}</span>
       </span>
-      <span style={{ color: '#34393d' }}>/</span>
-      <button
-        type="button"
-        onClick={onHow}
-        className="nk-footlink"
-        style={{
-          border: 0,
-          background: 'transparent',
-          padding: 0,
-          color: '#5e6469',
-          font: 'inherit',
-          borderBottom: '1px solid rgba(255,255,255,0.14)',
-        }}
-      >
-        Nasıl oynanır
-      </button>
-
-      <style>{`.nk-footlink:hover { color: #cfd3d6 !important; }`}</style>
     </footer>
   )
 }
