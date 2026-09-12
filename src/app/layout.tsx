@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Instrument_Serif, IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google'
 import '../styles/globals.css'
+import { SITE_URL } from '@/lib/siteUrl'
 
 // ⚠️ 'latin-ext' ZORUNLU. Yalnızca 'latin' ile ğ, ş, İ, ı, Ş, Ğ sessizce düşer
 // ve tam da en önemli kelimelerde yedek font karmaşası oluşur.
@@ -28,22 +29,8 @@ const sans = IBM_Plex_Sans({
   display: 'swap',
 })
 
-/**
- * Kanonik adres.
- *
- * ⚠️ Sabit kodlanırsa Vercel önizleme dağıtımları da canlı adresi kanonik
- * gösterir; `VERCEL_URL` her dağıtımın kendi adresini verir.
- */
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_ENV === 'production'
-    ? 'https://tahmin.net'
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'https://tahmin.net')
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'tahmin.net — Türkçe Şarkı Tahmin Oyunu',
     template: '%s · tahmin.net',

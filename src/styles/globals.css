@@ -71,12 +71,24 @@ body {
   box-sizing: border-box;
 }
 
-a {
-  color: #8ecfe8;
-  text-decoration: none;
-}
-a:hover {
-  color: #cdeaf6;
+/*
+ * ⚠️ `@layer base` ZORUNLU — katman dışında yazılamaz.
+ *
+ * Tailwind katman sırasını `theme, base, components, utilities` olarak
+ * kuruyor ve CSS'te KATMANSIZ kurallar katmanlı olanların HEPSİNİ ezer,
+ * özgüllük ne olursa olsun. Bu blok katman dışındayken `a { color }`,
+ * Tailwind'in `text-ink-0` gibi sınıflarını yeniyordu: seçki sayfalarındaki
+ * "oyna" düğmesinin koyu yazısı açık mavi zeminde açık mavi çıkıyor, yani
+ * okunmuyordu. `base` katmanına alınınca yardımcı sınıflar tekrar kazanıyor.
+ */
+@layer base {
+  a {
+    color: #8ecfe8;
+    text-decoration: none;
+  }
+  a:hover {
+    color: #cdeaf6;
+  }
 }
 
 input {
