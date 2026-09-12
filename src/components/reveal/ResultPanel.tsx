@@ -6,7 +6,9 @@ import { artworkAt } from '@/data/schema'
 import { ATTEMPTS, tr } from '@/game/ladder'
 import { heardLength, type Step } from '@/game/machine'
 import type { ChipId } from '@/data/categories'
-import { chipLabel, marksOf, type Mark } from '@/game/share'
+import { encodeShare, marksOf, type Mark } from '@/game/share'
+import { isabet } from '@/game/stats'
+import { useStatsStore } from '@/store/useStatsStore'
 import { Confetti } from './Confetti'
 
 interface Props {
@@ -93,7 +95,13 @@ export function ResultPanel({
   const grid = marksOf(steps, won)
   const heardSeconds = heardLength(heardIndex, ladder)
   const { headline, rank } = praise(heardSeconds)
-  const categoryLabel = chipLabel(chip)
+
+  const istatistik = useStatsStore()
+  /*
+   * Görsel adresi turun kendisinden türüyor; sunucuya hiçbir şey yazılmıyor.
+   * Aynı kod hem yatay OG kartını hem bu dikey Story görselini besliyor.
+   */
+  const kare = `/paylas/${encodeShare({ chip, marks: grid, won, heardSeconds, listens })}/kare`
 
   // Ne kadar az hak harcadıysa konfeti o kadar coşkulu.
   const intensity = won ? 1 - Math.min(steps.length, ATTEMPTS) / ATTEMPTS : 0
@@ -281,8 +289,42 @@ export function ResultPanel({
         diline oturmuyordu ve URL tabanlı meydan okuma yerini gerçek düello
         moduna bırakıyor.
       */}
-      <div style={{ display: 'flex', animation: anim(0.26) }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          flexWrap: 'wrap',
+          animation: anim(0.26),
+        }}
+      >
         <MarkRow marks={grid} reduce={reduce} />
+
+        {/* Kişisel sayaçlar — yalnızca bu tarayıcıda, sunucuda karşılığı yok. */}
+        {istatistik.oynanan > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10.5,
+              letterSpacing: '.12em',
+              textTransform: 'uppercase',
+              color: '#6d7378',
+            }}
+          >
+            <span>%{isabet(istatistik)} isabet</span>
+            <span style={{ color: '#3f4449' }}>·</span>
+            <span>{istatistik.oynanan} tur</span>
+            {istatistik.seri > 1 && (
+              <>
+                <span style={{ color: '#3f4449' }}>·</span>
+                <span style={{ color: 'var(--acc)' }}>{istatistik.seri} seri</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <div
@@ -346,6 +388,36 @@ export function ResultPanel({
           }}
         >
           SPOTIFY&apos;DA ARA
+        </a>
+
+        {/*
+          Instagram Story görseli — 1080×1920.
+
+          ⚠️ Kaldırılan Twitter kutusunun yerine bir paylaşım KUTUSU değil,
+          sıradan bir bağlantı kondu; kullanıcı o kutuyu "çok kötü görünüyor"
+          diye eledi. Burası görseli indirir, hiçbir yere göndermez.
+
+          ⚠️ `download` özniteliği iOS Safari'de yok sayılır ve PNG sekmede
+          açılır; oradan basılı tutup kaydetmek zaten Story'ye koymanın olağan
+          yolu. Blob'a çevirip zorlamak o tarayıcıda daha kırılgan olurdu.
+        */}
+        <a
+          href={kare}
+          download="tahmin-net.png"
+          target="_blank"
+          rel="noreferrer"
+          className="nk-ghost"
+          style={{
+            padding: '14px 18px',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: 5,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11.5,
+            letterSpacing: '.08em',
+            color: '#b9bec2',
+          }}
+        >
+          GÖRSELİ İNDİR
         </a>
       </div>
 

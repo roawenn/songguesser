@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useDuello } from '@/hooks/useDuello'
 import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { useStatsStore } from '@/store/useStatsStore'
 import { chipById } from '@/data/categories'
 import { DUELLO_SARKI } from '@/game/duel'
 import { heardLength } from '@/game/machine'
@@ -37,11 +38,10 @@ export function DuelloShell({ kod }: { kod: string }) {
    * Lobide ve geri sayımda dizilim geçilirse `useRound` şarkıyı hemen kurar ve
    * klip rakip gelmeden çalınabilir hâle gelir — düellonun "aynı anda" vaadi
    * daha başlamadan bozulur.
-   */
-  /**
+   *
    * ⚠️ Sunucu şarkıları adım adım açıyor (bkz. `api/duello/[kod]/route.ts`),
-   * yani elimizde her zaman beş tane OLMAYABİLİR. Ölçüt "beş geldi mi" değil,
-   * "sıradaki geldi mi".
+   * yani elimizde her zaman beş tane OLMAYABİLİR. Hazırlık ölçütü "beş geldi
+   * mi" değil, "sıradaki geldi mi".
    */
   const hazir = d.songs.length > d.aktif
   const oynanabilir =
@@ -53,17 +53,31 @@ export function DuelloShell({ kod }: { kod: string }) {
     onWrong(() => cassette.current?.shake())
   }, [onWrong])
 
-  // Tur bitince sonucu bir kez bildir.
+  /*
+   * Tur bitince sonucu bir kez bildir — hem rakibe (sunucu) hem oyuncunun
+   * kendi sayaçlarına.
+   *
+   * ⚠️ Düello turları da istatistiğe YAZILIYOR. Yazılmasaydı yalnızca
+   * arkadaşıyla oynayan biri kendi kartında sonsuza kadar "0 tur" görürdü.
+   * Kademe, oyuncunun kendi seçimi değil düellonun rampası olduğu için
+   * ayarlardan değil ŞARKIDAN okunuyor.
+   */
   const { state } = round
   const { cevapGonder } = d
+  const kaydet = useStatsStore((s) => s.kaydet)
   useEffect(() => {
     if (state.s !== 'won' && state.s !== 'lost') return
-    cevapGonder({
+    const sonuc = {
       won: state.s === 'won',
       heardSeconds: heardLength(state.heardIndex, state.ladder),
       listens: state.listens,
+    }
+    cevapGonder(sonuc)
+    kaydet(`${state.track.id}:${state.s}:${state.steps.length}:${state.listens}`, {
+      ...sonuc,
+      tier: state.track.d,
     })
-  }, [state, cevapGonder])
+  }, [state, cevapGonder, kaydet])
 
   const chip = chipById(settings.category)
 

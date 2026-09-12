@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { useStatsStore } from '@/store/useStatsStore'
 import { chipById, TIER_LABELS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
+import { heardLength } from '@/game/machine'
 import { Backdrop } from './stage/Backdrop'
 import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
@@ -105,6 +107,28 @@ export function GameShell() {
   const steps = 'steps' in state ? state.steps : []
   const listens = 'listens' in state ? state.listens : 0
   const heardIndex = 'heardIndex' in state ? state.heardIndex : -1
+
+  /**
+   * Biten turu istatistiğe işle.
+   *
+   * ⚠️ Tur kimliği şarkıdan TEK BAŞINA türetilemez: `Şarkıyı değiştir` aynı
+   * parçayı tekrar getirebiliyor ve o zaman ikinci tur sayılmazdı. Harcanan
+   * hak ve dinleme sayısı da kimliğe giriyor.
+   *
+   * ⚠️ Kademe, tur BİTTİĞİ andaki değer olmalı; `next()` kazanınca kademeyi
+   * yükseltiyor ve etki bir kez daha çalışıyor — deponun çift kayıt koruması
+   * ikinci yazmayı yutuyor, yoksa tur bir üst kademeye yazılırdı.
+   */
+  const kaydet = useStatsStore((s) => s.kaydet)
+  useEffect(() => {
+    if (state.s !== 'won' && state.s !== 'lost') return
+    kaydet(`${state.track.id}:${state.s}:${state.steps.length}:${state.listens}`, {
+      won: state.s === 'won',
+      tier: settings.tier,
+      heardSeconds: heardLength(state.heardIndex, state.ladder),
+      listens: state.listens,
+    })
+  }, [state, settings.tier, kaydet])
 
   /**
    * Ekran okuyucu için tur anlatımı.

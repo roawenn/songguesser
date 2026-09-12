@@ -1,7 +1,10 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { STEPS, tr } from '@/game/ladder'
+import { isabet, KADEME } from '@/game/stats'
+import { TIER_LABELS, type Difficulty } from '@/data/categories'
+import { useStatsStore } from '@/store/useStatsStore'
 
 /**
  * Sahnenin iki yanındaki kartlar.
@@ -248,7 +251,176 @@ export function SettingsCard({
           ))}
         </div>
       </div>
+
+      <IstatistikBlogu />
     </section>
+  )
+}
+
+/**
+ * Kişisel sayaçlar.
+ *
+ * ⚠️ Hepsi YALNIZCA bu tarayıcıda. Hesap yok, sunucuda karşılığı yok, başka
+ * kimse göremiyor — liderlik tablosu bilinçli olarak kapsam dışı bırakıldı.
+ * Veri kullanıcının olduğu için silme düğmesi de burada duruyor.
+ */
+function IstatistikBlogu() {
+  const s = useStatsStore()
+  const sifirla = useStatsStore((x) => x.sifirla)
+  const [soruyor, setSoruyor] = useState(false)
+
+  /*
+   * ⚠️ Hiç oynamamış birine boş bir tablo göstermenin anlamı yok; blok ilk
+   * tur bitene kadar hiç çıkmıyor. `oynanan` sunucudan değil `localStorage`'dan
+   * geldiği için ilk render'da da doğru (zustand persist senkron okuyor).
+   */
+  if (s.oynanan === 0) return null
+
+  const enYuksek = Math.max(1, ...s.kademeDagilimi)
+
+  return (
+    <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', ...CAPTION }}>
+        <span>İstatistik</span>
+        <span style={{ color: '#8d9398' }}>bu tarayıcıda</span>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 13 }}>
+        <Sayac buyuk={`%${isabet(s)}`} alt="isabet" vurgu />
+        <Sayac buyuk={String(s.oynanan)} alt="tur" />
+        <Sayac
+          buyuk={s.enIyiSaniye === null ? '—' : `${tr(s.enIyiSaniye)}s`}
+          alt="en iyi"
+        />
+      </div>
+
+      {/* Kademe dağılımı: hangi zorlukta kaç tur bilindi. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 15 }}>
+        {Array.from({ length: KADEME }, (_, i) => {
+          const n = s.kademeDagilimi[i] ?? 0
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  flex: 'none',
+                  width: 58,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 9.5,
+                  color: '#6d7378',
+                }}
+              >
+                {TIER_LABELS[(i + 1) as Difficulty]}
+              </span>
+              <span
+                style={{
+                  flex: 1,
+                  height: 6,
+                  borderRadius: 3,
+                  background: 'rgba(255,255,255,0.05)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                }}
+              >
+                <span
+                  style={{
+                    width: `${(n / enYuksek) * 100}%`,
+                    background: n > 0 ? 'var(--acc)' : 'transparent',
+                    borderRadius: 3,
+                  }}
+                />
+              </span>
+              <span
+                style={{
+                  flex: 'none',
+                  minWidth: 16,
+                  textAlign: 'right',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  color: n > 0 ? '#a9aeb3' : '#4e5459',
+                }}
+              >
+                {n}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+          marginTop: 14,
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          color: '#6d7378',
+        }}
+      >
+        <span>
+          {s.seri > 0 ? `${s.seri} seri` : 'seri yok'}
+          {s.enIyiSeri > 0 && ` · rekor ${s.enIyiSeri}`}
+        </span>
+
+        {soruyor ? (
+          <span style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => {
+                sifirla()
+                setSoruyor(false)
+              }}
+              style={{ color: '#d09a9a', fontFamily: 'inherit', fontSize: 'inherit' }}
+            >
+              sil
+            </button>
+            <button
+              type="button"
+              onClick={() => setSoruyor(false)}
+              style={{ color: '#6d7378', fontFamily: 'inherit', fontSize: 'inherit' }}
+            >
+              vazgeç
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setSoruyor(true)}
+            style={{ color: '#5c6267', fontFamily: 'inherit', fontSize: 'inherit' }}
+          >
+            sıfırla
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function Sayac({ buyuk, alt, vurgu }: { buyuk: string; alt: string; vurgu?: boolean }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        minWidth: 0,
+        padding: '9px 4px',
+        borderRadius: 5,
+        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(255,255,255,0.02)',
+        textAlign: 'center',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 15,
+          color: vurgu ? 'var(--acc)' : '#d5d9dc',
+        }}
+      >
+        {buyuk}
+      </div>
+      <div style={{ ...CAPTION, fontSize: 8.5, marginTop: 3 }}>{alt}</div>
+    </div>
   )
 }
 
