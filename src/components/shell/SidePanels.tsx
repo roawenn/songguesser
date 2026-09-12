@@ -25,10 +25,10 @@ const CARD = {
   border: '1px solid rgba(255,255,255,0.07)',
   borderRadius: 8,
   background: 'rgba(255,255,255,0.018)',
-  padding: 18,
+  padding: '20px 20px 22px',
   display: 'flex',
   flexDirection: 'column' as const,
-  gap: 18,
+  gap: 24,
 }
 
 function CardTitle({ children }: { children: React.ReactNode }) {
@@ -212,6 +212,42 @@ export function SettingsCard({
         on={reduce}
         onChange={onReduce}
       />
+
+      <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={CAPTION}>Klavye</div>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 11 }}
+        >
+          {[
+            { key: 'Boşluk', what: 'klibi çal' },
+            { key: 'Enter', what: 'tahmini gönder' },
+            { key: '↑ ↓', what: 'önerilerde gez' },
+          ].map((k) => (
+            <div
+              key={k.key}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12 }}
+            >
+              <kbd
+                style={{
+                  flex: 'none',
+                  minWidth: 58,
+                  textAlign: 'center',
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'rgba(255,255,255,0.03)',
+                  color: '#b6bbbf',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10.5,
+                }}
+              >
+                {k.key}
+              </kbd>
+              <span style={{ color: '#7b8186' }}>{k.what}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   )
 }

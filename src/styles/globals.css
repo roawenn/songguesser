@@ -182,20 +182,43 @@ button {
 /*
  * Sahne ızgarası: solda ayarlar, ortada oyun, sağda nasıl oynanır.
  *
- * ⚠️ Orta sütun `minmax(0, 560px)`: sabit genişlik verilirse dar ekranda taşar,
- * `1fr` verilirse yan kartlar sahneyi ezer. Yan sütunlar sahneyi ORTALAMAK için
- * eşit genişlikte — biri boş olsa bile yer kaplamalı, yoksa kaset kayar.
+ * Orta sütun `minmax(0, 560px)`: `1fr` verilirse yan kartlar sahneyi ezer.
+ * Yan sütunlar sahneyi ORTALAMAK için eşit genişlikte — biri diğerinden kısa
+ * olsa bile yer kaplamalı, yoksa kaset ortadan kayar.
  */
 .nk-stage-grid {
   display: grid;
-  grid-template-columns: 270px minmax(0, 560px) 270px;
-  gap: 26px;
+  grid-template-columns: 310px minmax(0, 560px) 310px;
+  /*
+   * Geniş boşluk kasıtlı: yan kartlar sahneden uzaklaşınca sayfa genişliğini
+   * gerçekten kullanıyor ve kaset ortada yalnız kalmıyor. `justify-content`
+   * ızgarayı ortalar, `max-width` de çok geniş ekranlarda dağılmasını önler.
+   */
+  gap: 92px;
   align-items: start;
   justify-content: center;
   width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 6px 20px 40px;
+  max-width: 1500px;
+  /*
+   * ⚠️ `margin: auto` — `align-items: center` DEĞİL. Ekran içeriğe göre kısa
+   * kaldığında ortalama üst kenarı taşırır ve kategoriler kaydırılarak bile
+   * erişilemez hâle gelir; otomatik kenar boşluğu ise taşan durumda kendini
+   * kapatır.
+   */
+  margin: auto;
+  padding: 6px 20px 30px;
+  /*
+   * ⚠️ `min-width: 0` ZORUNLU — ızgara bir flex öğesi ve flex öğelerinin
+   * varsayılan `min-width: auto`su onları İÇERİKLERİNİN altına indirmez. Bu
+   * satır olmadan 430px'lik bir telefonda kaset, tahmin kutusu ve düğmeler
+   * ekranın dışına taşıyordu; sütun genişliğini daraltmak tek başına yetmiyor.
+   */
+  min-width: 0;
+}
+
+/* Aynı tuzak bir kat aşağıda: ızgara öğeleri de varsayılan olarak daralmaz. */
+.nk-stage-grid > * {
+  min-width: 0;
 }
 
 /* Yan kartlar sahneyle birlikte nefes alsın, ekrana yapışmasınlar. */
@@ -204,10 +227,31 @@ button {
   top: 20px;
 }
 
-@media (max-width: 1120px) {
+/*
+ * ⚠️ Kırılma noktası ızgaranın GERÇEK genişliğinden hesaplanır:
+ * 310 + 560 + 310 + 2×92 boşluk + 40 iç dolgu = 1404px. Daha dar bir eşik
+ * (ör. 1300) verildiğinde arada kalan genişliklerde üç sütun sığmıyor ve sahne
+ * sağa taşıyordu.
+ */
+@media (max-width: 1440px) {
   .nk-stage-grid {
-    grid-template-columns: minmax(0, 560px);
-    gap: 20px;
+    /*
+     * ⚠️ Tek iz `minmax(0, 1fr)` — sabit ya da yüzdeli bir max DEĞİL.
+     *
+     * `minmax(0, 560px)` izi her hâlükârda 560px yapar ve 430px'lik bir
+     * telefonda kaset, tahmin kutusu ve düğmeler ekranın dışında kalır.
+     * `min(100%, 560px)` de kurtarmıyor: yüzde, ölçümü yapılmakta olan
+     * kapsayıcıya karşı çözülemediğinde `auto` gibi davranıyor. `1fr` iç
+     * kutuyu tam doldurur, `0` alt sınırı da içeriğin izi şişirmesini keser.
+     * Genişlik sınırı artık öğelerin kendisinde.
+     */
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 22px;
+  }
+  .nk-stage-grid > * {
+    width: 100%;
+    max-width: 560px;
   }
   /* Kartlar sahnenin ALTINA geçer; ayarlar önce, kurallar sonra. */
   .nk-stage-grid > .nk-stage {

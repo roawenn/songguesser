@@ -12,6 +12,9 @@ const MONO_CAPTION = {
   color: '#5c6267',
 }
 
+/** Kategori başlığı: şeridin ne olduğunu söyler, o yüzden biraz daha okunur. */
+const STRIP_TITLE = { ...MONO_CAPTION, fontSize: 10, color: '#767c81' }
+
 /**
  * Marka.
  *
@@ -49,21 +52,41 @@ export function Header() {
   )
 }
 
-interface StripProps {
+/** Şerit başlıkları — hepsi aynı mono büyük harf dili. */
+function StripCaption({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        ...STRIP_TITLE,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+      }}
+    >
+      <span style={{ width: 26, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+      {children}
+      <span style={{ width: 26, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+    </div>
+  )
+}
+
+interface CategoryProps {
   category: ChipId
-  tier: Difficulty
   onCategory: (c: ChipId) => void
-  onTier: (t: Difficulty) => void
 }
 
 /**
- * İki ortalanmış satır: üstte seçki çipleri, altında zorluk kademesi.
+ * Seçki şeridi — sayfanın en üstündeki ana seçim.
  *
- * Tasarımda 8 çip vardı ve zorluk grubuyla aynı satıra sığıyordu. Bizde 11 çip
- * var; aynı satırda kalsalar sondaki üçü sessizce kırpılıyordu. Ayrıca zorluk
- * artık şarkının kendi kademesini filtrelediği için kendi satırını hak ediyor.
+ * Başlıklı ve belirgin: oyuncunun ilk yaptığı iş burada, dolayısıyla en görünür
+ * eleman olmalı. Seçili çip sahne rengini alır, böylece kasetin ve vurguların
+ * rengiyle aynı şeyi anlattığı anlaşılır.
+ *
+ * ⚠️ Tasarımda 8 çip vardı ve zorlukla aynı satıra sığıyordu. Bizde 11 çip var;
+ * aynı satırda kalsalar sondaki üçü sessizce kırpılıyordu — bu yüzden kendi
+ * satırında ve dar ekranda yatay kayıyor.
  */
-export function ControlStrip({ category, tier, onCategory, onTier }: StripProps) {
+export function CategoryStrip({ category, onCategory }: CategoryProps) {
   const stripRef = useRef<HTMLElement>(null)
 
   // Kenar soluklaşması YALNIZCA gerçekten kaydırılabilirken görünmeli.
@@ -84,17 +107,16 @@ export function ControlStrip({ category, tier, onCategory, onTier }: StripProps)
   return (
     <div
       style={{
-        maxWidth: 1180,
         width: '100%',
-        margin: '0 auto',
-        padding: '4px 20px 0',
+        padding: '2px 20px 0',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 18,
+        gap: 13,
       }}
     >
-      {/* Dar ekranda yatay kayar; kenardaki soluklaşma devamı olduğunu gösterir. */}
+      <StripCaption>Kategoriler</StripCaption>
+
       <nav
         ref={stripRef}
         className="no-scrollbar nk-strip"
@@ -104,8 +126,8 @@ export function ControlStrip({ category, tier, onCategory, onTier }: StripProps)
         <div
           style={{
             display: 'flex',
-            gap: 8,
-            padding: '8px 2px 4px',
+            gap: 9,
+            padding: '4px 2px 6px',
             minWidth: 'max-content',
             justifyContent: 'center',
           }}
@@ -118,18 +140,21 @@ export function ControlStrip({ category, tier, onCategory, onTier }: StripProps)
                 type="button"
                 onClick={() => onCategory(c.id)}
                 aria-pressed={on}
+                className="nk-chip"
                 style={{
                   whiteSpace: 'nowrap',
-                  padding: '8px 15px',
-                  border: `1px solid ${on ? 'var(--acc)' : 'rgba(255,255,255,0.08)'}`,
-                  borderRadius: 4,
-                  background: on ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.015)',
-                  color: on ? '#f0f2f3' : '#7b8186',
+                  padding: '11px 19px',
+                  border: `1px solid ${on ? 'var(--acc)' : 'rgba(255,255,255,0.1)'}`,
+                  borderRadius: 5,
+                  background: on
+                    ? 'oklch(0.81 0.12 var(--hue) / 0.13)'
+                    : 'rgba(255,255,255,0.02)',
+                  color: on ? 'var(--acc)' : '#8d9398',
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 11.5,
-                  letterSpacing: '.04em',
-                  boxShadow: on ? '0 0 22px -6px var(--accSoft)' : 'none',
-                  transition: 'color .15s ease, border-color .15s ease',
+                  fontSize: 12.5,
+                  letterSpacing: '.03em',
+                  boxShadow: on ? '0 0 30px -8px var(--accSoft)' : 'none',
+                  transition: 'color .15s ease, border-color .15s ease, background .15s ease',
                 }}
               >
                 {c.label}
@@ -139,58 +164,82 @@ export function ControlStrip({ category, tier, onCategory, onTier }: StripProps)
         </div>
       </nav>
 
+      <style>{`
+        .nk-chip:hover[aria-pressed='false'] {
+          border-color: rgba(255,255,255,0.24) !important;
+          color: #cfd3d6 !important;
+        }
+      `}</style>
+    </div>
+  )
+}
+
+interface TierProps {
+  tier: Difficulty
+  onTier: (t: Difficulty) => void
+}
+
+/**
+ * Zorluk kademesi — kasetin hemen üstünde.
+ *
+ * Kategoriyle birlikte yukarıda dururken iki seçim aynı blokta eziliyordu.
+ * Zorluk aslında "şu an ne çalınacak" sorusunun parçası, o yüzden sahneye
+ * yapışık duruyor.
+ *
+ * ⚠️ Her kademe kendi rengini taşır ama bu renk SAHNEYİ sürmez — sahne rengi
+ * kategoriden gelir. İki bilgi de renkle okunur, çakışmaz.
+ */
+export function TierStrip({ tier, onTier }: TierProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}
+    >
+      <span style={MONO_CAPTION}>zorluk</span>
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          paddingBottom: 10,
-          flexWrap: 'wrap',
-          justifyContent: 'center',
+          gap: 2,
+          padding: 3,
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 999,
+          background: 'rgba(255,255,255,0.02)',
         }}
       >
-        <span style={MONO_CAPTION}>zorluk</span>
-        <div
-          style={{
-            display: 'flex',
-            gap: 2,
-            padding: 3,
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 999,
-            background: 'rgba(255,255,255,0.02)',
-          }}
-        >
-          {TIERS.map((t) => {
-            const on = t.id === tier
-            // Her kademe kendi rengini taşır; seçili olan dolu, diğerleri soluk.
-            const color = `oklch(0.81 0.13 ${t.hue})`
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => onTier(t.id)}
-                aria-pressed={on}
-                title={t.hint}
-                style={{
-                  padding: '7px 12px',
-                  border: 0,
-                  borderRadius: 999,
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10.5,
-                  letterSpacing: '.1em',
-                  textTransform: 'uppercase',
-                  background: on ? `oklch(0.81 0.13 ${t.hue} / 0.16)` : 'transparent',
-                  color: on ? color : `oklch(0.62 0.07 ${t.hue})`,
-                  boxShadow: on ? `inset 0 0 0 1px oklch(0.81 0.13 ${t.hue} / 0.4)` : 'none',
-                  whiteSpace: 'nowrap',
-                  transition: 'color .15s ease, background .15s ease',
-                }}
-              >
-                {t.label}
-              </button>
-            )
-          })}
-        </div>
+        {TIERS.map((t) => {
+          const on = t.id === tier
+          const color = `oklch(0.81 0.13 ${t.hue})`
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => onTier(t.id)}
+              aria-pressed={on}
+              title={t.hint}
+              style={{
+                padding: '7px 13px',
+                border: 0,
+                borderRadius: 999,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10.5,
+                letterSpacing: '.1em',
+                textTransform: 'uppercase',
+                background: on ? `oklch(0.81 0.13 ${t.hue} / 0.16)` : 'transparent',
+                color: on ? color : `oklch(0.62 0.07 ${t.hue})`,
+                boxShadow: on ? `inset 0 0 0 1px oklch(0.81 0.13 ${t.hue} / 0.4)` : 'none',
+                whiteSpace: 'nowrap',
+                transition: 'color .15s ease, background .15s ease',
+              }}
+            >
+              {t.label}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

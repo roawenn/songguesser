@@ -11,7 +11,7 @@ import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
 import { ResultPanel } from './reveal/ResultPanel'
-import { Header, ControlStrip, Footer } from './shell/Chrome'
+import { Header, CategoryStrip, TierStrip, Footer } from './shell/Chrome'
 import { SettingsCard, HowToCard } from './shell/SidePanels'
 
 export function GameShell() {
@@ -139,24 +139,18 @@ export function GameShell() {
       >
         <Header />
 
-        <ControlStrip
-          category={settings.category}
-          tier={settings.tier}
-          onCategory={settings.setCategory}
-          onTier={settings.setTier}
-        />
+        <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
 
         {/*
          * Üç sütun: ayarlar · sahne · kurallar.
          *
-         * `flex: 1` + dikey ortalama, sayfanın alt yarısındaki boşluğu kapatır;
-         * eskiden içerik yukarı yapışıyor ve ekranın yarısı bomboş kalıyordu.
+         * `flex: 1` + ızgaranın `margin: auto`su sayfanın alt yarısındaki boşluğu
+         * kapatır; eskiden içerik yukarı yapışıyor ve ekranın yarısı boş kalıyordu.
          */}
         <div
           style={{
             flex: 1,
             display: 'flex',
-            alignItems: 'center',
             width: '100%',
             paddingBottom: 8,
           }}
@@ -179,10 +173,12 @@ export function GameShell() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 22,
+                gap: 30,
                 width: '100%',
               }}
             >
+              <TierStrip tier={settings.tier} onTier={settings.setTier} />
+
               <Cassette
                 handleRef={cassette}
                 categoryLabel={chip.label}
@@ -191,14 +187,17 @@ export function GameShell() {
                 reduce={reduce}
               />
 
-              <StepIndicator
-                attempt={attempt}
-                steps={steps}
-                playing={playing}
-                clipLength={round.clipLength}
-                heardIndex={heardIndex}
-                roundKey={'track' in state ? state.track.id : 'yok'}
-              />
+              {/* Çubuk kasetle çalma kontrolleri arasında kendi nefesini alsın. */}
+              <div style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
+                <StepIndicator
+                  attempt={attempt}
+                  steps={steps}
+                  playing={playing}
+                  clipLength={round.clipLength}
+                  heardIndex={heardIndex}
+                  roundKey={'track' in state ? state.track.id : 'yok'}
+                />
+              </div>
 
               {state.s === 'error' ? (
                 <Notice tone="bad">
@@ -257,7 +256,7 @@ export function GameShell() {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 20,
+                    gap: 26,
                     width: '100%',
                   }}
                 >
