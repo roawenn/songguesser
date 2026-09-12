@@ -23,7 +23,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    return NextResponse.json({ artist, results: await scanArtist(artist, 40) })
+    return NextResponse.json({ artist, results: await scanArtist(artist) })
   } catch (e) {
     if (e instanceof ITunesError) {
       return NextResponse.json({ error: e.message }, { status: e.status === 403 ? 429 : 502 })

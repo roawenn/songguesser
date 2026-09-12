@@ -14,6 +14,10 @@ export interface FoundTrack {
   preview: string
   storeUrl: string
   year: number
+  /** Aracın önerdiği kademe (sanatçı taramasında dolu). */
+  onerilenKademe?: Difficulty
+  /** Yıl daha erken bir basımdan düzeltildi mi? */
+  yilDuzeltildi?: boolean
 }
 
 interface Props {
@@ -53,7 +57,16 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
   const [saving, setSaving] = useState(false)
   const [note, setNote] = useState<string | null>(null)
 
+  /** Toplu uygulama için seçilen kademe. */
   const [tier, setTier] = useState<Difficulty>(3)
+  /**
+   * Satır bazlı kademe geçersiz kılmaları.
+   *
+   * ⚠️ Varsayılan burada TUTULMAZ; `kademeFor` her satır için önce bu haritaya,
+   * sonra aracın önerisine, en son sabit 3'e bakar. Böylece "hepsine uygula"
+   * düğmesine basılmadıkça öneri korunur.
+   */
+  const [kademeler, setKademeler] = useState<Record<string, Difficulty>>({})
   const [playing, setPlaying] = useState<number | null>(null)
   const audio = useRef<HTMLAudioElement | null>(null)
 
@@ -184,6 +197,9 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
     })
   }
 
+  const kademeFor = (t: FoundTrack): Difficulty =>
+    kademeler[uid(t)] ?? t.onerilenKademe ?? 3
+
   const allPicked = fresh.length > 0 && fresh.every((t) => picked.has(uid(t)))
 
   function toggleAll() {
@@ -201,7 +217,7 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cat,
-          tracks: chosen.map((t) => ({ track: t, tier, year: t.year })),
+          tracks: chosen.map((t) => ({ track: t, tier: kademeFor(t), year: t.year })),
         }),
       })
       const d = (await res.json()) as {
@@ -239,13 +255,21 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
           Sanatçı tara
         </button>
         <div style={S.tiers}>
-          <span style={S.tierLabel}>eklenecek kademe</span>
+          <span style={S.tierLabel}>hepsine uygula</span>
           {TIERS.map((t) => (
             <button
               key={t.id}
               type="button"
               title={t.hint}
-              onClick={() => setTier(t.id)}
+              onClick={() => {
+                setTier(t.id)
+                // Görünen her satırı bu kademeye çek — öneriyi bilinçli olarak ezer.
+                setKademeler((p) => {
+                  const next = { ...p }
+                  for (const x of fresh) next[uid(x)] = t.id
+                  return next
+                })
+              }}
               style={S.tier(tier === t.id, t.hue)}
             >
               {t.label}
@@ -371,6 +395,29 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
                     <div style={S.title}>{t.title}</div>
                     <div style={S.meta}>
                       {t.artist} {t.year ? `· ${t.year}` : ''}
+                      {t.yilDuzeltildi && (
+                        <span title="Yıl, aynı şarkının daha erken bir basımından düzeltildi">
+                          {' '}↩
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      style={{ display: 'flex', gap: 2, marginTop: 5 }}
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      {TIERS.map((k) => (
+                        <button
+                          key={k.id}
+                          type="button"
+                          title={k.hint}
+                          onClick={() =>
+                            setKademeler((p) => ({ ...p, [uid(t)]: k.id }))
+                          }
+                          style={S.nokta(kademeFor(t) === k.id, k.hue)}
+                        >
+                          {k.id}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </label>
@@ -570,5 +617,19 @@ const S = {
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   } as const,
+  /** Satır içi kademe rozeti — kartlar dar, tam etiketler sığmaz. */
+  nokta: (on: boolean, hue: number) =>
+    ({
+      width: 18,
+      height: 18,
+      borderRadius: 3,
+      border: `1px solid ${on ? `oklch(0.81 0.13 ${hue} / 0.6)` : 'rgba(255,255,255,0.08)'}`,
+      background: on ? `oklch(0.81 0.13 ${hue} / 0.2)` : 'transparent',
+      color: on ? `oklch(0.81 0.13 ${hue})` : '#5c6266',
+      fontFamily: 'var(--font-mono)',
+      fontSize: 9.5,
+      lineHeight: 1,
+      padding: 0,
+    }) as const,
   dim: { color: '#6a7075', fontSize: 12.5, fontFamily: 'var(--font-mono)' } as const,
 }

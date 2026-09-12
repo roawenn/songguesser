@@ -18,6 +18,7 @@ export const SEEDS: Partial<Record<CategoryId, string[]>> = {
     'Da Poet', 'Killa Hakan', 'Fuat', 'Nefret', 'Contra', 'Aspova', 'Heijan',
     'Şanışer', 'Şehinşah', 'Tankurt Manas', 'Hidra', 'Canbay', 'Joker',
     'Ados', 'Muti', 'Kolera', 'Karaçalı', 'Server Uraz', 'Batuflex',
+    'Ceg', 'Cakal', 'Velet', 'Ati242',
   ],
   pop: [
     'Tarkan', 'Sezen Aksu', 'Sertab Erener', 'Hadise', 'Mabel Matiz',
@@ -25,6 +26,8 @@ export const SEEDS: Partial<Record<CategoryId, string[]>> = {
     'Gülşen', 'Hande Yener', 'Teoman', 'Yalın', 'Emre Aydın', 'Simge',
     'Edis', 'Zeynep Bastık', 'manifest', 'Athena', 'Model', 'Serdar Ortaç',
     'Demet Akalın', 'Tuğba Yurt', 'Aleyna Tilki', 'Melek Mosso', 'Dedublüman',
+    'Melike Şahin', 'Madrigal', 'Yüzyüzeyken Konuşuruz', 'Buray',
+    'Gökhan Türkmen', 'Merve Özbey', 'İrem Derici', 'Reynmen',
   ],
   arabesk: [
     'Müslüm Gürses', 'Orhan Gencebay', 'Ferdi Tayfur', 'İbrahim Tatlıses',
@@ -43,14 +46,19 @@ export const SEEDS: Partial<Record<CategoryId, string[]>> = {
     'Neşet Ertaş', 'Aşık Veysel', 'Selda Bağcan', 'Ruhi Su', 'Arif Sağ',
     'Musa Eroğlu', 'Belkıs Akkale', 'Kubat', 'Sabahat Akkiraz',
     'Muharrem Ertaş', 'Zara', 'Ahmet Kaya', 'Erdal Erzincan',
+    'Gülay', 'İbrahim Erkal', 'Ferhat Göçer',
   ],
   sanat: [
     'Zeki Müren', 'Müzeyyen Senar', 'Bülent Ersoy', 'Muazzez Ersoy',
     'Emel Sayın', 'Behiye Aksoy', 'Hamiyet Yüceses', 'Necmettin Yıldırım',
+    'Safiye Ayla', 'Münir Nurettin Selçuk', 'Zekai Tunca', 'Nesrin Sipahi',
+    'Yıldırım Gürses', 'Ahmet Özhan', 'Muazzez Abacı', 'Umut Akyürek',
   ],
   fantezi: [
     'Ümit Besen', 'Cengiz Kurtoğlu', 'Yıldız Tilbe', 'Mustafa Ceceli',
     'Hakan Altun', 'İsmail YK', 'Serdar Ortaç', 'Ebru Yaşar',
+    'Hakan Peker', 'Rafet El Roman', 'Emrah', 'Özcan Deniz',
+    'Latif Doğan', 'Sinan Özen', 'Burak Kut', 'Tayfun',
   ],
 }
 
