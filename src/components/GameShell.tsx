@@ -149,7 +149,7 @@ export function GameShell() {
           <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
         </div>
 
-        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 150 }}>
+        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 176 }}>
           <div className="nk-center">
             {/* Üç sütun: ayarlar · sahne · kurallar. */}
             <div className="nk-stage-grid">
@@ -192,9 +192,14 @@ export function GameShell() {
                 <TierStrip tier={settings.tier} onTier={settings.setTier} />
               </div>
 
+              {/*
+                ⚠️ Bu boşluk diğerlerinden belirgin biçimde büyük ve öyle kalmalı:
+                kaset + kademe ikilisini ("ne çalıyor") oynatma kontrollerinden
+                ("ne yapıyorum") ayıran tek işaret bu.
+              */}
               <div
                 style={{
-                  marginTop: 36,
+                  marginTop: 76,
                   width: '100%',
                   display: 'flex',
                   justifyContent: 'center',
