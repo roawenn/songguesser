@@ -9,3 +9,6 @@ next-env.d.ts
 
 # Arşiv: TSV akışının çıktısı, canlı yedek değil (bkz. scripts/build-pool.ts)
 data/arsiv/
+
+# Geçici yama betikleri
+*.cjs
