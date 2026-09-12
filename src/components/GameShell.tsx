@@ -188,18 +188,20 @@ export function GameShell() {
                 reduce={reduce}
               />
 
-              <div style={{ marginTop: 16 }}>
+              <div style={{ marginTop: 24 }}>
                 <TierStrip tier={settings.tier} onTier={settings.setTier} />
               </div>
 
               {/*
-                ⚠️ Bu boşluk diğerlerinden belirgin biçimde büyük ve öyle kalmalı:
-                kaset + kademe ikilisini ("ne çalıyor") oynatma kontrollerinden
-                ("ne yapıyorum") ayıran tek işaret bu.
+                ⚠️ Alttaki blokla AYNI üst boşluğa sahip (55/55) ve öyle kalmalı:
+                çubuk, kaset + kademe ikilisini ("ne çalıyor") oynatma
+                kontrollerinden ("ne yapıyorum") ayıran aralığın tam ortasında
+                duruyor. Biri değişirse diğeri de değişmeli, yoksa çubuk bir
+                tarafa yapışır ve ayırıcı olmaktan çıkar.
               */}
               <div
                 style={{
-                  marginTop: 76,
+                  marginTop: 55,
                   width: '100%',
                   display: 'flex',
                   justifyContent: 'center',
@@ -217,7 +219,7 @@ export function GameShell() {
 
               <div
                 style={{
-                  marginTop: 34,
+                  marginTop: 55,
                   width: '100%',
                   display: 'flex',
                   flexDirection: 'column',
