@@ -180,10 +180,45 @@ button {
 }
 
 /*
- * Marka + kategoriler + sahne: tek bir dikey kompozisyon.
+ * Üst bant: marka + kategoriler.
+ *
+ * Oyun bloğundan ayrı durur ve sayfanın üstüne yakın oturur; sahne aşağıda
+ * kalan alanda ortalanır. İkisini ayıran çizgi kenarlarda sönüyor — sert bir
+ * kenarlık bandı sayfadan koparır, buradaki iş ayırmak, bölmek değil.
+ */
+.nk-top {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+  padding: 26px 20px 22px;
+}
+
+.nk-top::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(calc(100% - 40px), 1180px);
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.16) 22%,
+    rgba(255, 255, 255, 0.16) 78%,
+    transparent
+  );
+}
+
+/*
+ * Sahne bloğu, üst bandın altında kalan alanda ortalanır.
  *
  * ⚠️ `margin: auto` — `align-items: center` DEĞİL. Ekran içeriğe göre kısa
- * kaldığında ortalama üst kenarı taşırır ve kategoriler kaydırılarak bile
+ * kaldığında ortalama üst kenarı taşırır ve içerik kaydırılarak bile
  * erişilemez hâle gelir; otomatik kenar boşluğu taşan durumda kendini kapatır.
  */
 .nk-center {
@@ -193,7 +228,6 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
 }
 
 /*

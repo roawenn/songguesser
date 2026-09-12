@@ -138,19 +138,19 @@ export function GameShell() {
         }}
       >
         {/*
-         * ⚠️ Marka ve kategoriler sayfanın TEPESİNE sabitlenmiyor; oyunla birlikte
-         * tek bir ortalanmış blok oluşturuyorlar.
+         * Üst bant: marka ve kategoriler.
          *
-         * Ayrı durduklarında kategori şeridi yukarıda öksüz kalıyor ve arada
-         * ~190px'lik anlamsız bir boşluk oluşuyordu. Referans aldığımız songspot
-         * düzeninde de marka, çipler ve oyun tek bir kompozisyon.
+         * Sayfanın kimliği ve ana seçimi burada; oyunla aynı blokta değil,
+         * kendi bandında duruyor. Altındaki ince çizgi ikisini ayırır ama
+         * kesmez — kenarlarda sönerek bitiyor.
          */}
-        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 8 }}>
+        <div className="nk-top">
+          <Header />
+          <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
+        </div>
+
+        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 76 }}>
           <div className="nk-center">
-            <Header />
-
-            <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
-
             {/* Üç sütun: ayarlar · sahne · kurallar. */}
             <div className="nk-stage-grid">
             <div className="nk-side">
