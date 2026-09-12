@@ -180,11 +180,12 @@ interface TierProps {
 }
 
 /**
- * Zorluk kademesi — kasetin hemen üstünde.
+ * Zorluk kademesi — kasetle ilerleme çubuğu arasında.
  *
- * Kategoriyle birlikte yukarıda dururken iki seçim aynı blokta eziliyordu.
- * Zorluk aslında "şu an ne çalınacak" sorusunun parçası, o yüzden sahneye
- * yapışık duruyor.
+ * Kategoriyle birlikte üst bantta dururken iki seçim aynı blokta eziliyordu.
+ * Zorluk aslında "şu an ne çalınacak" sorusunun parçası, o yüzden sahnenin
+ * içinde: kaset neyi çaldığını, hemen altındaki kademe de ne kadar zor
+ * olduğunu söylüyor.
  *
  * ⚠️ Her kademe kendi rengini taşır ama bu renk SAHNEYİ sürmez — sahne rengi
  * kategoriden gelir. İki bilgi de renkle okunur, çakışmaz.

@@ -174,8 +174,6 @@ export function GameShell() {
                 width: '100%',
               }}
             >
-              <TierStrip tier={settings.tier} onTier={settings.setTier} />
-
               <Cassette
                 handleRef={cassette}
                 categoryLabel={chip.label}
@@ -183,6 +181,8 @@ export function GameShell() {
                 playing={playing}
                 reduce={reduce}
               />
+
+              <TierStrip tier={settings.tier} onTier={settings.setTier} />
 
               {/* Çubuk kasetle çalma kontrolleri arasında kendi nefesini alsın. */}
               <div style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
