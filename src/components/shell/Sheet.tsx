@@ -82,13 +82,47 @@ export function Sheet({
   const volRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
+  /**
+   * Odak tuzağı ve odak iadesi.
+   *
+   * `aria-modal="true"` yalnızca bir BEYANDIR; tarayıcı Tab'ı kendiliğinden
+   * kısıtlamaz. Tuzak olmadan Tab kullanıcıyı arkadaki oyun ekranına taşıyordu
+   * — ekran okuyucu "menü açık" derken odak menüde olmuyordu. Kapanışta odak
+   * menüyü açan düğmeye geri verilir, yoksa sayfanın başına düşer.
+   */
   useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const items = panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      if (items.length === 0) return
+      const first = items[0]!
+      const last = items[items.length - 1]!
+      const active = document.activeElement
+      if (e.shiftKey && (active === first || active === panel)) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
+
     window.addEventListener('keydown', onKey)
     panelRef.current?.focus()
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      opener?.focus?.()
+    }
   }, [onClose])
 
   function setVolFromEvent(clientX: number) {

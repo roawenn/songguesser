@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 
 interface Props {
   /** Açıkken spot fareyi takip etmez, titreşim durur. */
@@ -14,7 +14,7 @@ interface Props {
  * değişkenlerine (--mx/--my) yazar; aksi hâlde fare her kıpırdadığında tüm
  * ağaç yeniden render edilirdi.
  */
-export function Backdrop({ reduce }: Props) {
+function BackdropBase({ reduce }: Props) {
   const spotRef = useRef<HTMLDivElement>(null)
   // Hedef ve mevcut konum; aradaki fark her karede yumuşatılır.
   const target = useRef({ x: 50, y: 24 })
@@ -26,30 +26,49 @@ export function Backdrop({ reduce }: Props) {
   }, [reduce])
 
   useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      target.current.x = (e.clientX / window.innerWidth) * 100
-      target.current.y = (e.clientY / window.innerHeight) * 100
-    }
-
     let raf = 0
+
+    /**
+     * ⚠️ Döngü hedefe varınca DURUR ve fare kıpırdayınca yeniden başlar.
+     *
+     * Önceden kesintisiz dönüyordu: fare hiç hareket etmese bile — dokunmatik
+     * bir telefonda, yani hiç fare yokken bile — saniyede 60 kare boşa
+     * hesaplanıyor ve pil yakıyordu.
+     */
     const follow = () => {
       const el = spotRef.current
-      if (el) {
-        // Azaltılmış animasyonda katsayı 1: yumuşatma yok, anında oturur.
-        const k = reduceRef.current ? 1 : 0.09
-        current.current.x += (target.current.x - current.current.x) * k
-        current.current.y += (target.current.y - current.current.y) * k
-        el.style.setProperty('--mx', `${current.current.x.toFixed(2)}%`)
-        el.style.setProperty('--my', `${current.current.y.toFixed(2)}%`)
+      if (!el) {
+        raf = 0
+        return
+      }
+      // Azaltılmış animasyonda katsayı 1: yumuşatma yok, anında oturur.
+      const k = reduceRef.current ? 1 : 0.09
+      const dx = target.current.x - current.current.x
+      const dy = target.current.y - current.current.y
+      current.current.x += dx * k
+      current.current.y += dy * k
+      el.style.setProperty('--mx', `${current.current.x.toFixed(2)}%`)
+      el.style.setProperty('--my', `${current.current.y.toFixed(2)}%`)
+
+      // Yarım pikselin altındaki fark ekranda görünmez.
+      if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) {
+        raf = 0
+        return
       }
       raf = requestAnimationFrame(follow)
     }
-    raf = requestAnimationFrame(follow)
 
+    const onMove = (e: PointerEvent) => {
+      target.current.x = (e.clientX / window.innerWidth) * 100
+      target.current.y = (e.clientY / window.innerHeight) * 100
+      if (!raf) raf = requestAnimationFrame(follow)
+    }
+
+    raf = requestAnimationFrame(follow)
     window.addEventListener('pointermove', onMove)
     return () => {
       window.removeEventListener('pointermove', onMove)
-      cancelAnimationFrame(raf)
+      if (raf) cancelAnimationFrame(raf)
     }
   }, [])
 
@@ -106,3 +125,6 @@ export function Backdrop({ reduce }: Props) {
     </>
   )
 }
+
+/** Tek girdisi `reduce`; ses sürüklenirken boşuna render edilmesin. */
+export const Backdrop = memo(BackdropBase)

@@ -22,7 +22,8 @@ import {
 import type { Pool, Song } from '../src/data/schema'
 
 const OUT_DIR = 'public/data/pool'
-const MIN_PLAYABLE = 5
+// Oyunla aynı eşik: altına düşen kademede süzgeç komşu kademelere taşar.
+import { MIN_PLAYABLE } from '../src/data/categories'
 
 const fast = process.argv.includes('--hizli')
 

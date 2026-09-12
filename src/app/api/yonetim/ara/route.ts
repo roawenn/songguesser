@@ -7,7 +7,7 @@ import { cleanKey, buildKeys } from '@/text/keys'
 import { isAuthed, adminConfigured } from '@/lib/adminAuth'
 import { restUrl, restHeaders } from '@/lib/supabase'
 import {
-  searchTracks, ITunesError, MIN_CLIP_START, PREVIEW_DURATION, type FoundTrack,
+  searchTracks, ITunesError, DEFAULT_CLIP_START, PREVIEW_DURATION, type FoundTrack,
 } from '@/lib/itunesSearch'
 
 /**
@@ -73,7 +73,7 @@ function toRow(cat: CategoryId, item: Incoming) {
     artwork: t.artwork,
     preview: t.preview,
     store_url: t.storeUrl,
-    clip_start: MIN_CLIP_START,
+    clip_start: DEFAULT_CLIP_START,
     duration: PREVIEW_DURATION,
     year,
     era: eraForYear(year),

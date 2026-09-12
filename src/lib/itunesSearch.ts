@@ -8,8 +8,9 @@ import { cleanKey } from '@/text/keys'
  * taraması da sanatçı başına TEK istek atar.
  */
 
-/** Pre-roll payı için klip en erken burada başlayabilir (src/audio/envelope.ts). */
-export const MIN_CLIP_START = 0.325
+import { DEFAULT_CLIP_START } from '@/audio/envelope'
+
+export { DEFAULT_CLIP_START }
 export const PREVIEW_DURATION = 29
 
 const JUNK_RE =

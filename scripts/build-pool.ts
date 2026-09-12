@@ -28,7 +28,7 @@ const CURATED_DIR = 'data/curated'
 const OUT_DIR = 'data/arsiv/pool'
 
 /** Pre-roll payı için klip en erken burada başlayabilir (bkz. src/audio/envelope.ts). */
-const MIN_CLIP_START = 0.325
+import { DEFAULT_CLIP_START as MIN_CLIP_START } from '../src/audio/envelope'
 const PREVIEW_DURATION = 29
 
 interface CuratedRow {

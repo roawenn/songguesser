@@ -14,6 +14,9 @@ interface Props {
   onPickAmbiguous: (song: Song) => void
 }
 
+/** Combobox ile öneri listesini birbirine bağlayan sabit kimlik. */
+const LIST_ID = 'nk-oneriler'
+
 export function GuessInput({
   index,
   suggestions,
@@ -82,8 +85,17 @@ export function GuessInput({
           onKeyDown={onKeyDown}
           placeholder="Şarkı adını yaz…"
           aria-label="Şarkı tahmini"
+          // ⚠️ `aria-expanded` tek başına yetmez: `role="combobox"` olmadan
+          // ekran okuyucu bunu sıradan bir metin kutusu sanar, `aria-controls`
+          // olmadan listeyi bulamaz, `aria-activedescendant` olmadan da ok
+          // tuşlarıyla gezerken hangi şıkta olduğunu söyleyemez.
+          role="combobox"
           aria-autocomplete="list"
           aria-expanded={open && list.length > 0}
+          aria-controls={LIST_ID}
+          aria-activedescendant={
+            open && list.length > 0 && cursor >= 0 ? `${LIST_ID}-${cursor}` : undefined
+          }
           className="nk-input"
           // ⚠️ iOS otomatik düzeltme Türkçe kelimeleri yazarken İngilizce'ye
           // çevirir — bu dört öznitelik olmadan oyun mobilde sinir bozucu olur.
@@ -175,7 +187,9 @@ export function GuessInput({
 
       {open && list.length > 0 && (
         <div
+          id={LIST_ID}
           role="listbox"
+          aria-label="Şarkı önerileri"
           style={{
             position: 'absolute',
             top: '100%',
@@ -193,6 +207,7 @@ export function GuessInput({
           {list.map((s, i) => (
             <button
               key={s.song.id}
+              id={`${LIST_ID}-${i}`}
               type="button"
               role="option"
               aria-selected={i === cursor}

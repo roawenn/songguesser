@@ -62,8 +62,17 @@ create policy songs_public_read on public.songs
 -- `id` primary key'i onu yakalayamaz. Normalize edilmiş sanatçı+şarkı çifti
 -- kategori içinde tekil olmalı: hem kopyayı engeller hem toplu eklemede
 -- `on_conflict` hedefi olur.
-create unique index if not exists songs_norm_uidx
-  on public.songs (category, norm_artist, norm_title);
+-- ⚠️ Kopya satır varsa bu indeks kurulamaz. Bütün şemayı tek sorgu olarak
+-- çalıştıran `db:migrate` böyle bir durumda komple düşmesin diye hata
+-- yutuluyor: eksik bir indeks, kurulamayan bir şemadan iyidir. Kopyaları
+-- panelden temizleyip tekrar çalıştır.
+do $$
+begin
+  create unique index if not exists songs_norm_uidx
+    on public.songs (category, norm_artist, norm_title);
+exception when unique_violation then
+  raise notice 'songs_norm_uidx kurulamadi: ayni (kategori, sanatci, sarki) birden fazla satirda var.';
+end $$;
 
 -- Panelin sıralama deseni: kategori → kademe → sanatçı.
 create index if not exists songs_admin_idx on public.songs (category, tier, artist);

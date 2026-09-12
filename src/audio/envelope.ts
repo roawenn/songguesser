@@ -38,7 +38,17 @@ export const PREROLL = 0.045
 export const TAIL = 0.1
 
 /** Klip en erken burada başlayabilir — pre-roll için yer gerekiyor. */
-export const MIN_CLIP_START = PREROLL + FADE_IN + 0.02 // 0.325 sn
+export const MIN_CLIP_START = PREROLL + FADE_IN + 0.02 // 0,07 sn
+
+/**
+ * Havuza yeni giren şarkıların klip başlangıcı.
+ *
+ * ⚠️ {@link MIN_CLIP_START} ile karıştırma: o teknik ALT SINIR (0,07 sn),
+ * bu ise küratör tercihi. Önizlemelerin ilk çeyrek saniyesi sık sık fade-in,
+ * sayaç ya da tam sessizlik oluyor; 0,325 sn bunun ötesine geçer. Üç ayrı
+ * dosyada elle yazılıydı, artık tek kaynak burası.
+ */
+export const DEFAULT_CLIP_START = 0.325
 
 /** Merdivenin çıkabileceği en uzun klip. */
 export const MAX_CLIP = 16

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useImperativeHandle, useMemo, useRef, type Ref } from 'react'
+import { memo, useEffect, useImperativeHandle, useMemo, useRef, type Ref } from 'react'
 
 export interface CassetteHandle {
   /** Yanlış tahminde kaseti sarsar. */
@@ -89,7 +89,7 @@ function Reel({
  * ⚠️ Makara dönüşü ve sarsıntı doğrudan DOM'a yazılır (ref ile), React state'e
  * değil: klip başlayıp bitince tüm ağacın yeniden render edilmesi gereksiz.
  */
-export function Cassette({
+function CassetteBase({
   categoryLabel,
   tapeCode,
   playing,
@@ -455,3 +455,10 @@ export function Cassette({
     </div>
   )
 }
+
+/**
+ * ⚠️ `memo` gerekli: `GameShell` ses ayarını da içeren store'a abone, yani
+ * ses kaydırıcısı sürüklenirken saniyede onlarca kez render oluyor. Kasetin
+ * girdileri (kategori, kayıt numarası, çalıyor mu) o sırada hiç değişmiyor.
+ */
+export const Cassette = memo(CassetteBase)
