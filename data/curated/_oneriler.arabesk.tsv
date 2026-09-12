@@ -1,0 +1,446 @@
+# arabesk — ADAY ŞARKILAR (Apple Music TR'de mevcut olduğu DOĞRULANDI)
+#
+# Beğendiğin satırları arabesk.tsv dosyasına taşı ve iki alanı doldur:
+#   zorluk (3. sütun): 1=Kolay ... 5=İmkansız
+#   yıl (4. sütun): iTunes'un verdiği yıl YENİDEN BASIM olabilir, kontrol et
+#
+# sanatçı	şarkı	zorluk	yıl(iTunes)
+Müslüm Gürses	Seni Yazdım		1986
+Müslüm Gürses	Nilüfer		2006
+Müslüm Gürses	Adını Sen Koy		1993
+Müslüm Gürses & Mine Koşan	Sende Kalmış		1989
+Müslüm Gürses	Hangimiz Sevmedik		1994
+Müslüm Gürses	Gel Bahtımın Kar Beyazı		2001
+Müslüm Gürses	Yıllar Utansın		1989
+Müslüm Gürses	Silinmeyen Hatıralar		2002
+Müslüm Gürses	Canım Dediklerim		2002
+Müslüm Gürses	Bir Ömür Yetmez		2006
+Müslüm Gürses	Sigara		2010
+Müslüm Gürses	Paramparça		2002
+Müslüm Gürses	Affet		2006
+Müslüm Gürses	Tutamıyorum Zamanı		2008
+Müslüm Gürses	İtirazım Var (feat. Ceza)		2008
+Müslüm Gürses	Sebepsiz Ayrılık		1988
+Müslüm Gürses	Kısmetim Kapanmış		1989
+Müslüm Gürses	Sensiz Olmaz		2004
+Müslüm Gürses	Unutamadım (Kaç Kadeh Kırıldı)		1986
+Müslüm Gürses	Bir Kadın Tanıdım		2002
+Müslüm Gürses	Bir Anda		1986
+Müslüm Gürses	Dağlarda Kar Olsaydım		1993
+Müslüm Gürses	Mutlu Ol Yeter		1981
+Müslüm Gürses	Senden Vazgeçmem		2008
+Müslüm Gürses	Bir Bilebilsen		1992
+Müslüm Gürses	Sevda Yüklü Kervanlar		2003
+Müslüm Gürses	Benim Meselem		1995
+Orhan Gencebay	Kaderimin Oyunu		1998
+Orhan Gencebay	Aklım Takıldı		1994
+Orhan Gencebay	Beni Böyle Sev		1998
+Orhan Gencebay	Akşam Güneşi		1998
+Orhan Gencebay	Al Senin Olsun		1983
+Orhan Gencebay	Vazgeç Gönlüm		1998
+Orhan Gencebay	Bir Teselli Ver		1998
+Orhan Gencebay	Dil Yarası		1984
+Orhan Gencebay	Seni Buldum Ya		1976
+Orhan Gencebay	Dünya Dönüyor		1986
+Orhan Gencebay	Dertler Benim Olsun		1998
+Orhan Gencebay	Benim Dünyam		1975
+Orhan Gencebay	Dokunma		1990
+Orhan Gencebay	Hatasız Kul Olmaz		1976
+Orhan Gencebay	Batsın Bu Dünya		1975
+Orhan Gencebay	Dilenci		1990
+Orhan Gencebay	Kır Gönlünün Zincirini		1998
+Orhan Gencebay	Kördüğüm		1981
+Orhan Gencebay	Sevecekmiş Gibisin		1984
+Orhan Gencebay	Severek Ayrılalım (feat. Sibel Can)		1993
+Orhan Gencebay	Ben O Zaman Ölürüm		2002
+Orhan Gencebay	Ya Evde Yoksan		1989
+Orhan Gencebay	Sadakan Olsun		1995
+Orhan Gencebay	Hor Görme Garibi		1998
+Orhan Gencebay	Ziyankar		1998
+Ferdi Tayfur	Hatıran Yeter		1990
+Ferdi Tayfur	Sabahçı Kahvesi		1992
+Ferdi Tayfur	Bana Sor		1990
+Ferdi Tayfur	İçim Yanar		1994
+Ferdi Tayfur	Sevda Yelleri		1982
+Ferdi Tayfur	Sanmaki Yaşıyorum		1989
+Ferdi Tayfur	Bu Günler Yaşanacak		2002
+Ferdi Tayfur	Ben de Özledim		1982
+Ferdi Tayfur	Bir Bilsen		1992
+Ferdi Tayfur	Bu Şehir		1999
+Ferdi Tayfur	Bana Da Söyle		1991
+Ferdi Tayfur	Sen De Mi Leyla		1987
+Ferdi Tayfur	Huzurum Kalmadı		2002
+Ferdi Tayfur	Yaktı Beni		1984
+Ferdi Tayfur	Emmioğlu		1992
+Ferdi Tayfur	Kır Çiçekleri		1991
+Ferdi Tayfur	Geçen Yıl		1992
+Ferdi Tayfur	Akşam Güneşi		1974
+Ferdi Tayfur	Sevdalılar Beni Anlar		1987
+Ferdi Tayfur	Hayırsız		1994
+Ferdi Tayfur	Merak Etme Sen		1976
+Ferdi Tayfur	Tövbekar		2002
+Ferdi Tayfur	Bağbozumu		1999
+Ferdi Tayfur	Sigarayı Bıraktım		1999
+Ferdi Tayfur	Sanma Sana Dönerim		1990
+Ferdi Tayfur	Canına Okuyacağım		1998
+Ferdi Tayfur	Nisan Yağmuru		1979
+Ferdi Tayfur	Yıldızlar Da Kayar		1987
+Ferdi Tayfur	Bu Şehrin Geceleri		1989
+İbrahim Tatlıses	Senden Insaf Diler Yarın		2008
+İbrahim Tatlıses	Ne Sevdalar Yaşadım		2003
+İbrahim Tatlıses	Sözüm Yok Artık		2008
+İbrahim Tatlıses	Kal Benim İçin		2004
+İbrahim Tatlıses	Eşik Taşı		2008
+İbrahim Tatlıses	Eyvah Neye Yarar		1988
+İbrahim Tatlıses	Mavişim		2001
+İbrahim Tatlıses	Mutlu Ol Yeter		1995
+İbrahim Tatlıses	Etek Sarı		2007
+İbrahim Tatlıses	Ayazdır Geceler		2007
+İbrahim Tatlıses	Bir Taş Attım Pencereye		2005
+İbrahim Tatlıses	Bir Kulunu Çok Sevdim		1989
+İbrahim Tatlıses	Nankör Kedi		1994
+İbrahim Tatlıses	Neden		2008
+Tefo, Seko & İbrahim Tatlıses	Kara Üzüm Habbesi		2023
+İbrahim Tatlıses	Aramam		2004
+İbrahim Tatlıses	Haydi Söyle		1994
+İbrahim Tatlıses	Kop Gel Günahlarından		2008
+İbrahim Tatlıses	Sarhoş		2003
+İbrahim Tatlıses	Yanarım		2003
+İbrahim Tatlıses	Bebeğim		2001
+İbrahim Tatlıses	Seni Sevmediğim Yalan		1993
+İbrahim Tatlıses	Urfa Sana Küsmüş		2007
+İbrahim Tatlıses	Senİ Sana Bırakmam		2003
+İbrahim Tatlıses	Yalan		1995
+İbrahim Tatlıses	Mavi Mavi		2017
+İbrahim Tatlıses	Keskin Bıçak		2001
+İbrahim Tatlıses	Hasret Kaldım		1994
+Bergen	Elimde Fotoğrafın		1988
+Bergen	Sen Affetsen		1998
+Bergen	Seni Kalbimden Kovdum		1996
+Bergen	İnsan Dertli Olunca		1996
+Bergen	Benim İçin Üzülme		1998
+Bergen	Kullar Affetmez		1996
+Bergen	Bana Neler Vadettin		1982
+Bergen	Canım Dediklerim		1988
+Bergen	Eller Aldı (Remastered)		1998
+Bergen	Zaman Geldi		1998
+Bergen	Kader Diyemezsin		1998
+Bergen	Acıların Kadını		1998
+Bergen	Kul Feryadı		1998
+Bergen	Aşk Kitabı		1982
+Bergen	Garibin Çilesi Mezarda Biter (Remastered)		1990
+Bergen	Çilekeş		1988
+Ebru Gündeş	Ölümsüz Aşklar		2008
+Ebru Gündeş	Söyleyin		2004
+Ebru Gündeş	Mahşer		2023
+Ebru Gündeş	Demir Attım		1993
+Ebru Gündeş	Kurşun Adres Sormaz Ki		2018
+Norm Ender & Ebru Gündeş	Bir Çift Göz		2025
+Ebru Gündeş	Ağlamayacağım		2011
+Ebru Gündeş	Severek Öleceğim		2011
+Ebru Gündeş	Bir Devir Bitti		2014
+Ebru Gündeş	Dön Ne Olur		1999
+Ebru Gündeş	Cennet		2019
+Ebru Gündeş	Seninle Çok İşim Var		2004
+Ebru Gündeş	Cumartesi		2011
+Ebru Gündeş	Çingenem		1999
+Ebru Gündeş	Âşık		2019
+Ebru Gündeş	Ben Olmayınca		2003
+Ebru Gündeş	Araftayım		2014
+Ebru Gündeş	Bir Sebebi Var		2023
+Ebru Gündeş	Sevme Yanarsın		1995
+Ebru Gündeş	Çağırın Gelsin		2019
+Ebru Gündeş	Seni Seviyorum		2001
+Ebru Gündeş	Yazık		2011
+Ebru Gündeş	Beyaz		2011
+Ebru Gündeş	Fırtınalar		1995
+Ebru Gündeş	Aynı Aşklar		2014
+Ebru Gündeş	Vakitsiz Geldin		2023
+Ebru Gündeş	Yakışıklı		1996
+Ebru Gündeş	Sen Allah'ın Bir Lütfusun		1998
+Mahsun Kırmızıgül	Bu Sevda Bitmez		1996
+Mahsun Kırmızıgül	Belalım		1998
+Mahsun Kırmızıgül	Sarı Sarı		2004
+Mahsun Kırmızıgül	Gül Senin Tenin		2006
+Mahsun Kırmızıgül	Melekler Ağlar		2000
+Mahsun Kırmızıgül	Hırka		2022
+Mahsun Kırmızıgül	Azar Azar		2006
+Mahsun Kırmızıgül	Dinle (Yeni Versiyon)		2022
+Mahsun Kırmızıgül	Daye		2004
+Mahsun Kırmızıgül	Alem Buysa (Kral Sensin)		1993
+Mahsun Kırmızıgül	Ay Aman		2004
+Mahsun Kırmızıgül	Saygımdan		2004
+Mahsun Kırmızıgül	Hayat Ne Garip (feat. Cem Karaca)		2004
+Mahsun Kırmızıgül	Susamışım Ateşine		2022
+Mahsun Kırmızıgül	Bebeğim		1994
+Mahsun Kırmızıgül	Nemrudun Kızı (feat. Kazancı Bedih)		2004
+Mahsun Kırmızıgül	Göçmen Kızı		2002
+Mahsun Kırmızıgül	Vefasız		2004
+Mahsun Kırmızıgül	Canın Sağolsun		2022
+Mahsun Kırmızıgül	Unutmam Seni		2024
+Mahsun Kırmızıgül	Psikoloji (Benim Adım İsyan)		2023
+Mahsun Kırmızıgül	Yandırdın Kalbimi		2026
+Mahsun Kırmızıgül	Yıkılmadım		1998
+Mahsun Kırmızıgül	Gülom		2004
+Mahsun Kırmızıgül	Hoş Geldin		2022
+Mahsun Kırmızıgül	Mihriban		1993
+Mahsun Kırmızıgül	Annem Annem		1998
+Azer Bülbül	Bir Güzele Gönül Verdim		2011
+Azer Bülbül	Çoğu Gitti Azı Kaldı		1995
+Azer Bülbül	İlle De Sen		1999
+Azer Bülbül	Üzülmedim Ki		2006
+Azer Bülbül	Başaramadım		1998
+Azer Bülbül	Felek		2001
+Azer Bülbül	Canım Yanıyor		1998
+Azer Bülbül	Başka Yar Sevme		1999
+Azer Bülbül	Ben Seninle Mutluyum		1995
+Azer Bülbül	İyi Değilim		2004
+Azer Bülbül	Bu Gece Karakolluk Olabilirim		2011
+Azer Bülbül	Duygularım		2011
+Azer Bülbül	Ayrılık Ölümden Zormuş		2011
+Azer Bülbül	Maral		2007
+Halodayı & Azer Bülbül	Aman Güzel Yavaş Yürü		2023
+Muti & Azer Bülbül	İlle De Sen		2023
+Azer Bülbül	Ne Sayarsan Say		2011
+Azer Bülbül	Zordayım		1998
+Azer Bülbül	Ben Yine Sana Vurgunum		1990
+Azer Bülbül	Değirmenim Terse Döndü Bu Sene		1996
+Azer Bülbül	Borcum Bitmedi		1998
+Azer Bülbül	Aman Güzel Yavaş Yürü		1998
+UZI & Azer Bülbül	Caney		2023
+Azer Bülbül	Yaralandın mı Can		1995
+Azer Bülbül	Alıram Yar Alıram		1995
+Azer Bülbül	Dokunmayın Çok Fenayım		1995
+Azer Bülbül	Caney		2011
+Heijan & Azer Bülbül	Bu Gece Karakolluk Olabilirim		2024
+Azer Bülbül	Gidiyorum		2011
+Cengiz Kurtoğlu	Küllenen Aşk		2002
+Cengiz Kurtoğlu	Liselim		2000
+Cengiz Kurtoğlu & Hakan Altun	Yorgun Yıllarım		1970
+Cengiz Kurtoğlu	Resmini Öptümde Yattım		1988
+Cengiz Kurtoğlu	Heves Mi Kaldı		1994
+Cengiz Kurtoğlu	Duvardaki		2000
+Cengiz Kurtoğlu	Gece Olunca		1987
+Cengiz Kurtoğlu	Yalancı Bahar		2001
+Cengiz Kurtoğlu	Ümit Yere Batsın		1987
+Cengiz Kurtoğlu	Saklı Düşler		2014
+Cengiz Kurtoğlu & Hakan Altun	Duyanlara Duymayanlara		2018
+Cengiz Kurtoğlu	Farketmez Artık		1995
+Cengiz Kurtoğlu	Unutulan		2000
+Cengiz Kurtoğlu	Kül		2014
+Cengiz Kurtoğlu	Hain Geceler		1998
+Cengiz Kurtoğlu	Yasak Aşk		2000
+Cengiz Kurtoğlu & Hakan Altun	Hain Geceler		2018
+Cengiz Kurtoğlu	Ağlamam Ondan		2000
+Cengiz Kurtoğlu	Yine Mi Sen		2000
+Cengiz Kurtoğlu	Yaralı		2000
+Cengiz Kurtoğlu	Gelin		2002
+Cengiz Kurtoğlu	Canın Sağolsun (2017 LP Mastering)		2006
+Cengiz Kurtoğlu	Aşk Sokağı (2017 LP Mastering)		2006
+Cengiz Kurtoğlu & Hakan Altun	İstanbul Olmaz Olsun		2018
+Cengiz Kurtoğlu	Sevmeyeceğim		1987
+Cengiz Kurtoğlu	Kadehi Şişeyi Kırarım		2000
+Cengiz Kurtoğlu	Seviyorum		1995
+Cengiz Kurtoğlu	Sevmek Yetmez Mi		1999
+Cengiz Kurtoğlu	Seninle Aşkımız Bir Roman		2016
+Gülden Karaböcek	Sen Evlisin		1987
+Gülden Karaböcek	Ben Olmalıydım		1987
+Gülden Karaböcek	Hatıran Yeter		1991
+Gülden Karaböcek	Sevsen Ne Olurdu		1987
+Gülden Karaböcek	Ağlıyorsam Yaşıyorum		1987
+Gülden Karaböcek	Kırılsın Ellerim		1991
+Gülden Karaböcek	Gözüm Seni Görmese De		1987
+Gülden Karaböcek	Sürünüyorum		1976
+Gülden Karaböcek	Daha Nasıl Sevebilirim ?		1999
+Gülden Karaböcek	Sevmez Olaydım		2001
+Gülden Karaböcek	Dilek Taşı		1991
+Gülden Karaböcek	Nem Kaldı		1974
+Gülden Karaböcek	Tek Sevenim Sen Olsan		1987
+Gülden Karaböcek	Yüreğin Bir Taş		1987
+Gülden Karaböcek	İçim Yanar		2001
+Gülden Karaböcek	Kır Çiçekleri		1976
+Gülden Karaböcek	Duyarmısın Feryadımı		1987
+Gülden Karaböcek	Şaka Yaptım (Armageddon Turk 'Arada' Mix)		2018
+Gülden Karaböcek	Hasta Gönlüm		2018
+Gülden Karaböcek	Anılar Bana Yeter		1987
+Gülden Karaböcek	Şaka Yaptım / Bil Bakalım		2018
+Gülden Karaböcek	Konuşsana Bir Tanem		1987
+Gülden Karaböcek	Adaletin Bu Mu Dünya		1986
+Gülden Karaböcek	Al Resmini Ver Resmimi		1987
+Kibariye	Lafımı Olur		1993
+Kibariye	Kara Gözlü Çingenem		1998
+Kibariye	Arada Bir		2010
+Kibariye	Hap Koydum		2014
+Kibariye	Gülü Soldurmam		2014
+Kibariye	Gülümse Kaderine		2006
+Kibariye	Ecel Olsun		1989
+Kibariye	Gidemem		2008
+Kibariye	Tepecikli		2008
+Tefo, Seko & Kibariye	Yak Gel		2025
+Kibariye	Koparılan Çiçekler		2014
+Kibariye	Yanayım		2010
+Kibariye	Buz		2010
+Kibariye	Sil Baştan		2013
+Eypio, Kibariye & Tuğberk Işık	Sen Oyna		2023
+Kibariye	Konuşsana Bir Tanem		2010
+Tefo, Seko & Kibariye	Gidemem		2024
+Kibariye	Lafı Mı Olur		2023
+Kibariye	Kaç Kadeh Kırıldı		2014
+Kibariye	Kimbilir		1987
+Kibariye	Ah İstanbul		2006
+Kibariye	Yastayım		2008
+Kibariye	Çaresizim Ben		1987
+Kibariye	Vazgeçemem		1993
+Kibariye	Anlayamazsın		2008
+Kibariye	İkinci Bahar		2010
+Kibariye & Buika	Sevdam Ağlıyor		2025
+Kibariye	Annem		2001
+Kibariye	Aşığım Sana		1991
+Hakkı Bulut	Kul Hatasız Olmaz		2013
+Hakkı Bulut	Sevmek Bu mu		1999
+Hakkı Bulut	Son Mektup		2005
+Hakkı Bulut	İkimizi Bir Fidanın		2005
+Hakkı Bulut	Ben Tövbemi Geri Aldım		2005
+Hakkı Bulut	Ben Buyum		2005
+Hakkı Bulut	İntizarım Var		1993
+Hakkı Bulut	Gidiyorum		1999
+Hakkı Bulut	Vuslat Çiçekleri		2018
+Hakkı Bulut	Ağlama Küçüğüm (feat. Gökhan Doğanay)		2017
+Hakkı Bulut	Kıskanıyorum (feat. Ferman Toprak)		2017
+Hakkı Bulut	İkimiz Bir Fidanın		1996
+Hakkı Bulut	Seven Kıskanır		1986
+Hakkı Bulut	Falcı		2005
+Hakkı Bulut	Ben Köylüyüm (feat. Yıldız Tilbe)		2017
+Hakkı Bulut	Güzel Alsın Canımı		1986
+Hakkı Bulut	Ben Kimim		2005
+Hakkı Bulut	Hayatımla Oynandı		2023
+Hakkı Bulut	İkimiz Bir Fidanız (feat. Mehtap Yılmaz)		2017
+Hakkı Bulut	Çocuk Kalsaydım		1999
+Hakkı Bulut	Duamızı Duymadı		2005
+Hakkı Bulut	Bir Gün		2012
+Selami Şahin	Tanımam Senden Başka		1985
+Selami Şahin	Seninle Başım Dertte		1983
+Selami Şahin	Ben Sevdalı Sen Belalı		1995
+Selami Şahin	Alışmak Sevmekten Zor		1997
+Selami Şahin	Özledim Her Şeyini		1994
+Selami Şahin	Gitme Sana Muhtacım		1997
+Selami Şahin	Senin Olmaya Geldim		1982
+Selami Şahin	Seni Sevmediğim Yalan		1994
+Selami Şahin	Ben Bir Tek Kadın (Adam) Sevdim (Mustafa Ceceli Version)		2010
+Selami Şahin	Mümkün Değil		1985
+Selami Şahin	Tapılacak Kadınsın		1982
+Selami Şahin	Ne Duamsın Nede Bedduam		1987
+Selami Şahin	Beklenen Sensin		2022
+Selami Şahin	Yanımda Sen Olmayınca		2016
+Canozan & Selami Şahin	Gözler Kalbin Aynasıdır		2024
+Serkan Kaya & Selami Şahin	Senin Olmaya Geldim		2024
+Selami Şahin	Seni Seviyorum Anlıyor Musun		1997
+Selami Şahin	Bulamazsın		1982
+Selami Şahin	Başımın Tatlı Belası		1990
+Selami Şahin, M Lisa & Emrah Karaduman	ARABA X Seninle Başım Dertte		2025
+Hakan Altun & Selami Şahin	Tanımam Senden Başka		2025
+Selami Şahin	Gözler Kalbin Aynasıdır		2011
+Selami Şahin	Bu Şehirde (feat. Onno Tunc)		2024
+Selami Şahin	İyi Ki Varsın		2004
+Selami Şahin	Sen Mevsimler Gibisin		1997
+Linet & Selami Şahin	İçim Yanar Tenim Üşür		2024
+Selami Şahin	Ya Gidersen		1994
+Yıldız Tilbe & Selami Şahin	Ağlıyorsam Sen Aldırma		2025
+Küçük Emrah	Ben Yetim		2025
+Küçük Emrah	Sev Yeter		1983
+Küçük Emrah	Ne Güzel Yaratmış		1982
+Küçük Emrah	Çok Sevdim		1983
+Küçük Emrah	Atma Beni Ellere		1982
+Küçük Emrah	Ayrığı Sen İstedin		1982
+Küçük Emrah	Gönül Senin Elinden		1982
+Küçük Emrah	Ne Dedimde (Uzun Hava)		1983
+Küçük Emrah	Anam Hasta Düştüm		1983
+Küçük Emrah	Cemile		1982
+Küçük Emrah	Kara Sevdanın Gözü Kör		1982
+Küçük Emrah	Oturur Derdini Anlatır Durur		2025
+Küçük Emrah	Yaz Beni Çiz Beni		1983
+Küçük Emrah	Akşam Olur Gizli Gizli		1982
+Küçük Emrah	Maraştan Bir Haber Geldi		2025
+Küçük Emrah	Ya Habibi		1982
+Küçük Emrah	Sefa Geldin		1982
+Küçük Emrah	Başım Gözüm Üstüne		1983
+Küçük Emrah	Kara Gözler		1983
+Küçük Emrah	Pınar Başı Pıtırak		1982
+Küçük Emrah	Dağlara		1983
+Küçük Emrah	Sarışınım		2025
+Küçük Emrah	Aşk Yolları Dikenlidir		1982
+Küçük Emrah	Mimar		1983
+Küçük Emrah	Kör Yılan		1983
+Küçük Emrah	Melek Soylum		1983
+Küçük Emrah	Bir Dilim Beyaz Peynir		1982
+Küçük Emrah	Dost Nasihatı		2025
+Küçük Emrah	Ceylan		2025
+Ceylan	Mardine		2009
+Ceylan	Artık Ağlamam		2024
+Ceylan	Birileri Kandırmış		2021
+Ceylan	Ah Gönlüm		2005
+Ceylan	Bana Biraz Zaman Lazım		2016
+Ceylan	Hezalım		1998
+Ceylan	Bir Sivaslı Uğruna		2020
+Ceylan	Nare		2001
+Ceylan	Mamudo		2000
+Ceylan	Antebin Hamamları		2007
+Ceylan	Zeyno		2000
+Ceylan	Sevim Yıkılsın Evim		2005
+Ceylan	Dön Maralım		2000
+Ceylan	Sende Kaldı Yüreğim		2016
+Ceylan	Minnoş		2016
+Ceylan	Ankara Mı Yanacak (feat. Dodo)		2023
+Ceylan	Ne Yapardım Bilmem		2025
+Ceylan Ertem	El Adamı		2016
+Ceylan	Pişmanlıklar Diliyorum (feat. Devran Şengümüş)		2022
+Ceylan Ertem	Zalım		2017
+Hakan Altun	Hani Bekleyecektin		1999
+Hakan Altun	Gönül Yarası		2000
+Hakan Altun	Sen de Ağla		2004
+Hakan Altun	Aşk Bahçemsin		2015
+Hakan Altun	Ağlamak Yok Yüreğim		2000
+Hakan Altun	Gül Belalıdır		2000
+Hakan Altun	Her Sevda Bir Ölümmüş		2000
+Hakan Altun	Bir Telefon		2003
+Hakan Altun	Kavuşmalıyız (feat. Derya Bedavacı)		2019
+Hakan Altun	Ruh İkizi (feat. Yıldız Tilbe)		2012
+Hakan Altun	Kabul Et		2006
+Hakan Altun	Vur Vur Vur		2017
+Hakan Altun	Dayan Yüreğim		2018
+Hakan Altun	Hep Var Olacaksın		2017
+Hakan Altun	Gidemezsin		2017
+Hakan Altun	Aşk Lütfen Gel		2015
+Hakan Altun	Nefesimsin		2002
+Hakan Altun	Teklif Ediyorum		2002
+Hakan Altun	Zaten Aşk Bitti		2010
+Hakan Altun	Başka Ten Uymuyor		2010
+Hakan Altun	Sevemedim Ayrılığı		2003
+Hakan Altun	Çok Ağlarız		2022
+Hakan Altun	Saklanacağım		2023
+Hakan Altun	Hangimiz Suçluyuz		2010
+Ayla Çelik & Hakan Altun	Seviyoruz Hâlâ (Hakkı Yalçın Şarkıları, Vol. 1)		2021
+Sibel Can & Eypio	KIYAMAM		2026
+Sibel Can & Tarkan	Çakmak Çakmak		2007
+Sibel Can	Kıskıvrak		2009
+Sibel Can	Bil Diye Söylüyorum		2020
+Sibel Can & Eypio	Diken Mi Gül Mü?		2018
+Sibel Can	Vallahi Yalan		2018
+Sibel Can	Emret Öleyim		1999
+Sibel Can	Bize Has		2025
+Sibel Can	Bilmesin O Felek		2012
+Sibel Can	Kuyu		2018
+Sibel Can	Ölürüm		1999
+Sibel Can	Senden Başka Kimsem Yok		2018
+Sibel Can	Padişah		1997
+Sibel Can	Kış Masalı		2014
+Sibel Can	Emi		2018
+Sibel Can	Galata (feat. Halil Sezai)		2014
+Sibel Can	Hayat		2020
+Sibel Can	Unuttu Seni		1993
+Sibel Can	Lale Devri (feat. Şilay Turhan)		2013
+Sibel Can	Melekler		2005
+Sibel Can & Kenan Doğulu	Hançer		2011
+Sibel Can	Yalnız Beni Sev		2020
+Sibel Can	Beş Dakika		2018
+Sibel Can	Tamam O Zaman		2015

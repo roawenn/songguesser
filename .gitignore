@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+.cache/
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+.DS_Store
+
+# Arşiv: TSV akışının çıktısı, canlı yedek değil (bkz. scripts/build-pool.ts)
+data/arsiv/

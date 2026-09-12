@@ -1,0 +1,155 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
+import { clipPlayer } from '@/audio/ClipPlayer'
+import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
+import type { Step } from '@/game/machine'
+
+interface Props {
+  attempt: number
+  steps: Step[]
+  playing: boolean
+  /** Çalan klibin uzunluğu (sn). */
+  clipLength: number
+  /** Şarkı kimliği — değişince "duyulan" işareti sıfırlanır. */
+  roundKey: string
+}
+
+/**
+ * Beş segmentli kademe göstergesi, iki yanında kaset deliği daireleri.
+ *
+ * İlerleme songspot.net'teki gibi davranır: her çalmada dolgu SIFIRDAN başlar
+ * ve klip süresi boyunca o kademenin sonuna kadar süpürür. Klip bitince dolgu
+ * geri düşmez — duyduğun kadarı yerinde kalır, böylece "geç" dedikten sonra
+ * tekrar çalınca çubuk baştan ama daha uzun bir yol alır.
+ *
+ * ⚠️ Dolgu rAF ile doğrudan DOM'a yazılır ve `clipPlayer.plateauStart`'ı
+ * bekler — yani sesin gerçekten duyulmaya başladığı anı. Tıklama anında
+ * başlatılsaydı çubuk sesten önde giderdi.
+ */
+export function StepIndicator({
+  attempt,
+  steps,
+  playing,
+  clipLength,
+  roundKey,
+}: Props) {
+  const sweepRef = useRef<HTMLDivElement>(null)
+  /** Şimdiye kadar duyulan en yüksek kademe; -1 = henüz hiç çalınmadı. */
+  const heard = useRef(-1)
+
+  const pctFor = (tierIndex: number) =>
+    (Math.min(tierIndex + 1, ATTEMPTS) / ATTEMPTS) * 100
+
+  // Yeni şarkı: duyulan işareti sıfırlanır.
+  useEffect(() => {
+    heard.current = -1
+    if (sweepRef.current) sweepRef.current.style.width = '0%'
+  }, [roundKey])
+
+  useEffect(() => {
+    const el = sweepRef.current
+    if (!el) return
+
+    if (!playing) {
+      el.style.width = heard.current >= 0 ? `${pctFor(heard.current)}%` : '0%'
+      return
+    }
+
+    const target = pctFor(attempt)
+    el.style.width = '0%'
+    const total = clipLength * 1000
+    let raf = 0
+
+    const tick = () => {
+      // Ses başlayana kadar sıfırda bekle.
+      const start = clipPlayer.plateauStart
+      if (start != null) {
+        const p = Math.max(0, Math.min(1, (performance.now() - start) / total))
+        el.style.width = `${(p * target).toFixed(2)}%`
+        if (p >= 1) {
+          heard.current = Math.max(heard.current, attempt)
+          return
+        }
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [playing, clipLength, attempt])
+
+  const hole = {
+    width: 13,
+    height: 13,
+    borderRadius: '50%',
+    border: '1px solid rgba(255,255,255,0.16)',
+    background: 'rgba(255,255,255,0.04)',
+    flex: 'none' as const,
+  }
+
+  return (
+    <div
+      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', maxWidth: 430 }}
+      role="group"
+      aria-label="Kalan haklar"
+    >
+      <div style={hole} />
+
+      <div style={{ position: 'relative', flex: 1, height: 9 }}>
+        {/* Süpüren dolgu — segmentlerin ALTINDA, kesintisiz akar. */}
+        <div
+          ref={sweepRef}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: '0%',
+            background: 'var(--acc)',
+            opacity: 0.85,
+            borderRadius: 2,
+          }}
+        />
+
+        {/* Segment kutuları — dolgunun ÜSTÜNDE, işaretler görünür kalsın. */}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', gap: 4 }}>
+          {STEPS.map((len, i) => {
+            const step = steps[i]
+            return (
+              <div
+                key={i}
+                title={
+                  step?.kind === 'wrong'
+                    ? `Yanlış: ${step.text}`
+                    : step?.kind === 'skip'
+                      ? 'Pas geçildi'
+                      : step?.kind === 'play'
+                        ? `${tr(len)} saniye dinlendi`
+                        : `${tr(len)} saniye`
+                }
+                style={{
+                  flex: 1,
+                  borderRadius: 2,
+                  border: `1px solid ${
+                    i <= attempt ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)'
+                  }`,
+                  // Yanlış tahmin ve pas, dolgunun üstünde işaretlenir.
+                  // `play` kasıtlı olarak saydam: o adımı zaten süpüren dolgu
+                  // boyuyor, üstüne ikinci bir vurgu katmanı eklemek gereksiz.
+                  background:
+                    step?.kind === 'wrong'
+                      ? 'rgba(160,90,90,0.8)'
+                      : step?.kind === 'skip'
+                        ? 'rgba(255,255,255,0.22)'
+                        : 'transparent',
+                }}
+              />
+            )
+          })}
+        </div>
+      </div>
+
+      <div style={hole} />
+    </div>
+  )
+}

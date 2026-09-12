@@ -1,0 +1,57 @@
+# Nakarat — küratörlü şarkı listesi: TÜRKÇE ROCK
+#
+# Biçim:  sanatçı <TAB> şarkı <TAB> zorluk(1-5) <TAB> orijinal yıl
+#
+# Bu listedeki her şarkının Apple Music TR'de mevcut olduğu doğrulandı.
+# Yeni aday görmek için:  npx tsx scripts/suggest.ts rock
+mor ve ötesi	Bir Derdim Var	1	2004
+mor ve ötesi	Cambaz	1	2004
+Duman	Her Şeyi Yak	1	2002
+Cem Karaca	Tamirci Çırağı	1	1975
+MFÖ	Ele Güne Karşı	1	1983
+maNga	Bir Kadın Çizeceksin	1	2004
+Şebnem Ferah	Sigara	1	2001
+Barış Manço	Dönence	1	1989
+Duman	Senden Daha Güzel	1	2009
+Erkin Koray	Fesupanallah	1	1973
+Duman	Haberin Yok Ölüyorum	2	2002
+mor ve ötesi	Sevda Çiçeği	2	2004
+Şebnem Ferah	Mayın Tarlası	2	2003
+Şebnem Ferah	Yağmurlar	2	1996
+maNga	Dursun Zaman	2	2004
+maNga	Cevapsız Sorular	2	2009
+Barış Manço	Alla Beni Pulla Beni	2	1989
+MFÖ	Güllerin İçinden	2	1984
+Kargo	Yıldızların Altında	2	2005
+Adamlar	Sarılırım Birine	2	2019
+Zakkum	Gökyüzünde	2	2013
+Erkin Koray	Sevince	2	1973
+Cem Karaca	Islak Islak	3	1992
+Cem Karaca	Ceviz Ağacı	3	1987
+Duman	Yürek	3	2013
+mor ve ötesi	Oyunbozan	3	2012
+mor ve ötesi	Daha Mutlu Olamam	3	2001
+Şebnem Ferah	Can Kırıkları	3	2005
+maNga	Dünyanın Sonuna Doğmuşum	3	2009
+MFÖ	Mazeretim Var Asabiyim Ben	3	1995
+Barış Manço	Can Bedenden Çıkmayınca	3	1999
+Kargo	Renklerin İçinde	3	2001
+Adamlar	Acının İlacı	3	2016
+Zakkum	Al Gece Yarılarımı Benden	3	2016
+Cem Karaca	Deniz Üstü Köpürür	4	1998
+Cem Karaca	Bu Son Olsun	4	1994
+Erkin Koray	Öyle Bir Geçer Zaman ki	4	1990
+Erkin Koray	Çöpçüler	4	1993
+Barış Manço	Çıt Çıt Çedene	4	1989
+Barış Manço	Bal Böceği	4	1995
+Şebnem Ferah	Bu Aşk Fazla Sana	4	1996
+Kargo	Şairin Elinde	4	1997
+MFÖ	Olduramadım	4	2006
+maNga	Beni Benimle Bırak	4	2009
+Erkin Koray	Seni Her Gördüğümde	5	1993
+MFÖ	Sarı Laleler	5	2006
+Kargo	Öyle Sarhoş Olsam ki	5	2005
+Kargo	Sen Ağlama	5	2005
+Adamlar	Rüyalarda Buruşmuşum	5	2016
+Zakkum	Seni Rastgele Sevmedim	5	2022
+Duman	Kufi	5	2024

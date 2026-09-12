@@ -1,0 +1,66 @@
+# Nakarat — küratörlü şarkı listesi: TÜRKÇE RAP
+#
+# Biçim:  sanatçı <TAB> şarkı <TAB> zorluk(1-5) <TAB> orijinal yıl
+#
+# zorluk: 1=Kolay (herkes bilir) ... 5=İmkansız (hardcore dinleyici)
+# yıl:    ORİJİNAL çıkış yılı. iTunes'un verdiği tarih genelde yeniden
+#         basım/derleme tarihidir, ona körü körüne güvenme.
+#
+# Bu listedeki her şarkının Apple Music TR'de mevcut olduğu doğrulandı
+# (scripts/suggest.ts ile üretilen aday havuzundan seçildi).
+#
+# Yeni aday görmek için:  npx tsx scripts/suggest.ts rap
+Ceza	Suspus	1	2004
+Ceza	Holocaust	1	2006
+Ceza	Gelsin Hayat Bildiği Gibi	1	2006
+Sagopa Kajmer	Bir Pesimistin Gözyaşları	1	2003
+Norm Ender	Mekanın Sahibi	1	2018
+Norm Ender	Kaktüs	1	2017
+Ezhel	Felaket	1	2017
+Gazapizm	Heyecanı Yok	1	2016
+UZI	PAPARAZZI	1	2021
+BLOK3	Sebebi Yar	1	2026
+BLOK3	Kayıp Kalp	1	2026
+Sefo	Bilmem Mi?	1	2021
+Ceza	Med Cezir	2	2002
+Ceza	Rapstar	2	2004
+Ceza	Yerli Plaka	2	2007
+Sagopa Kajmer	Kötü İnsanları Tanıma Senesi	2	2006
+Ezhel	Bul Beni	2	2021
+Ezhel	Nerdesin	2	2022
+UZI	Paranoya	2	2020
+Sefo	Tutsak	2	2022
+Sefo	Affettim	2	2022
+Şanışer	Beni Bana Yar Etmezler	2	2018
+Şanışer	Kara Geceler	2	2019
+Gazapizm	Unutulacak Dünler	2	2020
+Norm Ender	Deli	2	2017
+BLOK3	Kırgınım	2	2026
+Sagopa Kajmer	Galiba	3	2009
+Sagopa Kajmer	Ateşten Gömlek	3	2008
+Sagopa Kajmer	Meftun	3	2013
+Şanışer	Geçemiyorum Serden	3	2015
+Gazapizm	Sağı Solu Kes	3	2020
+Şehinşah	Yak Yak Yak	3	2018
+Tankurt Manas	Mola	3	2016
+Allame	Hayalin Yeri Yok	3	2012
+Ceza	Fark Var	3	2006
+Hidra	Ölüme İnat	3	2013
+Ezhel	Kazıdık Tırnaklarla	3	2018
+Norm Ender	Kezban	3	2017
+Nefret	İstanbul	4	2000
+Nefret	Anahtar	4	2001
+Kolera	Kolaysa Anlat	4	2007
+Sansar Salvo	Ağır Roman	4	2008
+Killa Hakan	Hey Sen	4	2012
+Ayben	Benim O	4	2005
+Contra	Efsane	4	2015
+Yener Çevik	Hüznü Hecem	4	2016
+Allame	Allame Sendromu	4	2009
+Nefret	Hip Hop Bir Bomba	5	2000
+Kolera	Pespaye	5	2008
+Sansar Salvo	Gözlerimin İçinde	5	2008
+Hidra	Çünkü Bu	5	2012
+Tankurt Manas	Çene Kemiklerimi Kırdım	5	2013
+Contra	Çivi	5	2015
+Ayben	Oha Dersin	5	2013

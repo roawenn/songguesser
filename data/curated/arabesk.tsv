@@ -1,0 +1,57 @@
+# Nakarat — küratörlü şarkı listesi: ARABESK
+#
+# Biçim:  sanatçı <TAB> şarkı <TAB> zorluk(1-5) <TAB> orijinal yıl
+#
+# Bu listedeki her şarkının Apple Music TR'de mevcut olduğu doğrulandı.
+# Yeni aday görmek için:  npx tsx scripts/suggest.ts arabesk
+Müslüm Gürses	Nilüfer	1	2006
+Müslüm Gürses	Hangimiz Sevmedik	1	1994
+Orhan Gencebay	Beni Böyle Sev	1	1998
+İbrahim Tatlıses	Kal Benim İçin	1	2004
+Bergen	Elimde Fotoğrafın	1	1988
+Ferdi Tayfur	Hatıran Yeter	1	1990
+Bergen	Seni Kalbimden Kovdum	1	1996
+Ebru Gündeş	Demir Attım	1	1993
+Cengiz Kurtoğlu	Küllenen Aşk	1	2002
+İbrahim Tatlıses	Ne Sevdalar Yaşadım	1	2003
+Müslüm Gürses	Adını Sen Koy	2	1993
+Müslüm Gürses	Seni Yazdım	2	1986
+Orhan Gencebay	Kaderimin Oyunu	2	1998
+Orhan Gencebay	Vazgeç Gönlüm	2	1998
+Ferdi Tayfur	Sabahçı Kahvesi	2	1992
+Ferdi Tayfur	Bana Sor	2	1990
+Bergen	Sen Affetsen	2	1998
+Cengiz Kurtoğlu	Liselim	2	2000
+Ebru Gündeş	Söyleyin	2	2004
+Kibariye	Kara Gözlü Çingenem	2	1998
+Küçük Emrah	Çok Sevdim	2	1983
+İbrahim Tatlıses	Eyvah Neye Yarar	2	1988
+Müslüm Gürses	Yıllar Utansın	3	1989
+Müslüm Gürses	Gel Bahtımın Kar Beyazı	3	2001
+Orhan Gencebay	Aklım Takıldı	3	1994
+Orhan Gencebay	Akşam Güneşi	3	1998
+Ferdi Tayfur	İçim Yanar	3	1994
+Ferdi Tayfur	Sanmaki Yaşıyorum	3	1989
+Bergen	İnsan Dertli Olunca	3	1996
+Cengiz Kurtoğlu	Heves Mi Kaldı	3	1994
+Cengiz Kurtoğlu	Gece Olunca	3	1987
+Gülden Karaböcek	Sen Evlisin	3	1987
+Küçük Emrah	Sev Yeter	3	1983
+Ebru Gündeş	Ağlamayacağım	3	2011
+Orhan Gencebay	Al Senin Olsun	4	1983
+Ferdi Tayfur	Sevda Yelleri	4	1982
+Bergen	Kullar Affetmez	4	1996
+Bergen	Benim İçin Üzülme	4	1998
+Cengiz Kurtoğlu	Resmini Öptümde Yattım	4	1988
+Cengiz Kurtoğlu	Duvardaki	4	2000
+Gülden Karaböcek	Ben Olmalıydım	4	1987
+Gülden Karaböcek	Hatıran Yeter	4	1991
+Küçük Emrah	Ne Güzel Yaratmış	4	1982
+Kibariye	Lafımı Olur	4	1993
+Gülden Karaböcek	Sevsen Ne Olurdu	5	1987
+Gülden Karaböcek	Ağlıyorsam Yaşıyorum	5	1987
+Gülden Karaböcek	Kırılsın Ellerim	5	1991
+Küçük Emrah	Atma Beni Ellere	5	1982
+Küçük Emrah	Ayrığı Sen İstedin	5	1982
+Kibariye	Gülümse Kaderine	5	2006
+İbrahim Tatlıses	Eşik Taşı	5	2008

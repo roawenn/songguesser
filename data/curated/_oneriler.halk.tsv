@@ -1,0 +1,359 @@
+# halk — ADAY ŞARKILAR (Apple Music TR'de mevcut olduğu DOĞRULANDI)
+#
+# Beğendiğin satırları halk.tsv dosyasına taşı ve iki alanı doldur:
+#   zorluk (3. sütun): 1=Kolay ... 5=İmkansız
+#   yıl (4. sütun): iTunes'un verdiği yıl YENİDEN BASIM olabilir, kontrol et
+#
+# sanatçı	şarkı	zorluk	yıl(iTunes)
+Neşet Ertaş	Yalan Dünya		2000
+Neşet Ertaş	Yolcu		2003
+Neşet Ertaş	Neredesin Sen		2007
+Neşet Ertaş	Yar imiş Meğer		2003
+Neşet Ertaş	Yazimi Kisa Çevirdin		2000
+Neşet Ertaş	Doyulur mu		2003
+Neşet Ertaş	Gönül Dağı		1999
+Neşet Ertaş	Evvelim Sen Oldun		2000
+Neşet Ertaş	Bir Ayrılık Bir Yoksulluk		1997
+Neşet Ertaş	Kasların Kara Kara		2007
+Neşet Ertaş	Sen Benimsin Ben Senin		1988
+Neşet Ertaş	Dane Dane Benleri Var		1999
+Neşet Ertaş	Karadır Şu Bahdım Kara		1999
+Neşet Ertaş	Zülüf Dökülmüş Yüze		1999
+Neşet Ertaş	Kesikçayır		2007
+Neşet Ertaş	Zahidem		1999
+Neşet Ertaş	Bir Ayrılık, Bir Yoksulluk, Bir Ölüm		2020
+Neşet Ertaş	Acem Kızı		1997
+Neşet Ertaş	Sevda Olmasaydı		1998
+Neşet Ertaş	Gel Yanıma Gel		1999
+Neşet Ertaş	Hata Benim		2000
+Neşet Ertaş	Kaşların Karasına		1999
+Neşet Ertaş	Gülüşün Gülden Güzel		1998
+Neşet Ertaş	Haydar Haydar		1990
+Neşet Ertaş	Hapishanelere Güneş Doğmuyor		2020
+Neşet Ertaş	Sen Benimsin		2000
+Neşet Ertaş	Allı Turnam		2003
+Aşık Veysel	Uzun İnce Bir Yoldayım		2001
+Aşık Veysel	Kara Toprak		2001
+Aşık Veysel	Güzelliğin On Par'etmez		2001
+Aşık Veysel	Beni Hor Görme		1997
+Aşık Veysel	Dostlar Beni Hatırlasın		2001
+Aşık Veysel	Dost Dost Nicesine Sarıldım		2013
+Aşık Veysel	Mecnunum Leylamı Gördüm		2001
+Aşık Veysel	Güzelliğin On Para Etmez		1987
+Aşık Veysel	Kul Olayım Kalem Tutan Ellere		2014
+Aşık Veysel	Ben Gidersem Sazım Sen Kal		2001
+Aşık Veysel	Kekliğidim Vurdular		2001
+Aşık Veysel	Katip Arzuhalim		1993
+Aşık Veysel	Bana da Banaz'da Pir Sultan Derler		2019
+Aşık Veysel	Atatürk'e Ağıt		2001
+Aşık Veysel	Kızılırmak Seni Seni		1997
+Aşık Veysel	Derdimi Döksem Derin Dereye		2013
+Aşık Veysel	Ne Ötersin Dertli Dertli		2013
+Aşık Veysel	Anlatmam Derdimi		1997
+Aşık Veysel	Beni Hor Görme Kardeşim		1987
+Aşık Veysel	Asırlar Elimde Bir Tesbih Gibi / Devran		2023
+Aşık Veysel	Çiğdem Der Ki		2001
+Aşık Veysel	Dünyada Tükenmez Murat Var İmiş		1987
+Selda Bağcan	Öyle Bir Yerdeyim ki (feat. Ahmet Kaya)		1986
+Selda Bağcan	Sürgün		1992
+Selda Bağcan	Adaletin Bu Mu Dünya		1974
+Selda Bağcan	Dön Gel Birtanem		2002
+Selda Bağcan	Yürüyorum Dikenlerin Üstünde		2014
+Selda Bağcan	Denizlerin Dalgasıyım		2004
+Selda Bağcan	Uğurlar Olsun (Uğur Mumcu'ya Ağıt)		1992
+Selda Bağcan	Sivas Ellerinda Sazım Çalınır (Katip Arzuhalim Yaz Yare Böyle)		1974
+Selda Bağcan & Mabel Matiz	Yuh Yuh		2017
+Selda Bağcan	Sarı Saçlım Mavi Gözlüm (Bir Daha Gel Samsun'dan)		2011
+Selda Bağcan	Ağladım Anne		2002
+Selda Bağcan	Mağusa Limanı		2008
+Selda Bağcan	Ayrılık		1992
+Selda Bağcan	Gesi Bağları		1974
+Selda Bağcan	Yüce Dağ Başında		1980
+Selda Bağcan & Ferhat Güneyli	İşte Gidiyorum		2016
+Emrah Karaduman, Yasin Keleş & Selda Bağcan	Yuh Yuhh		2022
+Selda Bağcan	Sana Geldim Can / Hüseyin Merhaba / Kerbela Ağıdı		2008
+Selda Bağcan	Minnet Eylemem		1989
+Selda Bağcan	Böyleymiş Kara Yazımız		1986
+Selda Bağcan	Ağlama Anne		2014
+Selda Bağcan & Otnicka	Gesi Bağları		2021
+Selda Bağcan	Sarhoş		1986
+Selda Bağcan	Çemberimde Gül Oya		1974
+Selda Bağcan	Batman'dan Diyarbekir'e (Le Caney)		2004
+Selda Bağcan	Yuh Yuh		2014
+Selda Bağcan	Ah Yalan Dünya		2004
+Selda Bağcan	Beni Unutma		1992
+Selda Bağcan	Sivas’ın Yollarına		2002
+Ruhi Su	Mahsus Mahal		1974
+Ruhi Su	Drama Köprüsü		1986
+Ruhi Su	Ankara'nın Taşına Bak		1993
+Ruhi Su	Ben Melamet Hırkasını		1994
+Ruhi Su	Bilmem Şu Feleğin		1994
+Ruhi Su	Geçti Dost Kervanı		1987
+Ruhi Su	Sivastopol Marşı		1977
+Ruhi Su	Evlerinin Önü Mersin		1993
+Ruhi Su	Dünyanın Üzerinde Kurulu Direk		1977
+Ruhi Su	Çanakkale		1971
+Ruhi Su	Şu Kanlı Zalimin Ettiği İşler		1972
+Ruhi Su	Acem Kızı		1993
+Ruhi Su	Yemen Türküsü, Pt. 2		1977
+Ruhi Su	Kerimoğlu		1981
+Ruhi Su	Altın Hızma		1993
+Ruhi Su	Allı Turnam		1993
+Ruhi Su	Deniz Üstü Köpürür		1993
+Ruhi Su	Başın Öne Eğilmesin		1977
+Ruhi Su	O Yar Gelir		1986
+Ruhi Su	Üç Kız Bir Ana		1993
+Ruhi Su	Gelin Canlar Bir Olalım		1972
+Ruhi Su	Şişli Meydanı'nda Üç Kız		1977
+Ruhi Su	Yürük Ali		1981
+Ruhi Su	Kiziroğlu		1971
+Ruhi Su	Ellerinde Pankartlar		1977
+Ruhi Su	Gam Elinden Benim Zülfü Siyahım		1972
+Ruhi Su	Ben De Şu Dünyaya Geldim Sakinim		1972
+Ruhi Su	Ben Meylimi Üç Güzele Düşürdüm		1972
+Ruhi Su	Gel Benim Derdime Bir Derman Eyle		1972
+Ruhi Su	Kalktı Göç Eyledi Avşar Elleri		1993
+Arif Sağ	İnsan Olmaya Geldim		1987
+Arif Sağ	Yolver Dağlar		1995
+Arif Sağ	Erisin Dağların Karı		2002
+Arif Sağ	Güzel Seni Çok Özledim		1990
+Arif Sağ	Kirpiğine Kaşına		1987
+Arif Sağ & Belkıs Akkale	Seher Yıldızı		1996
+Arif Sağ	Bugün Bize Pir Geldi		1987
+Arif Sağ & Musa Eroglu	Mevlam Bir Çok Dert Vermiş		1986
+Arif Sağ	Feridem		2002
+Arif Sağ	Ayrılık Hasreti		1987
+Arif Sağ	Ervahı Ezelden		1987
+Arif Sağ & Belkıs Akkale	Şu Dağlar		1996
+Orhan Gencebay & Arif Sağ	Gönül Defteri (feat. Sabahat Akkiraz)		2017
+Arif Sağ	İnsana Muhabbet Duyalı		1987
+Arif Sağ	Nazlı Yardan Uzun Hava		1987
+Arif Sağ	Bir Ahdına Sadık Yar Olmayınca		1987
+Arif Sağ	Fidayda		2006
+Arif Sağ	Sunam (Uzun Hava)		1986
+Arif Sağ	Hop Çerkez		2002
+Arif Sağ	Çökertme		1998
+Arif Sağ	Çıktım Yücesine		2006
+Arif Sağ	Konyalı		2003
+Arif Sağ	İşte Gidiyorum		1986
+Arif Sağ	Nurhak Semahı		2002
+Arif Sağ	Bahriye Çiftetellisi		2017
+Arif Sağ	Mavilim		1987
+Arif Sağ	Elazığ Dik Halayı (Karaçor)		2004
+Musa Eroglu	Candan İleri		2012
+Musa Eroglu	Yine Karlar Yağdı Gönül Dağıma		1998
+Musa Eroglu	Mihriban		2000
+Musa Eroglu	Telli Turnam		1998
+Musa Eroglu	Gerizler Başı		2000
+Musa Eroglu	Yare Söyleme		2007
+Musa Eroglu	Halil İbrahim		1996
+Musa Eroglu	Turnaların Göçü		2018
+Musa Eroglu	Harmana Sererler Sarı Samanı		2003
+Musa Eroglu & Nazlı Öksüz	Pınar Başından Bulanır		2005
+Musa Eroglu	Zamansız Yağmur		2012
+Cem Adrian & Musa Eroglu	Yolun Sonu Görünüyor		2018
+Musa Eroglu	Çoban Yıldızı		2007
+Musa Eroglu	Firari		2018
+Musa Eroglu	Felek Çakmağını Üstüme Çaktı		2000
+Musa Eroglu	Nalın Dilber		2012
+Güler Duman & Musa Eroglu	Niye Böyle Dargın Bakarsın		2004
+Musa Eroglu	Yollarına Kar Mı Yağdı		2005
+Musa Eroglu	Bin Derdim Var		2007
+Musa Eroglu	Yolun Sonu		1996
+Musa Eroglu	Emirdağı Birbirine Ulalı		1998
+Güler Duman & Musa Eroglu	Dağlar Dağımdır Bemim		2004
+Musa Eroglu	Emir Dağı		1998
+Musa Eroglu	Bi Acayip Sevda Düştü Serime		2000
+Musa Eroglu	Serçeşme		2010
+Musa Eroglu	Hasret Bitiren Yollar		1998
+Musa Eroglu	Kömür Gözlüm Ataşına Düşeli		2003
+Güler Duman & Musa Eroglu	Ömrüm Kadrini Bilmedim		2004
+Belkıs Akkale	Dağlar Seni Delik Delik Delerim		1983
+Belkıs Akkale	İlvanlım		1991
+Arif Sağ & Belkıs Akkale	Yeşil Ördek		1996
+Belkıs Akkale	Siyah Perçemlerin		1987
+Belkıs Akkale	Yollar Seni Gide Gide Usandım		1989
+Belkıs Akkale	Bu Gala Daşlı Gala (Azeri)		2000
+Belkıs Akkale	Vay Deli Gönül		2000
+Belkıs Akkale	Vardım Kırklar Kapısına		2019
+Belkıs Akkale & İzzet Altınmeşe	Ey Şahin Bakışlım		1994
+Belkıs Akkale	Çeşmi Siyahım		1992
+Belkıs Akkale	Leyli De Leyli		1994
+Arif Sağ & Belkıs Akkale	Sarı Gelin		1996
+Belkıs Akkale	Havada Bulut Yok		2008
+Belkıs Akkale & İzzet Altınmeşe	Türküler Bizi Anlatır		2013
+Belkıs Akkale	Kirpiğin Kaşına Değdiği Zaman		1987
+Belkıs Akkale & İzzet Altınmeşe	Kara Toprak		2008
+Belkıs Akkale & İzzet Altınmeşe	Kele Meryem		1994
+Belkıs Akkale	Dağlar		2000
+Belkıs Akkale & İzzet Altınmeşe	Yeni Yaptım Evimi / Cemilem / Yarım Hava / Çayırda Buldum Seni / Kalenin Bedenleri / Süt İçtim Dilim Yandı (Potpori)		1994
+Belkıs Akkale	Sunam		1987
+Belkıs Akkale	Adana Çiftetellisi		1994
+Arif Sağ & Belkıs Akkale	Kırklar Kapısı		1996
+Arif Sağ & Belkıs Akkale	Mektup		1996
+Belkıs Akkale & İzzet Altınmeşe	Karam		1994
+Belkıs Akkale	Turnam		1992
+Belkıs Akkale & İzzet Altınmeşe	Sensiz Birgün		2013
+Kubat	Kesik Çayır		2000
+Kubat	Kara Ağaç		2005
+Kubat	Dermanımsın		2007
+Kubat	Al Ömrümü		2016
+Kubat	Halkalı Şeker		1999
+Kubat	Bağa Gel Bostana Gel		1997
+Kubat	Yanıyorum Hele		2007
+Kubat	Fidayda		2000
+Kubat	Yas		1997
+Kubat	Yar Yarası		2007
+Kubat	Karadır Kaşların		2015
+Kubat	İki Keklik		2000
+Kubat	Bugün		1997
+Kubat	Denizin Dibinde Hatçem		2000
+Kubat	Acem Kızı		2000
+Kubat	Yazın Yağar Kar Başıma		2018
+Kubat	Sofu Baba		2017
+Kubat	Gönül Dağı		2018
+Kubat	Al Fadimem		2000
+Kubat	Bülbülüm Altın Kafeste		2000
+Kubat	Tanrıdan Diledim		2010
+Kubat	Sarhoş		2011
+Kubat	Bir Ay Doğar		2018
+Kubat	Fincanın Etrafı Yeşil		2000
+Kubat	Tiridine Bandım		2005
+Kubat	Doyulur mu		2016
+Kubat	Çalın Davulları		2000
+Kubat	Gülüm		2007
+Kubat	Misket		2000
+Sabahat Akkiraz	Bergüzar		2023
+Sabahat Akkiraz	Tevhid		2003
+Sabahat Akkiraz	Şah-ı Merdan		1999
+Sabahat Akkiraz	Değme Felek		1996
+Sabahat Akkiraz	Ses Verin Sesime Dağlar		2012
+Sabahat Akkiraz	Kerbela		1999
+Sabahat Akkiraz	Semah		1996
+Mustafa Özarslan & Sabahat Akkiraz	Senden Oldu		2008
+Mustafa Özarslan & Sabahat Akkiraz	Kirpiklerini Ok Eyle		2008
+Sabahat Akkiraz	Ah Aşk (feat. Hüsnü Şenlendirici)		2017
+Sabahat Akkiraz	Böyle Olur Mu (feat. Aylin Aslım)		2017
+Sabahat Akkiraz	Yaktın Yandırdın Beni (Live)		2010
+Sabahat Akkiraz	Karnı Büyük Koca Dünya		2011
+Sabahat Akkiraz	Geç Kaldın		2014
+Sabahat Akkiraz	Ne Ağlarsın		2001
+Sabahat Akkiraz	Gel Gönül Gidelim		2023
+Sabahat Akkiraz	Bana Yücelerden Seyreden Dilber		1996
+Sabahat Akkiraz	Boşumuş		2007
+Sabahat Akkiraz	Yar Senin Derdinden		1997
+Sabahat Akkiraz	Anlarsın (feat. Musa Eroğlu)		2017
+Sabahat Akkiraz	Yükledim Göçümü / Dersim (feat. Erdal Erzincan)		2017
+Sabahat Akkiraz	Yeşil İpek Bükeyim (feat. Bedük)		2017
+Sabahat Akkiraz	Üç Telli Turnam		2019
+Sabahat Akkiraz	Dım Dım Yar (feat. Baba Zula)		2017
+Sabahat Akkiraz	Ya Hızır Semahı		1997
+Sabahat Akkiraz	Bugün Gidiyorum /Vazgeçti Leyla		2007
+Muharrem Ertaş	Kalktı Göç Eyledi Avşar Elleri		1998
+Muharrem Ertaş	Şu Yalan Dünyadan Usandım		1998
+Muharrem Ertaş	Gönül Ne Gezersin		1998
+Muharrem Ertaş	Mezar Arasında		1998
+Muharrem Ertaş	Ela Gözlerini Sevdiğim Dilber		1998
+Muharrem Ertaş	Yeni Geldim Dinek Dagi		1945
+Muharrem Ertaş	Yağmur Yağdı Yine Bulandı Hava		1998
+Muharrem Ertaş	Kova Kova İndirirler Yazıya		1998
+Muharrem Ertaş	Biter Kırşehir'in Gülleri		1998
+Muharrem Ertaş	Aldı Dert Beni		1998
+Muharrem Ertaş	Ag Ellerin Sala Sala Gelen Yar		1998
+Muharrem Ertaş	Bana Gül Diyorlar		1998
+Muharrem Ertaş	Basimda Altin Tacim		1945
+Muharrem Ertaş	Yâ Rab Kime Yalvarayim		1945
+Muharrem Ertaş	Giderim Giderim		1998
+Muharrem Ertaş	Neyleyim Yalan Dünya Mali Ziynet		1945
+Muharrem Ertaş	Leyla Yar		2007
+Muharrem Ertaş	Asagidan Kalkti Bir Akça Güzeli (Agit)		1945
+Muharrem Ertaş	Kirat Bozlagi (Beypazari Kirati)		1945
+Muharrem Ertaş	Ag Odana Kara Taban Yatırdım		1998
+Muharrem Ertaş	Eğil Dağlar		1998
+Muharrem Ertaş	Evlerinin Önü Marul		1945
+Muharrem Ertaş	Bâd-i Sabâ		1945
+Muharrem Ertaş	Deniz Dalgasiz Olmaz		1945
+Muharrem Ertaş	Su Daglar Ulu Daglar (Halay)		1945
+Muharrem Ertaş	Kismet Kalkti Su Ellerde Durulmaz (Bozlak)		1945
+Muharrem Ertaş	Karanfil Suyu Neyler (Halay)		1945
+Muharrem Ertaş	Tor Sahin Misali		1945
+Zara	Vur Gitsin Beni		2018
+Zara	Seni Yazdım Kalbime		2016
+Zara	Gönül Dağı (Eşkiya Dünyaya Hükümdar Olmaz Dizi Film Müziği)		2017
+Zara	Tez Gel Yarim		2008
+Zara	Değmen Benim Gamlı Yaslı Gönlüme		1998
+Zara	Dilenci		2012
+Zara	Eklemedir Koca Konak		1998
+Zara	Kaç Kadeh Kırıldı		2014
+Zara	Burası Adıyaman		2011
+Zara	Sabahçı Kahvesi		2020
+Zara	Hasretinden Yandı Gönlüm		2000
+Zara	Dostum Dostum		2018
+Zara	Ağla Halime		2018
+Zara	Bir Ateşe Attın Beni		2014
+Zara	Benim Hayatım		2016
+Zara	Kara Tren		2017
+Zara	Hatıran Yeter		2014
+Zara & Ekrem Düzgünoğlu	Bir Fırtına Tuttu Bizi		2004
+Eypio & Zara	İmdadım		2024
+Zara	Yine Sen		2024
+Zara	Mevsim Bahar Olunca		2020
+Zara Larsson	Lush Life		2017
+Zara & Kutsi	Hayatımın Anlamı		2021
+Ahmet Kaya	Şiire Gazele		1994
+Ahmet Kaya	Doruklara Sevdalandım		1994
+Ahmet Kaya	Nereden Bileceksiniz		1998
+Ahmet Kaya	Kara Yazı		1985
+Ahmet Kaya	Kum Gibi		1994
+Ahmet Kaya	Hep Sonradan		1994
+Ahmet Kaya	İçimde Ölen Biri		1992
+Ahmet Kaya	Başım Belada		1991
+Ahmet Kaya	Beni Vur		1987
+Ahmet Kaya	Kendine İyi Bak		1994
+Ahmet Kaya	Karar Vermek Zor		1994
+Ahmet Kaya	Dardayım		1994
+Ahmet Kaya	Ayrılığın Hediyesi		1991
+Ahmet Kaya	Gaş Sabah		1994
+Ahmet Kaya	Şafak Türküsü		1986
+Ahmet Kaya	Giderim		1998
+Ahmet Kaya	Kalan Kalır		1991
+Ahmet Kaya	Hani Benim Gençliğim		1987
+Ahmet Kaya	Yorgun Demokrat		1987
+Ahmet Kaya	Ağladıkça		1994
+Ahmet Kaya	Söyle		1998
+Ahmet Kaya	Arka Mahalle		1995
+Ahmet Kaya	Yakamoz		1997
+Ahmet Kaya	Geçmiyor Günler		1989
+Ahmet Kaya	Korkarım		1998
+Ahmet Kaya	Kaçakçı Kurban		1994
+Ahmet Kaya	Herkes Kendi İşine		1988
+Ahmet Kaya	Kod Adı Bahtiyar		1990
+Ahmet Kaya	Çiğdem Çiçek		1986
+Erdal Erzincan	Felek Senin Elinden		1996
+Erdal Erzincan	Nem Kaldı		1998
+Erdal Erzincan	Kâinatın Aynasıyım		2015
+Erdal Erzincan, Tolga Sağ & İsmail Özden	Ağlasam Mı		1997
+Erdal Erzincan	Bugün Bize Pir Geldi		2014
+Erdal Erzincan	Yar Senin Derdinden		1997
+Erdal Erzincan	Al Mendil		2002
+Erdal Erzincan	Seher Yeli		2011
+Erdal Erzincan	Medet		2018
+Erdal Erzincan	Zührem Gelmedi		2002
+Erdal Erzincan	Dünyada Tükenmez Murat Var İmiş		2001
+Tolga Sağ, Erdal Erzincan & Yılmaz Çelik	Dağlar Oy Dağlar		2001
+Erdal Erzincan	Bülbüldür Öter Güle		2018
+Erdal Erzincan	Dost Bildiğim Ele Döndü		2002
+Erdal Erzincan	Keklik Gibi		2002
+Erdal Erzincan	Bir Güzel Uğruna		2018
+Tolga Sağ, Erdal Erzincan & Yılmaz Çelik	Dağlar Kışımış		2001
+Erdal Erzincan	Yıldız		1997
+Erdal Erzincan	Kınamayın Beni Hakkı Sevenler (Feyzullah Çınar Eserleri 1)		2024
+Erdal Erzincan	Yemen Ellerinden		1997
+Erdal Erzincan	Bayburt Dağlarında		2006
+Erdal Erzincan	Darıldım (feat. Mercan Erzincan)		2018
+Erdal Erzincan	Dost Dost Diye Hayaline Yeldiğim		2006
+Erdal Erzincan	Deli Gönül		2011
+Erdal Erzincan	Dilim		2018
+Erdal Erzincan, Tolga Sağ & İsmail Özden	Ey Erenler		1997
+Erdal Erzincan	Kadıoğlu Zeybeği		2000
+Erdal Erzincan	Haktan Didar İsteriz		2005

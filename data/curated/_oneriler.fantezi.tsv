@@ -1,0 +1,227 @@
+# fantezi — ADAY ŞARKILAR (Apple Music TR'de mevcut olduğu DOĞRULANDI)
+#
+# Beğendiğin satırları fantezi.tsv dosyasına taşı ve iki alanı doldur:
+#   zorluk (3. sütun): 1=Kolay ... 5=İmkansız
+#   yıl (4. sütun): iTunes'un verdiği yıl YENİDEN BASIM olabilir, kontrol et
+#
+# sanatçı	şarkı	zorluk	yıl(iTunes)
+Ümit Besen	Nikah Masası		1998
+Ümit Besen & Pamela Spence	Seni Unutmaya Ömrüm Yeter Mi		2016
+Ümit Besen	Alışmak Sevmekten Daha Zor		1998
+Ümit Besen	Okul Yolunda		1980
+Ümit Besen	Unutmaya Ömrüm Yeter Mi		1997
+Ümit Besen	Tahta Masa		1998
+Ümit Besen	İşte Bu Bizim Hikayemiz		2000
+Ümit Besen	Unutulmuşum		1989
+Ümit Besen	Dostlar Sağolsun		1998
+Ümit Besen	Sigarası Yaldızlı		1989
+Ümit Besen	Islak Mendil		1981
+Ümit Besen & Cem Adrian	Islak Mendil		2016
+Ümit Besen	O Gece		2003
+Ümit Besen & Bora Duran	Nikah Masası		2016
+Ümit Besen	İstanbul Sokakları		1995
+Ümit Besen	Yokluğunda		2016
+Ümit Besen	Vururum Seni		2003
+Ümit Besen	Aşk Yere Batsın		2001
+Ümit Besen	Kim Dokunduysa Sana Ona Git		2016
+Ümit Besen & Feridun Düzağaç	Okul Yolunda		2016
+Ümit Besen	Baharı Bekleyen		2000
+Ümit Besen	Bendeki Günlerini Arayacaksın		1987
+Ümit Besen	O Gün Gelmesin		1982
+Ümit Besen	Bir Akşam Üstü		1987
+Ümit Besen	Aşk Kitabı		1981
+Ümit Besen	Bekliyenim Var		1987
+Ümit Besen	Senden Öğrendim		1987
+Cengiz Kurtoğlu	Küllenen Aşk		2002
+Cengiz Kurtoğlu	Liselim		2000
+Cengiz Kurtoğlu & Hakan Altun	Yorgun Yıllarım		1970
+Cengiz Kurtoğlu	Resmini Öptümde Yattım		1988
+Cengiz Kurtoğlu	Heves Mi Kaldı		1994
+Cengiz Kurtoğlu	Duvardaki		2000
+Cengiz Kurtoğlu	Gece Olunca		1987
+Cengiz Kurtoğlu	Yalancı Bahar		2001
+Cengiz Kurtoğlu	Ümit Yere Batsın		1987
+Cengiz Kurtoğlu	Saklı Düşler		2014
+Cengiz Kurtoğlu & Hakan Altun	Duyanlara Duymayanlara		2018
+Cengiz Kurtoğlu	Farketmez Artık		1995
+Cengiz Kurtoğlu	Unutulan		2000
+Cengiz Kurtoğlu	Kül		2014
+Cengiz Kurtoğlu	Hain Geceler		1998
+Cengiz Kurtoğlu	Yasak Aşk		2000
+Cengiz Kurtoğlu & Hakan Altun	Hain Geceler		2018
+Cengiz Kurtoğlu	Ağlamam Ondan		2000
+Cengiz Kurtoğlu	Yine Mi Sen		2000
+Cengiz Kurtoğlu	Yaralı		2000
+Cengiz Kurtoğlu	Gelin		2002
+Cengiz Kurtoğlu	Canın Sağolsun (2017 LP Mastering)		2006
+Cengiz Kurtoğlu	Aşk Sokağı (2017 LP Mastering)		2006
+Cengiz Kurtoğlu & Hakan Altun	İstanbul Olmaz Olsun		2018
+Cengiz Kurtoğlu	Sevmeyeceğim		1987
+Cengiz Kurtoğlu	Kadehi Şişeyi Kırarım		2000
+Cengiz Kurtoğlu	Seviyorum		1995
+Cengiz Kurtoğlu	Sevmek Yetmez Mi		1999
+Cengiz Kurtoğlu	Seninle Aşkımız Bir Roman		2016
+Yıldız Tilbe	Hastayım Sana		2010
+Yıldız Tilbe	Vazgeçtim		1995
+Yıldız Tilbe	Dayan Yüreğim		1996
+Yıldız Tilbe	Aşk Laftan Anlamazki		2002
+Yıldız Tilbe	El Adamı		1996
+Yıldız Tilbe	Anma Arkadaş		2009
+Yıldız Tilbe	Çat Kapı		2003
+Yıldız Tilbe	Bende Kalmadı		2003
+Yıldız Tilbe	Şivesi Sensin Aşkın		2014
+Yıldız Tilbe	Delikanlım		1994
+Yıldız Tilbe	Emi		2003
+Yıldız Tilbe	Dağıldım Biraz		2018
+Yıldız Tilbe	Bir Tek Düşüncem		2009
+Yıldız Tilbe	Ama Evlisin		2003
+Bilal Sonses & Yıldız Tilbe	Hasbelkader		2020
+Yıldız Tilbe	Aşk Yok Olmaktır		1996
+Yıldız Tilbe	Ayrılamam		2010
+Tuna Kiremitçi & Yıldız Tilbe	Yine Sevebilirim		2017
+Yıldız Tilbe	Çabuk Olalım Aşkım		2003
+Yıldız Tilbe	Dillere Destan		1995
+Yıldız Tilbe	Severim Ama Güvenemem		2014
+Yıldız Tilbe	Unutamazsın Beni		2015
+Yıldız Tilbe	Sana Değer		1994
+Yıldız Tilbe	Ummadığım Anda		2002
+Yıldız Tilbe	Yürü Anca Gidersin		2003
+Yıldız Tilbe	Vursalar Ölemem		1998
+Mustafa Ceceli	Es		2012
+Mustafa Ceceli	Kıymetlim (feat. İrem Derici)		2017
+Mustafa Ceceli	Dön		2009
+Mustafa Ceceli	Bir Yanlış Kaç Doğru?		2012
+Mustafa Ceceli & Ekin Uzunlar	Öptüm Nefesinden		2020
+Irmak Arıcı & Mustafa Ceceli	Mühür		2019
+Mustafa Ceceli	Emri Olur...		2016
+Mustafa Ceceli	Limon Çiçekleri		2009
+Mustafa Ceceli	Islak İmza		2014
+Mustafa Ceceli	Simsiyah		2017
+Mustafa Ceceli & Irmak Arıcı	Gün Ağarmadan		2020
+Mustafa Ceceli & Nigar Muharrem	Salıncak		2022
+Burak Bulut, Kurtuluş Kuş & Mustafa Ceceli	Rastgele (feat. İrem Derici)		2022
+Mustafa Ceceli	Bir Zamanlar Deli Gönlüm		2012
+Mustafa Ceceli	Bedel		2019
+Mustafa Ceceli	Hüsran		2014
+Mustafa Ceceli	Rüyalara Sor		2020
+Burak Bulut, Mustafa Ceceli & Kurtuluş Kuş	Leyla Mecnun		2021
+Mustafa Ceceli & Elvan Günaydın	Eksik		2010
+Bengü & Mustafa Ceceli	Kervan		2025
+Sinan Akçıl, İrem Derici & Mustafa Ceceli	Çok Sevmek Yasaklanmalı		2020
+Mustafa Ceceli	İyi Ki Hayatımdasın		2017
+Mustafa Ceceli & Yıldız Tilbe	Aşktan Giderken		2023
+Mustafa Ceceli	Can Parçam		2017
+Bengü & Mustafa Ceceli	Zaman		2022
+Semicenk & Mustafa Ceceli	Dayan		2022
+Ziynet Sali & Mustafa Ceceli	İçime Atıyorum		2021
+Mustafa Ceceli	Geçti O Günler		2017
+Hakan Altun	Hani Bekleyecektin		1999
+Hakan Altun	Gönül Yarası		2000
+Hakan Altun	Sen de Ağla		2004
+Hakan Altun	Aşk Bahçemsin		2015
+Hakan Altun	Ağlamak Yok Yüreğim		2000
+Hakan Altun	Gül Belalıdır		2000
+Hakan Altun	Her Sevda Bir Ölümmüş		2000
+Hakan Altun	Bir Telefon		2003
+Hakan Altun	Kavuşmalıyız (feat. Derya Bedavacı)		2019
+Hakan Altun	Ruh İkizi (feat. Yıldız Tilbe)		2012
+Hakan Altun	Kabul Et		2006
+Hakan Altun	Vur Vur Vur		2017
+Hakan Altun	Dayan Yüreğim		2018
+Hakan Altun	Hep Var Olacaksın		2017
+Hakan Altun	Gidemezsin		2017
+Hakan Altun	Aşk Lütfen Gel		2015
+Hakan Altun	Nefesimsin		2002
+Hakan Altun	Teklif Ediyorum		2002
+Hakan Altun	Zaten Aşk Bitti		2010
+Hakan Altun	Başka Ten Uymuyor		2010
+Hakan Altun	Sevemedim Ayrılığı		2003
+Hakan Altun	Çok Ağlarız		2022
+Hakan Altun	Saklanacağım		2023
+Hakan Altun	Hangimiz Suçluyuz		2010
+Ayla Çelik & Hakan Altun	Seviyoruz Hâlâ (Hakkı Yalçın Şarkıları, Vol. 1)		2021
+İsmail YK	Bombabomba.com		2006
+İsmail YK	Şekerim		2006
+İsmail YK	Bas Gaza		2008
+İsmail YK	Kudur Baby		2009
+İsmail YK	Dokuz Mevsim		2009
+İsmail YK	Onu Bana Hatırlatmayın		2012
+İsmail YK	Bana Neden Kıydın (feat. Acelya)		2022
+İsmail YK	Çılgın		2009
+İsmail YK	Ayrılmam		2009
+İsmail YK	Üfle		2004
+İsmail YK	80 80 160 Seksen Seksen Yüzaltmış		2017
+İsmail YK	Tıkla		2004
+İsmail YK	Aramanı Bekledim		2012
+İsmail YK	Nerdesin		2004
+İsmail YK	OHA		2020
+İsmail YK	Duydum ki Çok Mutsuzsun		2012
+İsmail YK	Özlüyorum Ben Seni		2015
+İsmail YK	Ya Senin Olurum		2012
+İsmail YK	Sen Herkesten Tatlısın (feat. Başak)		2023
+İsmail YK	Çikolatam		2019
+İsmail YK	Meyhoş Oldum		2018
+İsmail YK	Düğünün Varmış		2008
+İsmail YK	Git Hadi Git		2006
+İsmail YK	Gidersen		2008
+İsmail YK	Haydi Bastır		2009
+İsmail YK	Allah Belanı Versin		2006
+İsmail YK	Paldır Küldür		2018
+İsmail YK	Cicilerini		2006
+İsmail YK	Yar Gitme		2008
+İsmail YK	Bu Muydu Günahım		2017
+Serdar Ortaç	Poşet		2010
+Serdar Ortaç	Heyecan		2006
+Serdar Ortaç	Ne Bu Neşe		2012
+Serdar Ortaç	Dansöz		2006
+Serdar Ortaç	Mikrop		2010
+Tefo, Seko & Serdar Ortaç	Heyecan		2025
+Serdar Ortaç	Ayrılmam		2006
+Serdar Ortaç	İki Gözüm		2007
+Serdar Ortaç	Şeytan		2006
+Serdar Ortaç	Mesafe		2006
+Serdar Ortaç	Sana Değmez		2006
+Burak Bulut & Serdar Ortaç	Yasemin		2025
+Serdar Ortaç	Hadi Çal		2006
+Serdar Ortaç	Karabiberim		1994
+Serdar Ortaç	Asrın Hatası		1999
+Serdar Ortaç	Gamzelim		1996
+Serdar Ortaç	Havalı Yarim (feat. Yıldız Tilbe)		2017
+Serdar Ortaç	Sor		2006
+KARM6 & Serdar Ortaç	Ta Burama		2026
+Serdar Ortaç	Ben Adam Olmam		1996
+Serdar Ortaç	Bilsem Ki		1999
+Şeref Altınbaş & Serdar Ortaç	Sana Değmez		2024
+Serdar Ortaç	Kış Kış		2025
+Serdar Ortaç	Pare Pare		2023
+Serdar Ortaç	Gülün Rengi		2010
+Serdar Ortaç	Elimle		2011
+Ebru Yaşar	Kalmam		2020
+Burak Bulut & Ebru Yaşar	Kehribar		2023
+Ebru Yaşar	Ateşten Gömlek		2006
+Ebru Yaşar & Amo988	Elini Ver (Akustik)		2026
+Burak Bulut, Ebru Yaşar & Kurtuluş Kuş	İçime Ata Ata		2021
+Ebru Yaşar	Ben Ne Yangınlar Gördüm		2017
+Ebru Yaşar	Kararsızım		2008
+Ebru Yaşar	Havadan Sudan		2017
+Ebru Yaşar	Gözlerimde Gece Oldu		2011
+Ebru Yaşar	Ben Bilmem		2021
+Ebru Yaşar	Zehir Oluyor		1999
+Ebru Yaşar	Seviyorum Seni		2008
+Ebru Yaşar, Siyam & Zeyd	Kafamın İçi		2024
+Ebru Yaşar	Yalnız Uyunmaz		2021
+Ebru Yaşar & Siyam	Yoksun		2024
+Ebru Yaşar	Nasıl Uyuyorsun		2017
+Emrah Karaduman & Ebru Yaşar	En Güzel Yenilgim		2018
+Ebru Yaşar & Gülden	Nasıl Uyuyorsun (Akustik)		2026
+Ebru Yaşar	Gel De Sevme		2021
+Ebru Yaşar	Öldüm Sahiden		2017
+Ebru Yaşar	Yıllar Sonra		2025
+Ebru Yaşar	Alev Alev		2019
+Ebru Yaşar	Sekiz İle Dokuz		2011
+Ebru Yaşar	Yalan		1999
+Ebru Yaşar & Burak Bulut	Affet		2025
+Ebru Yaşar	Seni Anan Benim Için Doğurmuş		1999
+Ebru Yaşar	Haddinden Fazla		2017
+Burak Bulut, Kurtuluş Kuş & Ebru Yaşar	Anılara Dalarız		2024
+Ebru Yaşar	Sessize Aldım		2021

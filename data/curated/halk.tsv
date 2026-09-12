@@ -1,0 +1,48 @@
+# Nakarat — küratörlü şarkı listesi: TÜRK HALK MÜZİĞİ
+#
+# Biçim:  sanatçı <TAB> şarkı <TAB> zorluk(1-5) <TAB> orijinal yıl
+#
+# Bu listedeki her şarkının Apple Music TR'de mevcut olduğu doğrulandı.
+# Yeni aday görmek için:  npx tsx scripts/suggest.ts halk
+Aşık Veysel	Uzun İnce Bir Yoldayım	1	1971
+Aşık Veysel	Kara Toprak	1	1971
+Neşet Ertaş	Yalan Dünya	1	2000
+Selda Bağcan	Adaletin Bu Mu Dünya	1	1974
+Ahmet Kaya	Kum Gibi	1	1994
+Kubat	Kesik Çayır	1	2000
+Ahmet Kaya	Şiire Gazele	1	1994
+Zara	Gönül Dağı	1	2017
+Neşet Ertaş	Yolcu	2	2003
+Neşet Ertaş	Neredesin Sen	2	2007
+Aşık Veysel	Dostlar Beni Hatırlasın	2	1971
+Aşık Veysel	Güzelliğin On Par'etmez	2	1971
+Selda Bağcan	Sürgün	2	1992
+Ahmet Kaya	Nereden Bileceksiniz	2	1998
+Ahmet Kaya	Doruklara Sevdalandım	2	1994
+Kubat	Dermanımsın	2	2007
+Arif Sağ	İnsan Olmaya Geldim	2	1987
+Zara	Tez Gel Yarim	2	2008
+Neşet Ertaş	Doyulur mu	3	2003
+Neşet Ertaş	Yar imiş Meğer	3	2003
+Aşık Veysel	Beni Hor Görme	3	1971
+Selda Bağcan	Öyle Bir Yerdeyim ki	3	1986
+Selda Bağcan	Denizlerin Dalgasıyım	3	2004
+Ahmet Kaya	Kara Yazı	3	1985
+Ahmet Kaya	Hep Sonradan	3	1994
+Kubat	Kara Ağaç	3	2005
+Kubat	Halkalı Şeker	3	1999
+Arif Sağ	Yolver Dağlar	3	1995
+Neşet Ertaş	Yazimi Kisa Çevirdin	4	2000
+Aşık Veysel	Dost Dost Nicesine Sarıldım	4	1971
+Selda Bağcan	Dön Gel Birtanem	4	2002
+Selda Bağcan	Yürüyorum Dikenlerin Üstünde	4	2014
+Arif Sağ	Erisin Dağların Karı	4	2002
+Arif Sağ	Güzel Seni Çok Özledim	4	1990
+Kubat	Bağa Gel Bostana Gel	4	1997
+Zara	Değmen Benim Gamlı Yaslı Gönlüme	4	1998
+Arif Sağ	Kirpiğine Kaşına	5	1987
+Arif Sağ	Bugün Bize Pir Geldi	5	1987
+Kubat	Al Ömrümü	5	2016
+Zara	Dilenci	5	2012
+Zara	Vur Gitsin Beni	5	2018
+Zara	Seni Yazdım Kalbime	5	2016

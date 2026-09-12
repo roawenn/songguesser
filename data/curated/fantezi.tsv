@@ -1,0 +1,40 @@
+# Nakarat — küratörlü şarkı listesi: FANTEZİ / DAMAR
+#
+# Biçim:  sanatçı <TAB> şarkı <TAB> zorluk(1-5) <TAB> orijinal yıl
+#
+# Bu listedeki her şarkının Apple Music TR'de mevcut olduğu doğrulandı.
+# Yeni aday görmek için:  npx tsx scripts/suggest.ts fantezi
+Ümit Besen	Nikah Masası	1	1998
+Yıldız Tilbe	Hastayım Sana	1	2010
+İsmail YK	Bombabomba.com	1	2006
+Mustafa Ceceli	Es	1	2012
+Serdar Ortaç	Dansöz	1	2006
+Ümit Besen	Unutmaya Ömrüm Yeter Mi	1	1997
+Yıldız Tilbe	Vazgeçtim	2	1995
+Yıldız Tilbe	Dayan Yüreğim	2	1996
+İsmail YK	Şekerim	2	2006
+Mustafa Ceceli	Dön	2	2009
+Serdar Ortaç	Heyecan	2	2006
+Hakan Altun	Gönül Yarası	2	2000
+Ebru Yaşar	Ateşten Gömlek	2	2006
+Ümit Besen	Alışmak Sevmekten Daha Zor	2	1998
+Yıldız Tilbe	Aşk Laftan Anlamazki	3	2002
+Yıldız Tilbe	El Adamı	3	1996
+İsmail YK	Bas Gaza	3	2008
+Mustafa Ceceli	Bir Yanlış Kaç Doğru?	3	2012
+Serdar Ortaç	Poşet	3	2010
+Hakan Altun	Hani Bekleyecektin	3	1999
+Hakan Altun	Ağlamak Yok Yüreğim	3	2000
+Ebru Yaşar	Kararsızım	3	2008
+Ümit Besen	Okul Yolunda	4	1980
+Ümit Besen	Tahta Masa	4	1998
+İsmail YK	Kudur Baby	4	2009
+Serdar Ortaç	Mikrop	4	2010
+Hakan Altun	Sen de Ağla	4	2004
+Ebru Yaşar	Ben Ne Yangınlar Gördüm	4	2017
+İsmail YK	Dokuz Mevsim	5	2009
+Serdar Ortaç	Ne Bu Neşe	5	2012
+Hakan Altun	Aşk Bahçemsin	5	2015
+Ebru Yaşar	Havadan Sudan	5	2017
+Ebru Yaşar	Kalmam	5	2020
+Mustafa Ceceli	Emri Olur...	5	2016

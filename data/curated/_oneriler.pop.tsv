@@ -1,0 +1,713 @@
+# pop — ADAY ŞARKILAR (Apple Music TR'de mevcut olduğu DOĞRULANDI)
+#
+# Beğendiğin satırları pop.tsv dosyasına taşı ve iki alanı doldur:
+#   zorluk (3. sütun): 1=Kolay ... 5=İmkansız
+#   yıl (4. sütun): iTunes'un verdiği yıl YENİDEN BASIM olabilir, kontrol et
+#
+# sanatçı	şarkı	zorluk	yıl(iTunes)
+Tarkan	Kuzu Kuzu		2001
+Tarkan	Şımarık		1997
+Tarkan	Dudu		2003
+Tarkan	Ölürüm Sana		1997
+Tarkan	Sen Başkasın		2001
+Tarkan	Sevdanın Son Vuruşu		2010
+Tarkan	Adımı Kalbine Yaz		2010
+Tarkan	Kış Güneşi		1994
+Tarkan	Yolla		2017
+Tarkan	Arada Bir		2007
+Tarkan	İşim Olmaz		2010
+Tarkan	İnci Tanem		1997
+Tarkan	Öp		2010
+Tarkan	Salına Salına Sinsice		1997
+Sibel Can & Tarkan	Çakmak Çakmak		2007
+Tarkan	Şerbetli		2024
+Tarkan	Dönmüyor Giden		2025
+Tarkan	Ay		2001
+Tarkan	Gülümse Kaderine		2003
+Tarkan	Gül Döktüm Yollarına		1994
+Tarkan	Yap Bi Güzellik		2022
+Tarkan	Hüp		2001
+Tarkan	Beni Çok Sev		2017
+Tarkan	Acımayacak		2010
+Tarkan	Firuze		2013
+Tarkan	İkimizin Yerine		1997
+Tarkan	Geççek		2022
+Sezen Aksu	Tükenecegiz		1984
+Sezen Aksu	Ey Aşk		2025
+Sezen Aksu	Son Bakiş		1989
+Sezen Aksu	Kaç Yil Geçti Aradan		1978
+Sezen Aksu	Firuze		1982
+Sezen Aksu	Kaybolan Yillar		1978
+Sezen Aksu	Sari Odalar		2000
+Sezen Aksu	Kaçin Kurasi		1996
+Sezen Aksu	Ihanetten Geri Kalan		2017
+Sezen Aksu	Biliyorsun		1981
+Sezen Aksu	Vazgeçtim		1991
+Sezen Aksu	Aşktan Ne Haber		2003
+Sezen Aksu	Seni Kimler Aldi		1991
+Sezen Aksu	Unuttun mu Beni?		2011
+Sezen Aksu	Git...		1986
+Sezen Aksu	Adı Bende Saklı		2015
+Sezen Aksu	Zalim		1996
+Sezen Aksu	İkili Delilik (Kivanch K., Cem Oyal Remix)		2005
+Sezen Aksu	Alaturka		1995
+Sezen Aksu	Canimsin Sen		2017
+Sezen Aksu	Keskin Biçak		2000
+Sezen Aksu	Manifesto		2017
+Sezen Aksu	Haydi Gel Benimle Ol		1984
+Sezen Aksu	Kurşuni Renkler		2009
+Sezen Aksu	Ben De Yoluma Giderim		2020
+Sezen Aksu	Yalnizca Sitem		1986
+Sezen Aksu	Geri Dön		1984
+Sezen Aksu	Şanima İnanma		2005
+Sezen Aksu	Yansin Istanbul		2018
+Sertab Erener	Olsun		2016
+Sertab Erener	Koparılan Çiçekler		2010
+Sertab Erener	Bir Çaresi Bulunur		2010
+Sertab Erener	Aldırma Deli Gönlüm		1992
+Sertab Erener	İyileşiyorum		2013
+Sertab Erener	Vur Yüreğim		1999
+Sertab Erener	Bu Böyle		2009
+Sertab Erener	Yanarım		1999
+Sertab Erener	Güle Güle Şekerim		1999
+Sertab Erener & Voice Male	Zor Kadin		1999
+Sertab Erener	Farzet		2020
+Sertab Erener	Rüya		1994
+Sertab Erener	Tesadüf Aşk		2015
+Sertab Erener	Bi Polar		2024
+Sertab Erener	O;Ye		1992
+Sertab Erener	Mecbursun		1994
+Sertab Erener	Gel Barışalım Artık		1994
+Sertab Erener	İkimiz Bir Fidanın		2010
+Sertab Erener	Aşk		1999
+Sertab Erener	Aşk Beni		2016
+Sertab Erener	Belki De Dönerim		2018
+Sertab Erener	Kime Diyorum		2016
+Sertab Erener	Dandini Dandini Dastana		2021
+Sertab Erener	Zor Kadın		1999
+Sertab Erener	Ateşle Barut		1992
+Gökhan Türkmen & Sertab Erener	Açık Adres (SAYGI1)		2024
+Şara Kaplan & Sertab Erener	Bi Polar (SAYGI1)		2024
+Hadise	Ara Beni		2026
+Hadise	Sıfır Tolerans		2017
+Hadise	Aşk Kaç Beden Giyer		2011
+Murda & Hadise	Sen Dönene Kadar		2023
+Hadise	Mesajımı Almıştır O		2011
+Hadise	Düm Tek Tek		2009
+Hadise	Stir Me Up		2005
+Hadise	Hay Hay		2021
+Hadise	Deli Oğlan		2008
+Hadise	Küçük Bir Yol		2020
+Hadise	Feryat		2023
+Hadise	Superman		2011
+Hadise	Yaz Günü		2014
+Hadise	Prenses		2014
+Hadise	Aşk Dediğin		2017
+Hadise	Geliyorum Yanına		2019
+Hadise	Burjuva		2011
+Hadise	Farkımız Var		2017
+Hadise	Olsun		2021
+Hadise	Nerdesin Aşkım		2014
+Hadise	Evlenmeliyiz		2009
+Murda & Hadise	Imdat		2022
+Hadise	Biz Burdayız		2012
+Hadise	Fırtınam		2025
+Hadise	Şampiyon		2017
+Hadise & Motive	Labirent		2026
+Hadise & Motive	Küçük Bir Yol (Red Bull Track Takeover)		2026
+Hadise	Hayat Oyunu		2024
+Mabel Matiz	Umrumdışı		2026
+Mabel Matiz	Ha Leylim		2026
+Mabel Matiz	A Canım		2018
+Mabel Matiz	Ya Bu İşler Ne		2017
+Mabel Matiz	Sarmaşık		2018
+Mabel Matiz	Mendilimde Kırmızım Var (feat. Sibel Gürsoy)		2018
+Mabel Matiz	Dağılıyorum Olaysız		2026
+Mabel Matiz	Öyle Kolaysa		2018
+Mabel Matiz	Ahu		2015
+Mabel Matiz	Fırtınadayım		2018
+Mabel Matiz	Müphem		2023
+Mabel Matiz	Boyalı Da Saçların		2018
+Mert Demir & Mabel Matiz	Antidepresan		2022
+Mabel Matiz	Kömür		2024
+Mabel Matiz	Gel		2015
+Mabel Matiz	Sarışın		2015
+Mabel Matiz	Numaracı		2023
+Mabel Matiz	Aşk Yok Olmaktır		2012
+Mabel Matiz	Zor Değil		2012
+Mabel Matiz	Yaşım Çocuk		2012
+Mabel Matiz & Aşkın Nur Yengi	İki Satır Yara		2023
+Mabel Matiz	Aferin		2023
+Mabel Matiz	Fan		2022
+Mabel Matiz	Toy		2020
+Mabel Matiz	Karakol		2022
+Mabel Matiz	Gözlerine		2019
+Mabel Matiz	Adını Sen Koy		2015
+Mabel Matiz	Bir Hadise Var		2015
+Kenan Doğulu	Ara Beni Lütfen		2006
+Kenan Doğulu	Aklım Karıştı		2003
+Kenan Doğulu	Şans Meleğim		2011
+Kenan Doğulu	Baş Harfi Ben		2006
+Kenan Doğulu	Ben Güzelden Anlarım		1999
+Kenan Doğulu	Çakkıdı		2006
+Kenan Doğulu	Tutamıyorum Zamanı		1993
+Kenan Doğulu	Kurşun Adres Sormaz Ki		1993
+Kenan Doğulu	Rütbeni Bileceksin		2009
+Kenan Doğulu	Yüzsüz Yürek		2006
+Kenan Doğulu	Yosun		2018
+Kenan Doğulu	Aşk Kokusu		2006
+Kenan Doğulu	Doktor (feat. Iskender Paydas)		2012
+Kenan Doğulu	Tencere Kapak		2012
+Kenan Doğulu	Şeytan Tüyü		2012
+Kenan Doğulu	Kandırdım		1996
+Kenan Doğulu	Kız Sana Hayran (feat. Ozan Doğulu)		2013
+Kenan Doğulu	Aşk İle Yap (Akustik Versiyon)		2015
+Kenan Doğulu	Ex Aşkım		1993
+Kenan Doğulu	En Kıymetlim		2009
+Kenan Doğulu	Yaparım Bilirsin		1993
+Kenan Doğulu	Bal Gibi		2012
+Kenan Doğulu	Vay Be		2018
+Kenan Doğulu	Güzeller İçinden		2003
+Kenan Doğulu	İlk Adımı Sen At		2017
+Kenan Doğulu	Bir İleri İki Geri		2012
+Sıla & Kenan Doğulu	...Dan Sonra		2007
+Kenan Doğulu	Bumaya		2021
+Kenan Doğulu	Aşka Türlü Şeyler		2012
+Mustafa Sandal	Aşka Yürek Gerek		2013
+Mustafa Sandal	Aya Benzer		1998
+Mustafa Sandal	Gönlünü Gün Edeni		2007
+Mustafa Sandal	Gidenlerden		1996
+Mustafa Sandal	İsyankar		2004
+Mustafa Sandal	Tesir Altında		2013
+Mela Bedel & Mustafa Sandal	İki Tas Çorba (Mustafa Sandal Saygı 1)		2026
+Afra & Mustafa Sandal	Adı İntikamdı (Mustafa Sandal Saygı 1)		2026
+Mustafa Sandal	Kadere Bak		2015
+Mustafa Sandal	Adı İntikamdı		2009
+Mustafa Sandal	Jest Oldu		1996
+Mustafa Sandal	İki Tas Çorba		1996
+Mustafa Sandal	Ben Olsaydım		2015
+Mustafa Sandal	Gel Bana		2019
+Mustafa Sandal & Zeynep Bastık	Mod		2019
+Gülben Ergen & Mustafa Sandal	Şıkır Şıkır		2011
+Mustafa Sandal	Hepsi Aşktan		2016
+Amo988 & Mustafa Sandal	Ben Olsaydım (Mustafa Sandal Saygı 1)		2026
+Mustafa Sandal	Kalmadı		1996
+Mustafa Sandal	Reset (feat. Eypio)		2018
+Mustafa Sandal	Denize Doğru		1996
+Mustafa Sandal	Beni Ağlatma		1994
+Mustafa Sandal	Pazara Kadar		2002
+Mustafa Sandal	Bu Kız Beni Görmeli		1994
+Mustafa Sandal	Bize Gidelim		1994
+Mustafa Sandal	İndir		2007
+Mustafa Sandal	Araba		1996
+Nilüfer	İnkar Etme		1990
+Nilüfer	Taa Uzak Yollardan		1982
+Nilüfer	Son Arzum		1976
+Nilüfer	Kavak Yelleri		1992
+Nilüfer	Böyle Ayrılık Olmaz		1990
+Nilüfer	Her Sevda Yeni Bir Veda		1992
+Nilüfer	Kim Arar Seni		1978
+Nilüfer	Başıma Gelenler		1974
+Nilüfer	Dünya Dönüyor		1998
+Nilüfer	Göreceksin Kendini		1974
+Nilüfer	Mor Menekşe		1988
+Nilüfer	Ara Sıra Bazı Bazı		1976
+Nilüfer	Ve Melankoli		1990
+Nilüfer & Emre Aydın	Son Perde		2013
+Ajda Pekkan	Yakar Geçerim		2011
+Ajda Pekkan	Sana Doğru		1983
+Ajda Pekkan	Bambaşka Biri		1998
+Ajda Pekkan	Haykıracak Nefesim Kalmasa Bile		1998
+Ajda Pekkan	Eğlen Güzelim		1996
+manifest & Ajda Pekkan	Hileli		2026
+Ajda Pekkan	Sen Olurdun Yine		1983
+Ajda Pekkan	Hoşgör Sen		1975
+Ajda Pekkan	Ya Sonra		1983
+Ajda Pekkan	Olanlar Oldu		2006
+Ajda Pekkan	Bi' Tık (Sunrise Version)		1993
+Ajda Pekkan	Ara Sıcak (feat. Ozan Çolakoğlu)		2013
+Ajda Pekkan	Düşünme Hiç		1983
+Ajda Pekkan	Yaz Yaz Yaz		1990
+Ajda Pekkan	Gerçek Ve Düş		1986
+Ajda Pekkan	Arada Sırada		2011
+Ajda Pekkan	Düşman mısın Aşık mı? (feat. Bahadır Tatlıöz)		2017
+Ajda Pekkan	Uykusuz Her Gece		1983
+Ajda Pekkan	Her Yaşın Bir Güzelliği Var		1990
+Ajda Pekkan	Ayrılık Ateşi (feat. Volga Tamöz)		2016
+Ajda Pekkan	Olur Ya		1990
+Ajda Pekkan	Baksana Talihe		1983
+Ajda Pekkan	Son Yolcu		1983
+Ajda Pekkan	Olanlar Oldu Bana		1972
+Sıla	Yan Benimle		2016
+Sıla	Boş Yere		2010
+Sıla	Oluruna Bırak		2010
+Sıla	Kafa		2010
+Sıla	Saki		2014
+Sıla	Sevişmeden Uyumayalım		2009
+Sıla	Acısa da Öldürmez		2010
+Sıla	Muhbir		2017
+Sıla & Yalın	Ver O Zaman Gömleklerimi		2021
+Sıla	Vur Kadehi		2012
+Sıla	Dön Demeyi Unuttum		2007
+Sıla	Yabancı		2014
+Sıla	Afitap		2016
+Sıla	Zor Sevdigimden		2012
+Sıla	Vur Kadehi Ustam		2010
+Sıla	Rüyanda Görsen İnanma		2021
+Sıla	Sabır		2019
+Sıla	karanfil		2019
+Sıla	Kenar Süsü		2007
+Sıla & Nazan Öncel	Beni Hatırla		2018
+Sıla	Bana Biraz Renk Ver		2009
+Sıla	velhasıl		2022
+Sıla	Vaziyetler		2014
+Sıla	İnşallah		2009
+Sıla	Aslan Gibi		2012
+Sıla	Yoruldum		2009
+Gülşen	Büyük Hatırın Var (feat. Ozan Çolakoğlu)		2015
+Gülşen	Bir Taraf Seç		2009
+Gülşen	Bir İhtimal Biliyorum		2018
+Gülşen	Ellerinden Öper		2015
+Gülşen	İtaat Yok		2026
+Gülşen	Ezberbozan		2009
+Gülşen	Kardan Adam		2013
+Gülşen	Sözde Ayrılık		2011
+Gülşen	Aşk Cinayet Sever		2013
+Gülşen & Murat Boz	İltimas		2014
+Gülşen	Bir Fırt Çek		2015
+Gülşen	Nazar Değmesin		2004
+Gülşen	Ne Kavgam Bitti Ne Sevdam		2006
+Gülşen	Dillere Düşeceğiz Seninle		2009
+Gülşen	Ya Tutarsa		2006
+Gülşen	Bangır Bangır		2015
+Gülşen & EDIS	Nirvana		2020
+Gülşen	Acısı Bile Bal		2013
+Gülşen	En Sevdiğim Yanlışım		2015
+Gülşen	Yurtta Aşk Cihanda Aşk		2006
+Gülşen	Bi' An Gel		2009
+Gülşen	Lolipop		2022
+Gülşen	Dan Dan		2015
+Gülşen	Emrin Olur		2014
+Gülşen	Çelişki		2006
+Gülşen	BAL		2024
+Gülşen	Seyre Dursun Aşk (Akustik)		2013
+Gülşen	Önsöz		2009
+Gülşen	Yıkım Kararı		2015
+Hande Yener	Acele Etme		2004
+Hande Yener	Naber?		2014
+Hande Yener	Aşkın Ateşi		2006
+Hande Yener	Yalanın Batsın		2000
+Hande Yener	Bir Bela		2012
+Hande Yener	Bakıcaz Artık		2017
+Hande Yener	Benden Sonra		2017
+Hande Yener	Bu Yüzden		2004
+Hande Yener	Sopa		2010
+Hande Yener	İki Deli (feat. Serdar Ortaç)		2015
+Hande Yener	Seviyorsun		2016
+Hande Yener	Kırmızı		2004
+Hande Yener	Ben Senin Delinim		2024
+Hande Yener	Beni Sev		2018
+Hande Yener	Hasta		2012
+Hande Yener	Benden Bir Tane Daha Yok		2023
+Hande Yener	Mor		2016
+Hande Yener	Sahte		2021
+Hande Yener	Bir Kış Masalı		2014
+Hande Yener	Deli Bile		2016
+Hande Yener	Romeo		2007
+Hande Yener	Hop Hop		2023
+Hande Yener	Ya Ya Ya Ya (Akustik Versiyon)		2013
+Hande Yener & Seksendört	Rüya		2012
+Hande Yener	Havaalanı		2011
+Hande Yener	Bir Gideni Mi Var		2010
+Teoman	Kupa Kızı Ve Sinek Valesi		2003
+Teoman	Renkli Rüyalar Oteli		2006
+Teoman	N'apim Tabiatım Böyle		2015
+Teoman	Paramparça		2000
+Teoman	Gönülçelen		2001
+Teoman	İstanbul'da Sonbahar		2001
+Teoman	Gemiler		1998
+Teoman	İki Yabancı (feat. Şebnem Ferah)		2000
+Teoman	Aşk Kırıntıları		2006
+Teoman	Serseri		2015
+Teoman	Senden Önce Senden Sonra		2003
+Teoman	Bana Öyle Bakma		2011
+Teoman	Sevdim Seni Bir Kere		2001
+Atiye & Teoman	Kal		2010
+Teoman	Çoban Yıldızı		2009
+Teoman	Ruhun Sarışın		2009
+Teoman	Zamparanın Ölümü		2000
+Teoman	Uykusuz Her Gece		2000
+Teoman	Papatya		1997
+Teoman	Güzel Bir Gün		2004
+Teoman	Saat 03:00		2003
+Teoman	Rüzgar Gülü		2000
+Teoman	Ne Ekmek Ne De Su		1997
+Teoman	Seninim Son Kez (feat. İrem Candar)		2015
+Teoman	Sus Konuşma		1998
+Teoman	Anlıyorsun Değil Mi?		2001
+Teoman	İki Aşk (feat. İrem Candar)		2016
+Teoman	Duş		2004
+Yalın	Akşamüstü		2026
+Yalın	Herşey Sensin		2007
+Yalın	Halbuki		2020
+Yalın	Ki Sen		2009
+Yalın	Olur Ya		2019
+Yalın	Yeniden		2014
+Yalın	Sonsuz Ol (Remastered)		2004
+Yalın	Deva Bize Sevişler		2019
+Yalın	Sesinde Aşk Var		2016
+Yalın	Ben Bilmem		2005
+Yalın	Günaydın (Remastered)		2004
+Yalın	Küçücüğüm		2005
+Yalın	Son Aşkım (Remastered)		2004
+Yalın	Aşk Ne Demek		2005
+Yalın	Zalim (Ellerine Sağlık) [Remastered]		2004
+Yalın	Benimki		2015
+Yalın	Olmasa da Olur		2012
+Yalın	Yaz Gülü		2021
+Yalın	Bir Bahar Akşamı		2015
+Yalın	Sensiz Olmaz		2018
+Yalın	Anlat Güzel mi Oralar		2011
+Yalın	Sensiz Ben Ne Olayım		2018
+Yalın	Ya Sabır		2020
+Yalın	Hele Bi Başla		2018
+Yalın	Tatlıyla Balla (Live At The Royal Albert Hall)		2026
+Yalın	Keşke		2005
+Yalın	Oyunbaz		2020
+Yalın	Bu da Geçer mi Sevgilim		2022
+Emre Aydın	Sen Beni Unutamazsın		2016
+Emre Aydın	Belki Bir Gün Özlersin		2006
+Emre Aydın	Hoşçakal		2010
+Emre Aydın	Son Defa		2010
+Emre Aydın	Afili Yalnızlık		2006
+Emre Aydın	Soğuk Odalar		2012
+Emre Aydın	Beni Vurup Yerde Bırakma		2017
+Emre Aydın	Beni Biraz Böyle Hatırla		2012
+Emre Aydın	Tam Dört Yıl Olmuş Dün		2010
+Emre Aydın	Alıştım Susmaya		2010
+Emre Aydın	Bu Yağmurlar		2010
+Çağan Şengül & Emre Aydın	Yansın		2022
+Emre Aydın	Buralar Yalan		2013
+Emre Aydın	Ölünmüyor		2016
+Emre Aydın & Model	Bir Pazar Kahvaltısı		2014
+Emre Aydın	Bitti Tebrikler		2013
+Emre Aydın & Çağan Şengül	Beni Anla		2021
+Emre Aydın	Kim Dokunduysa Sana Ona Git		2006
+Emre Aydın	Bu Kez Anladım		2006
+Emre Aydın	Geceler Kara Tren		2013
+Emre Aydın	Git		2006
+Emre Aydın	Çocuğum Belki		2018
+Emre Aydın	Her Şey Biraz Hala Sen		2019
+Emre Aydın	Hırka		2021
+Emre Aydın	Kırlangıç		2022
+Emre Aydın	Fırtınam		2023
+Emre Aydın	Akşamlarda Parmak İzlerin		2013
+Emre Aydın & Yaprak Çamlıca	Ölüm Kalım Meselesi		2018
+Simge	Kalpsiz Bir Serseri (Live)		2026
+Simge	Sevilmeye Doy Diye		2025
+Simge	Önümüz Yaz		2024
+Simge	Sevmek Yüzünden		2021
+Simge	Yankı		2016
+Simge	Üzülmedin mi?		2017
+Simge	Aşkın Olayım		2018
+KÖFN, Simge, Salman Tin & BKE	Yakışıklı		2023
+Simge	Misafir		2011
+Simge	Öpücem		2018
+Simge	Miş Miş		2015
+Simge	Ben Bazen		2018
+Simge	Harcandıkça		2023
+Simge, Era7capone, Ozan Bayraşa & Snow	YANKI X İNTİHAR		2024
+Simge	Vicdanın Affetsin		2011
+Simge	Prens & Prenses		2017
+Simge	Ne Güzel		2022
+Sefo & Simge	Görmem Böylesini		2023
+Simge	Sen Ağla		2025
+Simge	Esmer Yangın		2025
+Simge	Kısaca		2022
+Simge	As Bayrakları		2019
+Mavi Gri, Ozan Bayraşa & Simge	Bir Şehri Sevmek		2024
+Ozan Bayraşa & Simge	Anahtar		2025
+Zeki Arkun & Simge	YENİ BİRİ		2026
+Simge & Ozan Bayraşa	Çapkınca		2023
+Simge	Söyleme		2024
+Simge	Mucize		2025
+EDIS	Duman		2025
+EDIS	Martılar		2021
+EDIS	Arıyorum		2021
+EDIS	Olmamış Mı ?		2015
+EDIS	Dudak		2016
+EDIS	Çok Çok		2017
+EDIS	Azar Azar		2024
+EDIS	Çek Tetiği		2025
+EDIS	Yalan		2018
+EDIS	Yalancı		2022
+EDIS	Benim Ol		2014
+EDIS & Emina Jahovic	Güzelliğine		2018
+EDIS	An		2018
+EDIS	Buz Kırağı		2018
+EDIS	Roman		2018
+EDIS & Baran Mengüç	Ayyaş		2023
+EDIS & Gülşen	Sor		2023
+EDIS	Perişanım		2020
+EDIS	Sevişmemiz Olay (feat. Yasemin Mori)		2018
+EDIS	Bana Ne		2018
+EDIS	Yalancı Şahidim (Live)		2026
+EDIS	Dur De		2018
+EDIS	Bana mı?		2023
+EDIS	Sakin Ol		2025
+EDIS, Anıl Piyancı & Ekin Beril	Kâinat		2021
+EDIS	Bir Yol		2025
+Mert Demir & Duygu Edis	Olmazlara Vuruluyorum		2024
+Zeynep Bastık	Kör Sevdam		2025
+Zeynep Bastık	Lan		2024
+Zeynep Bastık	Ara		2022
+Zeynep Bastık	Uslanmıyor Bu		2020
+Zeynep Bastık	Zor		2025
+Zeynep Bastık	Her Mevsim Yazım		2020
+Zeynep Bastık	Marlon Brando		2021
+Zeynep Bastık	Misafir		2026
+Zeynep Bastık & Emir Can İğrek	Dargın		2020
+Zeynep Bastık	Bir Daha		2020
+Reynmen, Zeynep Bastık, Arem Ozguc & Arman Aydin	Yalan		2021
+Zeynep Bastık & Kozmos	Savaştım Harbiden		2022
+Zeynep Bastık	Fırça		2014
+Anıl Piyancı & Zeynep Bastık	Bırakman Doğru Mu		2019
+Zeynep Bastık & Anıl Piyancı	Bırakman Doğru Mu 2		2020
+Zeynep Bastık	Çukur		2020
+Zeynep Bastık	Boş Yapma		2020
+Zeynep Bastık	Her Yerde Sen		2019
+Zeynep Bastık	Eyvah		2023
+Zeynep Bastık	Bundan Böyle		2023
+Zeynep Bastık	Sana Bayılıyorum		2021
+Zeynep Bastık	Kalbimi Kırdın		2021
+Zeynep Bastık	Sen Ben		2021
+Zeynep Bastık, Tolga Akdoğan & Teoman	İki Yabancı		2026
+Zeynep Bastık	Bana Sorma		2021
+Zeynep Bastık	Kendi Yolumuzda		2021
+manifest	Toz Pembe		2026
+manifest	Daha İyi		2026
+manifest, Motive & Pango	pVg (Manifest Live Remix)		2026
+manifest	Snap		2025
+manifest	RÜYA		2025
+manifest	Amatör		2025
+manifest	Yaşanacaksa		2025
+manifest & Pango	Zehir (Motive Remix)		2025
+manifest	KTS		2025
+manifest, Arem Ozguc & Arman Aydin	Manifest		2025
+manifest	Başrol Sensin (1. Yıl Özel)		2026
+manifest	Arıyo		2025
+manifest	Rampapapam (Arem Ozguc & Arman Aydin Remix)		2025
+manifest	Zamansızdık		2025
+manifest	Durma		2025
+manifest	Hayır		2025
+manifest	Amateur		2025
+manifest	Manifest (Arem & Arman Remix)		2026
+Athena	Kafama Göre		2014
+Athena	Arsız Gönül		2010
+Athena	Ben Böyleyim		2011
+Athena	Dam Üstüne Çul Serer		2023
+Athena	Öpücük		2002
+Athena	Yaşamak Var Ya		2000
+Athena	Senden, Benden, Bizden		1998
+Athena	Serseri Mayın		2010
+Athena	Geberiyorum (Nazım Hikmet Ran Günler Şiiri)		2017
+Athena	Tarlaya Ektim Soğan		1998
+Athena	Kime Ne		2005
+Athena	Ses Etme		2014
+Athena	Parçalanıyoruz		2014
+Athena	Yalan		2006
+Athena	Adımız Miskindir Bizim (feat. Mazhar Alanson)		2014
+Athena	Holigan		1998
+Athena	Kanım Sarı Lacivert		2007
+Athena	Skalonga		1998
+Athena	Herşey Güzel Olacak		2000
+Athena	For Real		2004
+Athena	Çatal Yürek		2005
+Athena	Köpek		2006
+Athena	Bir Araya Gelemeyiz		2012
+Athena	Yapma Be Kanka		2014
+Athena	Sende Yap		2002
+Model	Değmesin Ellerimiz		2011
+Model	Mey		2016
+Model	Pembe Mezarlık		2011
+Ozan Doğulu & Model	Dağılmak İstiyorum		2012
+Model	Makyaj		2011
+Model	Sen Ona Aşıksın (Kabullenme)		2013
+Model	Antidepresan Gülümsemesi (Pazarlık)		2013
+Model	Bir Melek Vardı		2011
+Model	Ağlamam Zaman Aldı (İnkar)		2013
+Model	Yalnızlık Senfonisi		2011
+Model	Buzdan Şato		2011
+Model & Levent Yüksel	Bak Bir Varmış Bir Yokmuş		2010
+Model	Sarı Kurdeleler		2013
+Model	Levla Vazgeçti (Depresyon)		2013
+Model	Ölürüm Daha İyi		2026
+Model	Çürüsün Gelinliğim		2011
+Model	Müzik Kutusu		2013
+Model	Şey... Belki!		2011
+Serdar Ortaç	Poşet		2010
+Serdar Ortaç	Heyecan		2006
+Serdar Ortaç	Ne Bu Neşe		2012
+Serdar Ortaç	Dansöz		2006
+Serdar Ortaç	Mikrop		2010
+Tefo, Seko & Serdar Ortaç	Heyecan		2025
+Serdar Ortaç	Ayrılmam		2006
+Serdar Ortaç	İki Gözüm		2007
+Serdar Ortaç	Şeytan		2006
+Serdar Ortaç	Mesafe		2006
+Serdar Ortaç	Sana Değmez		2006
+Burak Bulut & Serdar Ortaç	Yasemin		2025
+Serdar Ortaç	Hadi Çal		2006
+Serdar Ortaç	Karabiberim		1994
+Serdar Ortaç	Asrın Hatası		1999
+Serdar Ortaç	Gamzelim		1996
+Serdar Ortaç	Havalı Yarim (feat. Yıldız Tilbe)		2017
+Serdar Ortaç	Sor		2006
+KARM6 & Serdar Ortaç	Ta Burama		2026
+Serdar Ortaç	Ben Adam Olmam		1996
+Serdar Ortaç	Bilsem Ki		1999
+Şeref Altınbaş & Serdar Ortaç	Sana Değmez		2024
+Serdar Ortaç	Kış Kış		2025
+Serdar Ortaç	Pare Pare		2023
+Serdar Ortaç	Gülün Rengi		2010
+Serdar Ortaç	Elimle		2011
+Sefo & Demet Akalın	Yerinde Dur		2025
+Demet Akalın	Bi' Şey Mi Dedin?		2026
+Demet Akalın	Ders Olsun		2015
+Demet Akalın	Nazar		2016
+Demet Akalın	Giderli Şarkılar		2012
+Erdem Kınay & Demet Akalın	Rota		2012
+Demet Akalın	Mucize		2008
+Demet Akalın	Toz Pembe		2009
+Demet Akalın	Kalbimdeki İmza		2012
+Demet Akalın	Çanta		2010
+Demet Akalın	Yekten (feat. Haktan)		2019
+Demet Akalın	Gölge		2015
+Demet Akalın	Rekor		2014
+Demet Akalın & Lvbel C5	Beni Unutma		2025
+Demet Akalın	Çalkala		2015
+Demet Akalın	Bebek		2008
+Demet Akalın	Hayalet		2016
+Demet Akalın	Ağlar O Deli		2019
+Demet Akalın	Pırlanta		2015
+Demet Akalın	Olacak Olacak		2010
+Demet Akalın	Bi Daha Bi Daha		2021
+Demet Akalın	N'apıyorsan Yap		2019
+Emrah Karaduman & Demet Akalın	Ses Kes		2018
+Demet Akalın	Afedersin		2006
+Demet Akalın	Bensiz Olsun		2022
+Demet Akalın	Aşk Laftan Anlamaz ki		2018
+Gökhan Özen & Demet Akalın	NAZAR		2026
+Demet Akalın	Ah Ulan Sevda		2016
+Tuğba Yurt	İnceden İnceden		2017
+Tuğba Yurt	Taş Yürek		2019
+Tuğba Yurt	Yine Sev Yine		2018
+Tuğba Yurt	Güç Bende Artık		2016
+Tuğba Yurt	Ağır Yaralı		2013
+Tuğba Yurt	Açmayalım		2021
+Tuğba Yurt	Benim O		2021
+Tuğba Yurt	Sığınak		2019
+Tuğba Yurt	Yas		2019
+Tuğba Yurt	Vur Kaç		2019
+Tuğba Yurt	Ne Mesele		2022
+Tuğba Yurt	Oh Oh		2015
+Tuğba Yurt	Sonsuza Dek		2023
+İkilem & Tuğba Yurt	İçiyorum Ederimize		2026
+Tuğba Yurt	Yolun Sonu		2024
+Tuğba Yurt	Destur		2017
+Tuğba Yurt	Belki		2013
+Tuğba Yurt	Aklımda Sorular Var		2015
+Tuğba Yurt	Duymuyor Beni		2025
+Tuğba Yurt	Dünya Hevesi		2024
+Tuğba Yurt	Masal		2018
+Tuğba Yurt	Zalim (Akustik)		2021
+Tuğba Yurt	Bu Son Olacak		2025
+Tuğba Yurt	Dertli Kalem		2025
+Tuğba Yurt	Geliyo Geliyo		2019
+Tuğba Yurt	Benden Geç Yarim		2025
+Tuğba Yurt	Cennetim Olsun		2019
+Tuğba Yurt	Adı Aşk		2019
+Aleyna Tilki	Ayrı Gitme		2023
+Aleyna Tilki	Başıma Belasın		2023
+Emrah Karaduman & Aleyna Tilki	Dipsiz Kuyum		2018
+Aleyna Tilki	Sen Olsan Bari		2017
+Aleyna Tilki	Yalnız Çiçek (feat. Emrah Karaduman)		2018
+Dedublüman & Aleyna Tilki	Sana Güvenmiyorum (Dedub Sessions)		2010
+Aleyna Tilki	Nasılsın Aşkta?		2019
+Aleyna Tilki	Yalan		2020
+Aleyna Tilki	Oyuncak Gibi		2026
+Aleyna Tilki	Bekleyenim		2024
+Doğu Swag & Aleyna Tilki	Bir Gün Ol Yerimde		2023
+Aleyna Tilki	Tanırım İntiharı		2022
+Aleyna Tilki & Mabel Matiz	Kayboldum Masalında		2025
+Aleyna Tilki	Sır		2021
+Aleyna Tilki	Bu Benim Masalım		2020
+Aleyna Tilki	Bitti		2025
+Aleyna Tilki	Nehir (İşte Bu Benim Masalım Soundtrack)		2021
+Aleyna Tilki	Take It or Leave It		2022
+Aleyna Tilki	Niyetim Saf		2025
+Aleyna Tilki	Aşk Ateşi		2022
+Aleyna Tilki	Sen Affetsen Ben Affetmem (feat. Taksim Trio)		2022
+Emrah Karaduman & Aleyna Tilki	Sevmek Yok		2018
+Aleyna Tilki & Moro La Flor	UZAY		2025
+mor ve ötesi & Aleyna Tilki	Yaz Yaz Yaz		2023
+Aleyna Tilki	Bedel		2024
+mor ve ötesi, EDIS & Aleyna Tilki	Küçük Sevgilim (Saygi1)		2025
+Melek Mosso	Sabahçı Kahvesi		2022
+Melek Mosso	Vursalar Ölemem		2019
+Melek Mosso	Vazgeç Gönlüm		2022
+Melek Mosso & Mustafa Sandal	Gidenlerden (Mustafa Sandal Saygı 1)		2026
+Melek Mosso	Keklik Gibi		2019
+Melek Mosso	Hayatım Kaymış		2021
+Melek Mosso	Yıllar Affetmez (Saygı Albümü: Bergen)		2022
+Melek Mosso	Gel Desem De Gelme (feat. ARAS İdol)		2021
+Melek Mosso	Yaşamak Dedikleri		2026
+Melek Mosso	İlletim		2023
+Murat Boz & Melek Mosso	KOLAY DEĞİL		2026
+Melek Mosso	Karanfil (Yeni Türkü Zamansız)		2022
+Melek Mosso	Doğum Günü		2020
+Melek Mosso	Kedi		2018
+Melek Mosso	Tükettim (feat. S4hir)		2020
+Melek Mosso	Gölgen Yeter		2018
+Melek Mosso	Gonul Gozu		2020
+Melek Mosso	Mesele Belli		2023
+Melek Mosso	Kirpiklerin		2021
+Melek Mosso	Sarıla Sarıla		2019
+Melek Mosso	Aşkın Adı		2025
+Melek Mosso	Bu İş Bitmiş		2022
+Haluk Levent & Melek Mosso	Zülüf		2021
+Melek Mosso	Tatsız Ziyaret		2020
+Melek Mosso	Balerin		2024
+Melek Mosso	Üzülmedim Ki		2023
+Melek Mosso	Olmaz Mı		2020
+Melek Mosso	Parayla Saadet Olmaz		2021
+Veys Colak & Melek Mosso	Kimsenin Kimsesi		2021
+Dedublüman	Sen Bilmezsin		2024
+Dedublüman	Sakladığın Bir Şeyler Var		2021
+Dedublüman	Çözemezsin		2021
+Dedublüman	Belki (Akustik)		2022
+Dedublüman & Can Kazaz	Bunca Yıl (Dedub Sessions)		2024
+Dedublüman	Günü Gelir		2023
+Dedublüman	Yalan		2026
+Dedublüman & Mavzer Tabancas	En Dibine Kadar		2022
+Dedublüman & Çağrı Çelik	Fikrimin İnce Gülü		2020
+Dedublüman & Mavzer Tabancas	Rüya Gibi		2023
+Dedublüman	Geçmesin Günümüz		2022
+Dedublüman	Senin İçin		2025
+Dedublüman	Firuze		2023
+Dedublüman & Mavzer Tabancas	Cümlenin Sonu		2024
+Dedublüman & Mavzer Tabancas	Belki (feat. Mavzer Tabancas)		2022
+Emir Can İğrek & Dedublüman	Sehven		2026
+Dedublüman	En Dibine Kadar (Akustik)		2022
+Dedublüman	Bir İhtimal Halim		2022
+Dedublüman	Depresyondayım		2021
+Dedublüman & Çağrı Çelik	Kimseye Etmem Şikayet		2020
+Dedublüman	Merdiven		2020
+Dedublüman	Düğün		2025
+Dedublüman & Göksel	Karar Verdim (Dedub Sessions)		2024
+Dedublüman & Cem Adrian	AŞK		2024
+Dedublüman	Ah Bir Ataş Ver		2020
+Dedublüman	Rüya Gibi (Akustik)		2023
+Dedublüman	Öyle Ki		2020
+Dedublüman & Cem Adrian	Gül		2024
+Dedublüman	Yok		2019

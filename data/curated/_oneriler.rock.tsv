@@ -1,0 +1,566 @@
+# rock — ADAY ŞARKILAR (Apple Music TR'de mevcut olduğu DOĞRULANDI)
+#
+# Beğendiğin satırları rock.tsv dosyasına taşı ve iki alanı doldur:
+#   zorluk (3. sütun): 1=Kolay ... 5=İmkansız
+#   yıl (4. sütun): iTunes'un verdiği yıl YENİDEN BASIM olabilir, kontrol et
+#
+# sanatçı	şarkı	zorluk	yıl(iTunes)
+Barış Manço	Dönence		1989
+Barış Manço	Alla Beni Pulla Beni		1989
+Barış Manço	Çıt Çıt Çedene		1989
+Barış Manço	Bal Böceği		1995
+Barış Manço	Can Bedenden Çıkmayınca		1999
+Barış Manço	Ali Yazar Veli Bozar		1989
+Barış Manço	Sarı Çizmeli Mehmet Ağa		1999
+Barış Manço	Halil İbrahim Sofrası		1999
+Barış Manço	Aynalı Kemer (V2)		1993
+Barış Manço	Gül Pembe		1999
+Barış Manço	Nane Limon Kabuğu		1988
+Barış Manço	Günaydın Çocuklar		1989
+Barış Manço	Hal Hal		1989
+Barış Manço	Arkadaşım Eşşek		1981
+Barış Manço	Ahmet Beyin Ceketi		1988
+Barış Manço	Dere Boyu Kavaklar		1993
+Barış Manço	Kara Sevda		1999
+Barış Manço	Unutamadım		1999
+Barış Manço	Eğri Eğri Doğru Doğru		1980
+Barış Manço	Kol Düğmeleri		1989
+Barış Manço	Anlıyorsun Değil Mi		1999
+Barış Manço	Domates Biber Patlıcan		1999
+Barış Manço	Seher Vakti		1993
+Barış Manço	Gibi Gibi		1985
+Barış Manço	Gülpembe		1981
+Barış Manço	Gönül Ferman Dinlemiyor		1988
+Barış Manço	Dağlar Dağlar		1993
+Cem Karaca	Tamirci Çırağı		1975
+Cem Karaca	Ceviz Ağacı		1987
+Cem Karaca	Deniz Üstü Köpürür		1998
+Cem Karaca	Islak Islak		1992
+Cem Karaca	Bu Son Olsun		1994
+Cem Karaca	Resimdeki Gözyaşları		1994
+Cem Karaca	İşte Geldik Gidiyoruz		1987
+Cem Karaca	Sen De Başını Alıp Gitme		1992
+Cem Karaca	Namus Belası		1974
+Cem Karaca	Beni Siz Delirttiniz		1975
+Cem Karaca	Raptiye Rap Rap		1992
+Cem Karaca	Çökertme		1998
+Cem Karaca	Ay Karanlık		1998
+Cem Karaca	Çok Yorgunum		1987
+Cem Karaca	Sevda Kuşun Kanadında		1988
+Cem Karaca	Kara Sevda		1971
+Cem Karaca	Herkes Gibisin		1992
+Cem Karaca	Yiyin Efendiler		2017
+Cem Karaca	Yorgunum Kaptan (Remix)		2022
+Cem Karaca	Ömrüm		1992
+Cem Karaca & Moğollar	Deniz Üstü Köpürür		2016
+Cem Karaca	Kendim Ettim Kendim Buldum		1970
+Cem Karaca	Nem Kaldı		1975
+Cem Karaca	Bekle Beni		2004
+Cem Karaca	Bu Biçim		1992
+Cem Karaca	Kara Üzüm		1971
+Erkin Koray	Sevince		1973
+Erkin Koray	Öyle Bir Geçer Zaman ki		1990
+Erkin Koray	Çöpçüler		1993
+Erkin Koray	Fesupanallah		1973
+Erkin Koray	Seni Her Gördüğümde		1993
+Erkin Koray	Şaşkın		1973
+Erkin Koray	Arap Saçı		2020
+Erkin Koray	Yalnızlar Rıhtımı		1973
+Erkin Koray	Gönül Salıncağı		1976
+Erkin Koray	Tek Başına		1983
+Erkin Koray	Yolcu Yolunda Gerek		1989
+Erkin Koray	Aşkımız Bitecek		1993
+Erkin Koray	Anma Arkadaş		1993
+Erkin Koray	Silinmeyen Hatıralar		1974
+Erkin Koray	Estarabim		1973
+Erkin Koray	Akrebin Gözleri		1996
+Erkin Koray	Ankara Sokakları		1993
+Erkin Koray	Kızları da Alın Askere		1993
+Erkin Koray	Yanlızlar Rıhtımı		1993
+Erkin Koray	Cemalim		1976
+Erkin Koray	Goca Dünya		1975
+Erkin Koray	Öyle Bir Geçer		1990
+Erkin Koray	Cümbür Cemaat		1977
+Erkin Koray	Gaddar		1993
+MFÖ	Ele Güne Karşı		1983
+MFÖ	Sarı Laleler		2006
+MFÖ	Mazeretim Var Asabiyim Ben		1995
+MFÖ	Güllerin İçinden		1984
+MFÖ	Olduramadım		2006
+MFÖ	Ali Desidero		1990
+MFÖ	Sude		2003
+MFÖ	Yalnızlık Ömür Boyu		1984
+MFÖ	Hep Yaşın 19		2011
+MFÖ	Tam Ortasındayım		2013
+MFÖ	Sakın Gelme		1995
+MFÖ	Gözyaşlarımızı Bitti Mi Sandın		1986
+MFÖ	Aşkın Kenarından		2017
+MFÖ	Bu Sabah Yağmur Var İstanbul'da		1984
+MFÖ	Bu Aşk Olur Mu		2011
+MFÖ	Diday Diday		2007
+MFÖ	Vurgun Yedim		2006
+MFÖ	Ne Bileyim Ben		2006
+MFÖ	Sufi		1988
+MFÖ	Mecburen		1990
+MFÖ	Bodrum		1984
+MFÖ	Neden Bana Aşk Şarkısı Yazan Çıkmaz?		2017
+MFÖ	Bazı Bazı		2013
+MFÖ	Buselik Makamına		1988
+MFÖ	Türk'üz Türkü Çağırırız		2017
+MFÖ	Hayret Makamı		2017
+MFÖ	Deli Deli		1984
+Duman	Her Şeyi Yak		2002
+Duman	Kufi		2024
+Duman	Senden Daha Güzel		2009
+Duman	Haberin Yok Ölüyorum		2002
+Duman	Yürek		2013
+Duman	Dibine Kadar		2009
+Duman	Aman Aman		2005
+Duman	Köprüaltı		1999
+Duman	Bu Akşam		2002
+Duman	Öyle Dertli		2013
+Duman	Elleri Ellerime		2009
+Duman	Seni Kendime Sakladım		2005
+Duman	Sor Bana Pişman Mıyım		2009
+Duman	Kolay Değildir		2013
+Duman	Ah		2002
+Duman	Kırmış Kalbini		2002
+Duman	Bal		2002
+Duman	Melankoli		2013
+Duman	Helal Olsun		2009
+mor ve ötesi	Bir Derdim Var		2004
+mor ve ötesi	Cambaz		2004
+mor ve ötesi	Oyunbozan		2012
+mor ve ötesi	Sevda Çiçeği		2004
+mor ve ötesi	Daha Mutlu Olamam		2001
+mor ve ötesi	Sultan-ı Yegâh		2018
+mor ve ötesi	Araf		2010
+mor ve ötesi	Uyan		2004
+mor ve ötesi	Re		2004
+mor ve ötesi	Aşk İçinde		2004
+mor ve ötesi	Deli		2008
+mor ve ötesi	Küçük Sevgilim		2006
+mor ve ötesi	Hayat		2001
+mor ve ötesi	Ayıp Olmaz Mı?		2006
+mor ve ötesi	Anlatamıyorum		2016
+mor ve ötesi	Serseri		2004
+mor ve ötesi	Dünyaya Bedel		2021
+mor ve ötesi	Yardım Et		2004
+mor ve ötesi	Yaz Yaz Yaz		2003
+mor ve ötesi, EDIS & Aleyna Tilki	Küçük Sevgilim (Saygi1)		2025
+mor ve ötesi	Sor		2010
+mor ve ötesi	Son Deneme		2004
+mor ve ötesi	Güneşi Beklerken		2012
+mor ve ötesi	Sana Değmez		2012
+mor ve ötesi	Melekler Ölmez		2016
+Şebnem Ferah	Mayın Tarlası		2003
+Şebnem Ferah	Bu Aşk Fazla Sana		1996
+Şebnem Ferah	Can Kırıkları		2005
+Şebnem Ferah	Yağmurlar		1996
+Şebnem Ferah	Sigara		2001
+Şebnem Ferah	Gözlerimin Etrafındaki Çizgiler		2003
+Şebnem Ferah	Deli Kızım Uyan		1996
+Şebnem Ferah	Durma		1996
+Şebnem Ferah	Çakıl Taşları		2005
+Şebnem Ferah	Fırtına		1996
+Şebnem Ferah	Sil Baştan		2001
+Şebnem Ferah	Ben Şarkımı Söylerken		2003
+Şebnem Ferah	Bugün		1999
+Şebnem Ferah	Birileri Var		2013
+Şebnem Ferah	Hoşçakal		2005
+Şebnem Ferah	Yalnız		2009
+Şebnem Ferah	Od		2013
+Şebnem Ferah	Küllerinden		2018
+Şebnem Ferah	Babam Oğlum		2003
+Şebnem Ferah	Koridor		2018
+Şebnem Ferah	Bırak Kadının Olayım		1996
+Şebnem Ferah	Eski		2009
+Şebnem Ferah	Vazgeçtim Dünyadan		1996
+Şebnem Ferah	Artık Kısa Cümleler Kuruyorum		1999
+Şebnem Ferah	Korkarak Yaşıyorsan		2001
+Şebnem Ferah	İstiklal Caddesi Kadar		2009
+Şebnem Ferah	Çocukken Sahip Olduğum Kırmızı Rugan Ayakkabılar		2003
+Teoman	Kupa Kızı Ve Sinek Valesi		2003
+Teoman	Renkli Rüyalar Oteli		2006
+Teoman	N'apim Tabiatım Böyle		2015
+Teoman	Paramparça		2000
+Teoman	Gönülçelen		2001
+Teoman	İstanbul'da Sonbahar		2001
+Teoman	Gemiler		1998
+Teoman	İki Yabancı (feat. Şebnem Ferah)		2000
+Teoman	Aşk Kırıntıları		2006
+Teoman	Serseri		2015
+Teoman	Senden Önce Senden Sonra		2003
+Teoman	Bana Öyle Bakma		2011
+Teoman	Sevdim Seni Bir Kere		2001
+Atiye & Teoman	Kal		2010
+Teoman	Çoban Yıldızı		2009
+Teoman	Ruhun Sarışın		2009
+Teoman	Zamparanın Ölümü		2000
+Teoman	Uykusuz Her Gece		2000
+Teoman	Papatya		1997
+Teoman	Güzel Bir Gün		2004
+Teoman	Saat 03:00		2003
+Teoman	Rüzgar Gülü		2000
+Teoman	Ne Ekmek Ne De Su		1997
+Teoman	Seninim Son Kez (feat. İrem Candar)		2015
+Teoman	Sus Konuşma		1998
+Teoman	Anlıyorsun Değil Mi?		2001
+Teoman	İki Aşk (feat. İrem Candar)		2016
+Teoman	Duş		2004
+maNga	Bir Kadın Çizeceksin		2004
+maNga	Dursun Zaman		2004
+maNga	Dünyanın Sonuna Doğmuşum		2009
+maNga	Cevapsız Sorular		2009
+maNga	Beni Benimle Bırak		2009
+maNga	Bitti Rüya		2004
+maNga	We Could Be The Same (Istanbul)		2010
+maNga	Yine Yeni Yeniden (Yeniden Sev)		2015
+maNga	Işıkları Söndürseler Bile		2014
+maNga	Yad Eller		2018
+maNga	Alışırım Gözlerimi Kapamaya		2009
+maNga	Hayat Bu İşte		2009
+maNga	Her Aşk Ölümü Tadacak		2009
+maNga	Hint Kumaşı		2014
+maNga	Haykıracak Nefesim Kalmasa Bile		2019
+maNga	İz Bırakanlar Unutulmaz		2004
+maNga	Yalan		2004
+maNga	Zor		2020
+maNga	Fazla Aşkı Olan Var Mı?		2014
+maNga	Evdeki Ses		2009
+maNga	Tek Yön Seçtiğim Tüm Yollar		2009
+maNga	Hani Biz (feat. Yıldız Tilbe)		2012
+maNga	Süper Güçlerimiz Var		2019
+maNga	Hepsi Bir Nefes		2009
+Athena	Kafama Göre		2014
+Athena	Arsız Gönül		2010
+Athena	Ben Böyleyim		2011
+Athena	Dam Üstüne Çul Serer		2023
+Athena	Öpücük		2002
+Athena	Yaşamak Var Ya		2000
+Athena	Senden, Benden, Bizden		1998
+Athena	Serseri Mayın		2010
+Athena	Geberiyorum (Nazım Hikmet Ran Günler Şiiri)		2017
+Athena	Tarlaya Ektim Soğan		1998
+Athena	Kime Ne		2005
+Athena	Ses Etme		2014
+Athena	Parçalanıyoruz		2014
+Athena	Yalan		2006
+Athena	Adımız Miskindir Bizim (feat. Mazhar Alanson)		2014
+Athena	Holigan		1998
+Athena	Kanım Sarı Lacivert		2007
+Athena	Skalonga		1998
+Athena	Herşey Güzel Olacak		2000
+Athena	For Real		2004
+Athena	Çatal Yürek		2005
+Athena	Köpek		2006
+Athena	Bir Araya Gelemeyiz		2012
+Athena	Yapma Be Kanka		2014
+Athena	Sende Yap		2002
+Yüksek Sadakat	Belki Üstümüzden Bir Kuş Geçer		2005
+Yüksek Sadakat	Kafile		2005
+Yüksek Sadakat	Aşk Durdukça		2009
+Yüksek Sadakat	Haydi Gel İçelim		2009
+Yüksek Sadakat	Ben Seni Arayamam		2009
+Yüksek Sadakat	Döneceksin Diye Söz Ver		2005
+Yüksek Sadakat	Fener		2013
+Yüksek Sadakat	Aklımın İplerini Saldım		2005
+Yüksek Sadakat	Katil & Maktül		2009
+Yüksek Sadakat	Onlar Bizi Dinlerler		2011
+Yüksek Sadakat	Kadınım		2008
+Yüksek Sadakat	Seninle (Kırmızı)		2014
+Ajda Pekkan & Yüksek Sadakat	Ucuz Roman		2011
+Yüksek Sadakat	İhtimaller Denizi		2005
+Yüksek Sadakat	Aşk Toprağı		2014
+Yüksek Sadakat	İçimde Yağmur		2009
+Yüksek Sadakat	Yunus		2018
+Yüksek Sadakat	Pervane		2005
+Yüksek Sadakat	Öksüz Yel (Kırmızı Versiyon)		2021
+Yüksek Sadakat	Beklediğim Ne Varsa Sensin		2019
+Yüksek Sadakat	Sana Aşık Yalnız Ben		2011
+Yüksek Sadakat	Denizaltı		2005
+Yüksek Sadakat	Ceviz Ağacı		2018
+Pentagram	Bir		1990
+Pentagram	Seytan Bunun Neresinde		1990
+Pentagram	Gecmisin Yuku		2012
+Pentagram	Sonsuz		2017
+Pentagram	Gündüz Gece		2017
+Pentagram	Anatolia (feat. Şebnem Ferah)		2017
+Pentagram	Ölümlü		1990
+Pentagram	Bu Alemi Gören Sensin		1990
+Pentagram	Mezarkabul		1990
+Pentagram	Sur		2021
+Pentagram	Lions In a Cage		1990
+Pentagram	No One Wins The Fight		2017
+Pentagram	Tigris		1990
+Pentagram	Dogmadan Once		2012
+Pentagram	Uzakta		2017
+Pentagram	Fly Forever		2017
+Pentagram	Apokalips		2017
+Pentagram	Give Me Something To Kill The Pain		2017
+Pentagram	For The One Unchanging		2017
+Pentagram	For Those Who Died Alone		1990
+Pentagram	1000 In the Eastland (Live at 4 Şubat 2007 Bostancı)		2008
+Kurban	Sarı Çizmeli Mehmet Ağa		2004
+Kurban	Yine		2005
+Kurban	Yalan		1999
+Kurban	Yosma		2004
+Kurban	Lambaya Püf De		2004
+Kurban	Sakın Söyleme		2005
+Kurban	Namus Belası		2004
+Kurban	İnsanlar		2005
+Kurban	Nafile		2014
+Kurban	A		2005
+Kurban	İfrit		2010
+Kurban	Gülümse		2022
+Kurban	Uyut Beni		2005
+Adamlar	Sarılırım Birine		2019
+Adamlar	Zombi		2019
+Adamlar	Acının İlacı		2016
+Adamlar	Yaktı Geçti		2023
+Adamlar	Rüyalarda Buruşmuşum		2016
+Adamlar	Koca Yaşlı Şişko Dünya		2014
+Adamlar	Yanmış İçinden		2016
+Adamlar	Dal		2021
+Adamlar	Döndürüyor		2023
+Adamlar	Öyle Bir Geçer (Live @FadeOut Studios)		2024
+Adamlar	Doldum		2019
+Adamlar	E Tabi		2016
+Adamlar	Yoruldum		2019
+Adamlar	Benden Bana		2019
+Adamlar	Kapısı Kapalı		2014
+Adamlar	Hikaye		2018
+Adamlar	Kahırlı Merdiven		2024
+Adamlar	Hepinize El Salladım		2016
+Adamlar	Ah Benim Hayatım		2016
+Adamlar	Tın Tın		2016
+Adamlar	Utanmazsan Unutmam		2014
+Adamlar	Derine İndik		2019
+Adamlar	Mavi Ekran		2019
+Adamlar	Kadın		2014
+Adamlar	İçimizdeki Canavarlar		2021
+Adamlar	Orda Ortada		2016
+Adamlar	Koşmadan		2014
+Adamlar	İnsanın Düştüğü Durumlar		2014
+Adamlar	Adını Başkasının Koyduğu Çocuklar		2019
+Adamlar	Bi Öyle Bi Böyle		2014
+gripin	Aşk Nerden Nereye		2012
+gripin	Böyle Kahpedir Dünya		2007
+gripin	Yalnızlığın Çaresini Bulmuşlar		2012
+gripin	Durma Yağmur Durma		2010
+gripin	Beni Boş Yere Yorma		2016
+gripin	Beş		2010
+gripin	Vazgeçtim Ben Bugün		2012
+gripin	Nasılım Biliyor musun?		2017
+gripin	Neden Bu Elveda		2012
+gripin	Dalgalandım da Duruldum		2007
+gripin	Belki Çok Da Şey Yapmamak Lazım		2021
+gripin	Bir Cevabım Var Mı		2012
+gripin	Gidenin Dostu Olmaz		2010
+gripin	Gül Güzeli		2012
+gripin	Ebruli		2020
+gripin	Sen Gidiyorsun		2010
+gripin	Komşu Kızı		2010
+gripin	Sensiz İstanbul'a Düşmanım (feat. Emre Aydın)		2007
+gripin	Sustukların Büyür İçinde		2007
+gripin	Sor Bana Sor		2017
+gripin	Hiç Utanmadan		2017
+gripin	Yolcu Yolunda Gerek		2010
+gripin	Var Bir İhtimal		2024
+gripin	Yanımda Kal (Alpay'a Saygı)		2023
+gripin	Elini Korkak Alıştırma		2017
+gripin	Karismasin Kimseler		2004
+Kendimden Hallice & gripin	Halledemedik		2022
+gripin	Acemisiyim Mutluluğun		2017
+Kargo	Yıldızların Altında		2005
+Kargo	Renklerin İçinde		2001
+Kargo	Şairin Elinde		1997
+Kargo	Öyle Sarhoş Olsam ki		2005
+Kargo	Sen Ağlama		2005
+Kargo	Ateş ve Su		2004
+Kargo	Seninle Başım Dertte		2005
+Kargo	Bana Yalan Söylediler 		2013
+Kargo	Son Defa		1996
+Kargo	Mazi Kalbimde Bir Yaradır (feat. Dilek Türkan)		2015
+Kargo	Yollar		2011
+Kargo	Ayrılmam		2005
+Kargo	Ortaköy		1993
+Kargo	Böyle Daha Güzelsin		2016
+Kargo	Kehribar		2013
+Kargo	Yıllar Sonra		2000
+Kargo	Yüzleşme		1996
+Kargo	Ağlama Değmez Hayat		2005
+Kargo	Beni Bırakma (feat. Deniz Özbey Akyüz)		2013
+Kargo	Kalamış Parkı		1998
+Feridun Düzağaç	Düşler Sokağı		2003
+Feridun Düzağaç	Beni Bırakma		2008
+Feridun Düzağaç	Alev Alev		2004
+Feridun Düzağaç	F.D.		2003
+Feridun Düzağaç	Boş Ders Şarkısı		2003
+Feridun Düzağaç	Söz Ver		2008
+Feridun Düzağaç	Dipteyim Sondayım Depresyondayım		2001
+Feridun Düzağaç	Kül (Demli Versiyon)		2015
+Feridun Düzağaç	Beni Unutma		2006
+Feridun Düzağaç	Tek Başına		2013
+Feridun Düzağaç	Çok Aşık		2008
+Feridun Düzağaç	Kurumuş Ölüyorken		2008
+Feridun Düzağaç	Lavinia		1996
+Feridun Düzağaç	Aşkın E Hali		1998
+Feridun Düzağaç	Biçare		2015
+Feridun Düzağaç	Dinle		2019
+Feridun Düzağaç	Gerizler Başı		2022
+Feridun Düzağaç	Mütemadiyen Agliyorum		2013
+Feridun Düzağaç	Hayat Neden Şekil Yapıyor		2013
+Ümit Besen & Feridun Düzağaç	Okul Yolunda		2016
+Feridun Düzağaç	Nadas		2003
+Feridun Düzağaç	Senin Yüzünden		2013
+Feridun Düzağaç	Nem Kaldı		2017
+Feridun Düzağaç	Gönül		2013
+Hayko Cepkin	Oluyorum		2007
+Hayko Cepkin	Fırtınam		2005
+Hayko Cepkin	Bertaraf Et		2007
+Nilüfer & Hayko Cepkin	Aşk Kitabı		2011
+Hayko Cepkin	Paranoya		2012
+Hayko Cepkin	Gelin Olmuş		2010
+Hayko Cepkin	Son Kez		2005
+Hayko Cepkin	Yalniz Kalsin		2007
+Hayko Cepkin	Yol Gözümü Dağlıyor		2010
+Hayko Cepkin	Aldırma Gönül		2015
+Hayko Cepkin	Ben İnsan Değil Miyim		2015
+Hayko Cepkin	Kabul Olur		2019
+Hayko Cepkin	Sarhoşum Dünyada		2017
+Hayko Cepkin	Dans Et		2019
+Hayko Cepkin	Melekler		2007
+Hayko Cepkin	Siki Tutun		2007
+Hayko Cepkin	Yarası Saklı		2005
+Hayko Cepkin	Destina (Yeni Türkü Zamansız)		2022
+Hayko Cepkin	Geç Kaldım		2012
+Hayko Cepkin & Nazan Öncel	Bırak Seveyim Rahat Edeyim		2018
+Hayko Cepkin	Siren		2007
+Hayko Cepkin	Aşk Kitabı		2012
+Hayko Cepkin	Hayvaaağ2n		2020
+Hayko Cepkin	Yuh Yuh		2015
+Hayko Cepkin	Issızlığın Ortasında		2015
+Hayko Cepkin	Platonik		2012
+Hayko Cepkin	Ben Gideyim		2005
+Hayko Cepkin	Hayvaaağ1n		2020
+Zakkum	Hatıran Yeter		2018
+Zakkum	Gökyüzünde		2013
+Zakkum	Al Gece Yarılarımı Benden		2016
+Zakkum	Seni Rastgele Sevmedim		2022
+Zakkum	Müsaade Senin (feat. Ceylan Köse)		2019
+Zakkum	Anason		2011
+Zakkum	Ben Ne Yangınlar Gördüm		2013
+Zakkum	Gidiyorum Yolcu Et		2013
+Zakkum	Dile Kolay Kalbe Değil		2016
+Zakkum	Ahtapotlar		2007
+Zakkum	Acita Acita		2013
+Zakkum	Her Gün Sonbahar		2013
+Zakkum	Bilemedim		2013
+Zakkum	İkimiz de Yorgunuz		2016
+Zakkum	Hüzzam		2020
+Zakkum	Sen Hala Benimlesin		2016
+Zakkum	Güneşimi Kaybettim		2019
+Zakkum	Yüzük		2011
+Zakkum	Zehr-i Zakkum (feat. Teoman)		2007
+Zakkum	Ah Bu Şarkıların Gözü Kör Olsun		2011
+Zakkum	Eylül Ağrısı		2016
+Zakkum	Ben Böyle Değildim		2012
+Zakkum	Geldim Gidiyorum		2016
+Zakkum	Ah Çikolata		2007
+Zakkum	Sil Parmak İzlerini		2020
+Zakkum	Bütün Şarkılar Biter		2020
+Replikas	Yaş Elli		2002
+Replikas	Bugun Varim Yarin Yokum		2009
+Replikas	Seyyah (Remastered)		2000
+Replikas	Çiçek Dağı		2012
+Replikas	Bozuk Duzen		2009
+Replikas	Spring		2001
+Replikas	Aya Bak Yıldıza Bak		2012
+Replikas	Doesn’t Disturb Like the Night		2001
+Replikas	Deli Halayı		2002
+Replikas	Ölüm Allahın Emri		2012
+Replikas	Kör Taşın Kıyısında (Remastered)		2002
+Replikas	Sür Efem Atını		2012
+Replikas	Kaleden Kaleye Şahin Uçurdum		2012
+Replikas	Bir Ayrılık Bir Yoksulluk Bir Ölüm		2012
+Replikas	Gulyabani Müzik		2013
+Replikas	0-1		2001
+Replikas	Endure		2001
+Replikas	The Lifetime Meter		2001
+Replikas	Fakir (Remastered)		2000
+Replikas	Ömür Sayacı		2002
+Replikas	Hortum		2009
+Replikas	Panayır Günü		2012
+Replikas	Suya Giden Allı Gelin		2012
+Replikas	The Nameless Ones		2001
+Moğollar	Dinleyiverin Gari		2000
+Moğollar	Bişey Yapmalı		2000
+Moğollar	Birşey Yapmalı		1996
+Moğollar	Issızlığın Ortasında		1995
+Moğollar	Yolum Seninle		2004
+Moğollar	Ağrı Dağı Efsanesi		1971
+Moğollar	7 / 8 - 9 / 8		1978
+Moğollar	Dinleyiverin Gayri		1994
+Moğollar	Çaya Kaç Şeker		2009
+Moğollar	Metris'in Önünde		2014
+Moğollar	Alageyik Destanı		1972
+Moğollar	Geri Sar		2009
+Moğollar	Iklıg		1971
+Cem Karaca, Edip Akbayram & Moğollar	Haberin Var Mı		1977
+Moğollar	Düm-Tek		1978
+Moğollar	Magic Moon		1978
+Moğollar	Dersim'in Yaylaları		2004
+Cem Karaca & Moğollar	Edalı Gelin		2016
+Cem Karaca & Moğollar	İhtiyar Oldum		2016
+Moğollar	Hamsi		2015
+Cem Karaca & Moğollar	Ala Geyik Destanı		2016
+Moğollar	Selvi Boylum Al Yazmalım (Live)		2018
+Moğollar	Ilgaz		1971
+Yeni Türkü	Fırtına		1988
+Yeni Türkü	Aşk Yeniden		1992
+Yeni Türkü	Sezenler Olmuş		2012
+Yeni Türkü	Telli Telli		1983
+Yeni Türkü	Karanfil		1992
+Yeni Türkü	Olmasa Mektubun		1986
+Yeni Türkü	Maskeli Balo		1983
+Yeni Türkü	Dönmek		1987
+Yeni Türkü	Başka Türlü Bir Şey		1986
+Yeni Türkü	Yağmurun Elleri		1988
+Yeni Türkü	Vira Vira		1990
+Yeni Türkü	Cevriye Hanım		1994
+Yeni Türkü	Çember		1983
+Yeni Türkü	Akasya Kokulu Sabahlar		1992
+Yeni Türkü	Gözlerin		2016
+Yeni Türkü	Deliler		1990
+Yeni Türkü	Resim		1987
+Yeni Türkü	Destina		1988
+Yeni Türkü	Yedikule		1992
+Yeni Türkü	İmkansız		2012
+Yeni Türkü	Yeşilmişik		1988
+Yeni Türkü	Nilüfer		2012
+Yeni Türkü	Eyvallah		2012
+Yeni Türkü	Bana Bir Masal Anlat Baba		1996
+Yeni Türkü	Buğdayın Türküsü		2013
+Yeni Türkü	Dolunay		1992
+Bulutsuzluk Özlemi	Sözlerimi Geri Alamam		1990
+Bulutsuzluk Özlemi	Güneye Giderken		1995
+Bulutsuzluk Özlemi	Yine Düştük Yollara		1998
+Bulutsuzluk Özlemi	Yaşamaya Mecbursun		1995
+Bulutsuzluk Özlemi	Rüzgar		2009
+Bulutsuzluk Özlemi	Tepedeki Çimenlik		1990
+Bulutsuzluk Özlemi	Uçtu Uçtu		1990
+Bulutsuzluk Özlemi	Yeni Bir Gün		2019
+Bulutsuzluk Özlemi	Bulutsuzluk Özlemi		1995
+Bulutsuzluk Özlemi	Hayat Geçerken / Mücella		2019
+Bulutsuzluk Özlemi	Acil Demokrasi		1990
+Bulutsuzluk Özlemi	Yağmur		2001
+Bulutsuzluk Özlemi	Bağdat Kafe		2005
+Bulutsuzluk Özlemi	Aşk Çok Para Yok		2001
+Bulutsuzluk Özlemi	Güneşimden Kaç		1992
+Bulutsuzluk Özlemi	Özgürlük Emek İster		1998
+Bulutsuzluk Özlemi	Hoşgeldin Bebek		2016
+Bulutsuzluk Özlemi	Hasret		2001
+Bulutsuzluk Özlemi	Yüzünde Yaşam İzleri Vardı		1995
+Bulutsuzluk Özlemi	İstanblues		2009
+Bulutsuzluk Özlemi	Her Şeyin Farkındayım (Gezi Parkındayım)		2013

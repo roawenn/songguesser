@@ -1,0 +1,39 @@
+{
+  "name": "nakarat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pool:build": "tsx scripts/build-pool.ts",
+    "pool:verify": "tsx scripts/verify-pool.ts",
+    "pool:suggest": "tsx scripts/suggest.ts",
+    "pool:snapshot": "tsx scripts/supabase/snapshot.ts",
+    "db:migrate": "tsx scripts/supabase/migrate.ts"
+  },
+  "dependencies": {
+    "@leeoniya/ufuzzy": "^1.0.19",
+    "@supabase/supabase-js": "^2.116.0",
+    "next": "^15.5.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.14",
+    "@types/node": "^24.7.0",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "pg": "^8.23.0",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

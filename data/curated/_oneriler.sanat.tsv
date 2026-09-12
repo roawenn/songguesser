@@ -1,0 +1,220 @@
+# sanat — ADAY ŞARKILAR (Apple Music TR'de mevcut olduğu DOĞRULANDI)
+#
+# Beğendiğin satırları sanat.tsv dosyasına taşı ve iki alanı doldur:
+#   zorluk (3. sütun): 1=Kolay ... 5=İmkansız
+#   yıl (4. sütun): iTunes'un verdiği yıl YENİDEN BASIM olabilir, kontrol et
+#
+# sanatçı	şarkı	zorluk	yıl(iTunes)
+Zeki Müren	Gözlerin Doğuyor Gecelerime		1988
+Zeki Müren	Ah Bu Şarkıların Gözü Kör Olsun		1973
+Zeki Müren	Elbet Birgün Buluşacağız		1991
+Zeki Müren	Bir Gülü Sevdim		1987
+Zeki Müren	Sevemez Kimse Seni		1990
+Zeki Müren	Sen Kimseyi Sevemezsin		1991
+Zeki Müren	Şimdi Uzaklardasın		2013
+Zeki Müren	Bir Yangının Külünü (Aşiyan Yollarında)		1990
+Zeki Müren	Ben Seni Unutmak İçin Sevmedim		2009
+Zeki Müren	Biz Ayrılamayız		1973
+Zeki Müren	Gitme Sana Muhtacim		1989
+Zeki Müren	Bulamazsın		1987
+Zeki Müren	Rüyalarda Buluşuruz		1973
+Zeki Müren	Sorma Ne Haldeyim		1990
+Zeki Müren	Nasıl Geçti Habersiz O Güzelim Yıllarım		1970
+Zeki Müren	Seni Sordum Yıldızlara		1989
+Zeki Müren	Ağlama Sevdam		1990
+Zeki Müren	İmkânsız		1973
+Zeki Müren	Seni Ben Unutmak İstemedim ki		1973
+Zeki Müren	Beklenen Şarkı		1987
+Zeki Müren	Dediler Zamanla Hep Azalırmış Sevgiler		1989
+Müzeyyen Senar & Zeki Müren	Ben Zeki Müren		1988
+Zeki Müren	İnleyen Nağmeler		2011
+Zeki Müren, Emel Sayın & Muazzez Abacı	Büyüleyen Gözlerinle		1973
+Zeki Müren	Gökyüzünde Yalnız Gezen Yıldızlar		1990
+Zeki Müren	İndim Havuz Başına		1977
+Zeki Müren	Aşkın Kanunu		1990
+Zeki Müren	Kahır Mektubu		1991
+Müzeyyen Senar & Nilüfer	Dalgalandım Da Duruldum		1998
+Müzeyyen Senar	Gamzedeyim Deva Bulmam		1970
+Müzeyyen Senar	Kimseye Etmem Şikayet		2007
+Müzeyyen Senar	Benzemez Kimse Sana		2010
+Müzeyyen Senar	Bir İhtimal Daha Var		2011
+Müzeyyen Senar & Tarkan	Benzemez Kimse Sana		1998
+Müzeyyen Senar	Fikrimin İnce Gülü		2007
+Müzeyyen Senar	Sevmekten Kim Usanır		2010
+Müzeyyen Senar	Elbet Bir Gün Buluşacağız		1987
+Müzeyyen Senar	Ben Seni Unutmak İçin Sevmedim		1975
+Müzeyyen Senar	Akşam Oldu Hüzünlendim Ben Yine		1995
+Müzeyyen Senar	Dalgalandımda Duruldum		2000
+Müzeyyen Senar	Vardar Ovası		2007
+Müzeyyen Senar	Ömrümüzün Son Demi		2012
+Müzeyyen Senar	Haydar Haydar		1996
+Müzeyyen Senar	Karadır Kaşların		2006
+Müzeyyen Senar	Akşam Oldu Yine Bastı Kareler		2007
+Müzeyyen Senar	Agora Meyhanesi		2010
+Müzeyyen Senar	Ölürsem Yazıktır		2012
+Müzeyyen Senar	Kapıldım Gidiyorum		1973
+Müzeyyen Senar	İzmirin Kavakları		1970
+Müzeyyen Senar	Havada Bulut Yok		2007
+Müzeyyen Senar	Sigaramın Dumanı		2007
+Müzeyyen Senar	A Benim Mor Çiçeğim		2007
+Müzeyyen Senar	Gündüzüm Seninle		2012
+Müzeyyen Senar	Feraye		2012
+Zeki Müren & Müzeyyen Senar	Gülmedi Şu Bahtım		1973
+Bülent Ersoy	Bir Ben Bir Allah Biliyor (feat. Tarkan)		2011
+Bülent Ersoy	Aşktan Sabıkalı		2011
+Bülent Ersoy	Ümit Hırsızı		2019
+Bülent Ersoy	Yüzünü Göremem		1995
+Bülent Ersoy	Hani Bizim Sevdamız		2002
+Bülent Ersoy	Geceler		2000
+Bülent Ersoy	Sefam Olsun		1993
+Bülent Ersoy	Çile Bülbülüm		2000
+Bülent Ersoy	Beddua		1985
+Bülent Ersoy	Baharı Bekleyen Kumrular Gibi		1993
+Bülent Ersoy	Maazallah		1997
+Bülent Ersoy	Sevmekten Kim Usanır		2000
+Bülent Ersoy	Alışacağım		1987
+Bülent Ersoy	Ablan Kurban Olsun Sana		1992
+Bülent Ersoy	Unutamazsın		2002
+Bülent Ersoy	Yaranamadım		1984
+Bülent Ersoy	Yıllar		1992
+Bülent Ersoy	Mor Akşamlar		1994
+Bülent Ersoy	Biz Ayrılamayız (1. Versiyon)		1990
+Bülent Ersoy	Sabaha Kadar		1993
+Bülent Ersoy	Bir Gönül Sayfası		1987
+Bülent Ersoy	Bir Teselli Ver		2011
+Bülent Ersoy	Bu Akşam Bütün Meyhanelerini		2000
+Bülent Ersoy	Doğum Günüm		1987
+Bülent Ersoy	Seni Ben Ellerin Olsun		2000
+Bülent Ersoy	Düşkünüm Sana		1987
+Bülent Ersoy	Fragman		2026
+Bülent Ersoy	Dert Bende		2011
+Muazzez Ersoy	Sevemedim Karagözlüm		1995
+Muazzez Ersoy	Duydum Ki Unutmuşsun		1999
+Muazzez Ersoy	Kırılsın Ellerim		1997
+Muazzez Ersoy	Kahverengi Gözlerin		2001
+Muazzez Ersoy	Bir Fincan Kahve Olsam		1995
+Muazzez Ersoy	Aşkın Kanunu		2001
+Muazzez Ersoy	Güz Gülleri		2001
+Muazzez Ersoy	Kader Diyemezsin		2001
+Muazzez Ersoy	Seven Olmaz Ki		1992
+Muazzez Ersoy	Boş Kalan Çerçeve		2007
+Muazzez Ersoy	Babuba		2007
+Muazzez Ersoy	İntizar		2001
+Muazzez Ersoy	Artık Sevmeyeceğim		2001
+Muazzez Ersoy	Unutamam Seni		2001
+Muazzez Ersoy	Samanyolu		1997
+Muazzez Ersoy	Alışırım		2004
+Muazzez Ersoy	Agora Meyhanesi		1998
+Muazzez Ersoy	Böyle Ayrılık Olmaz		2001
+Muazzez Ersoy	Kıskanırım Seni Ben		1995
+Muazzez Ersoy	Adını Anmayacağım		1995
+Muazzez Ersoy	Benim Gözüm Sende		1998
+Muazzez Ersoy	Gönül Penceresinden		2007
+Muazzez Ersoy	Batan Gün Kana Benziyor		1998
+Muazzez Ersoy	Ayva Çiçek Açmış		2001
+Muazzez Ersoy	Can Bedenden Çıkmayınca		1999
+Muazzez Ersoy	Unutursun Diye		1998
+Emel Sayın	Duydum Ki Unutmuşsun		1974
+Emel Sayın	Rüyalar Gerçek Olsa		1997
+Emel Sayın	Bak Yeşil Yeşil		2006
+Emel Sayın	Üzüldüğün Şeye Bak		1990
+Emel Sayın	Gözler Kalbin Aynasıdır		2000
+Emel Sayın	Mavi Boncuk		1997
+Emel Sayın	Feride		1997
+Emel Sayın	Kız Sen İstanbul'un Neresindensin		2006
+Emel Sayın	Ayrılmalıyız Artık		1997
+Emel Sayın	Gitme Sana Muhtacım		1982
+Emel Sayın	Aşkın Kanunu		2014
+Emel Sayın	Mihrabım Diyerek Sana Yüz Vurdum		2000
+Emel Sayın	İşte Bizim Hikayemiz		1986
+Emel Sayın	Silemezler Gönlümden		2006
+Zeki Müren, Emel Sayın & Muazzez Abacı	Rüyalarda Buluşuruz		1973
+Emel Sayın	Kemancı		1997
+Zeki Müren, Emel Sayın & Muazzez Abacı	Ah Bu Şarkıların Gözü Kör Olsun		1973
+Emel Sayın	Hep Bana		2013
+Emel Sayın	Yağdır Mevlam Su		2006
+Emel Sayın	Bir Gece Ansızın Gelebilirim		1975
+Emel Sayın	Sen Mevsimler Gibisin		1997
+Zeki Müren, Emel Sayın & Muazzez Abacı	Bir Sevgi İstiyorum		1983
+Emel Sayın	Pişman Olur Da Bir Gün		2006
+Emel Sayın	Gülünce Gözlerinin İçi Gülüyor		1976
+Emel Sayın	Gülizar		1997
+Emel Sayın	Hayat Devam Ediyor		2012
+Emel Sayın	At Kadehi Elinden		2006
+Emel Sayın & Cem Adrian	Her Aşkın Bir Şarkısı Var		2024
+Behiye Aksoy	Bir Garip Yolcu		1986
+Behiye Aksoy	Artık Yeşerecek Dalım Yok		1996
+Behiye Aksoy	Elbet Birgün Buluşacağız		1986
+Behiye Aksoy	At Kadehi Elinden		1986
+Behiye Aksoy	Kıskanırım Seni Ben		1971
+Behiye Aksoy	Huysuz Ve Tatlı Kadın		1972
+Behiye Aksoy	Sevmekten Kim Usanır		1971
+Behiye Aksoy	Kara Sevda		1976
+Behiye Aksoy	Seni Ben Ellerin Olsun Diye Mi Sevdim		1972
+Behiye Aksoy	Kapın Her Çalındıkça		1996
+Behiye Aksoy	Aldırma Gönül		1976
+Behiye Aksoy	İnleyen Nağmeler		1996
+Behiye Aksoy	Enginde Yavaş Yavaş		1996
+Behiye Aksoy	Kim Arar		1976
+Behiye Aksoy	Olmuyor Yine Sabah		2006
+Behiye Aksoy	Tadı Yok Sensiz Geçen		1986
+Behiye Aksoy	Dinlendi Başım		1986
+Behiye Aksoy	Pişman Olurda Birgün		1986
+Behiye Aksoy	Gökyüzünde Yalnız Gezen Yıldızlar		1986
+Behiye Aksoy	Şeytana Uyduk Bir Kere		1971
+Behiye Aksoy	Tut-i Mucize-i Guyem		1972
+Behiye Aksoy	Kemancı		1986
+Behiye Aksoy	Dumanlı Meyhaneler		2006
+Behiye Aksoy	İntizar		1986
+Behiye Aksoy	Gülünce Gözlerinin İçi Gülüyor		1986
+Behiye Aksoy	Tövbeler Tövbesi		1986
+Behiye Aksoy	Semt-i Dildare Bu Demler		1987
+Behiye Aksoy	Gizli Aşk		1996
+Hamiyet Yüceses	Her Yer Karanlık (Makber)		1993
+Hamiyet Yüceses	Geceler		1974
+Hamiyet Yüceses	Ada Sahillerinde Bekliyorum		1974
+Hamiyet Yüceses	Kadifeden Kesesi		1993
+Hamiyet Yüceses	Ben Küskünüm Feleğe		1975
+Hamiyet Yüceses	Bakmıyor Çeşmi Siyah		1967
+Hamiyet Yüceses	Sevmekten Kim Usanır		1975
+Hamiyet Yüceses	Gamzedeyim Deva Bulmam		2016
+Hamiyet Yüceses	Belki Bir Sabah		1974
+Hamiyet Yüceses	Adalarda Sahilinde		1993
+Hamiyet Yüceses	Akşamın Olduğu Yerde		1975
+Hamiyet Yüceses	Olmaz İlaç		1975
+Hamiyet Yüceses	Elif Türküsü		2016
+Hamiyet Yüceses	Güzel Sana Gönül Verdim		2016
+Hamiyet Yüceses	Hüzzam Peşrevi / Senin Sesini		1975
+Hamiyet Yüceses	Görmedim Ömrümün		1975
+Hamiyet Yüceses	Niçin Baktın Bana Öyle		1949
+Hamiyet Yüceses	Kalbime Hasretin Zehri Düştü		1993
+Hamiyet Yüceses	Yana Yana Kül Oldum		1993
+Hamiyet Yüceses	Herkes Gitti Yalnız Kaldım Meyhanede		1993
+Hamiyet Yüceses	Bakmıyor Çeşm-i Siyah		1975
+Hamiyet Yüceses	Gördüm Seni Bir Gün		2014
+Hamiyet Yüceses	Leb Alev Lebler Alev		2014
+Hamiyet Yüceses	Çile Bülbülüm Çile		1949
+Hamiyet Yüceses	Esmerim Güzelim		2000
+Hamiyet Yüceses	Kiremide Su Düştü		2016
+Hamiyet Yüceses	Görmedim Ömrümün Asude Geçen		1993
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Ankara Rüzgarı		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Ada Sahilleri		2013
+Necmettin Yildirim	Elbet Bir Gün Buluşacağız		1998
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Menekşe Gözler Hülyalı		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Gökyüzünde Yanlız Gezen Yıldızlar		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Yemen Türküsü		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Bursalımısın		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Üsküdar'a Gider İken		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Gülenaz		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Kimi Dertten İçermiş		2013
+Necmettin Yildirim	Hatırla Ey Peri		1998
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Yürü Dilber Yürü		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Haydar Haydar		2013
+Necmettin Yildirim	Nasıl Geçti Habersiz		1996
+Anıl Alp, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Ham Meyvayı Kopardılar Dalından		2013
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Akşam Oldu Hüzünlendim Ben Yine		2013
+Necmettin Yildirim	Kimseye Etmem Şikayet		1995
+Necmettin Yildirim	Belki Bir Sabah Geleceksin		1998
+Necmettin Yildirim	Yar Yolunu Kolladım		1998
+Alp Arslan, Asuman Görgün, Esma Başbuğ, Faruk Salgar, Necmettin Yildirim & Pınar Yıldırım	Nasıl Geçti Habersiz		2013
+Necmettin Yildirim	Bak Bahta Da İkbale		1993

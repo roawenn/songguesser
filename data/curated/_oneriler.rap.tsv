@@ -1,0 +1,814 @@
+# rap — ADAY ŞARKILAR (Apple Music TR'de mevcut olduğu DOĞRULANDI)
+#
+# Beğendiğin satırları rap.tsv dosyasına taşı ve iki alanı doldur:
+#   zorluk (3. sütun): 1=Kolay ... 5=İmkansız
+#   yıl (4. sütun): iTunes'un verdiği yıl YENİDEN BASIM olabilir, kontrol et
+#
+# sanatçı	şarkı	zorluk	yıl(iTunes)
+Ceza	Yerli Plaka		2007
+Ceza	Med Cezir		2002
+Ceza	Neyim Var Ki (feat. Sagopa K)		2004
+Ceza	Fark Var		2006
+Ceza	Gelsin Hayat Bildiği Gibi (feat. Sezen Aksu)		2006
+Ceza	Beatcoin		2019
+Ceza	Kim Bilir		2010
+Ceza	Panorama Harem		2004
+Ceza	Türk Marşı		2012
+Ceza	Ben Ağlamazken		2004
+Ceza & Killa Hakan	Delight		2008
+Ceza	Feyz Al		2005
+Ceza	Yeni Mesaj		2020
+Massaka, Ceza & Dr. Fuchs	Soguk Mevsim		2012
+Ceza	Sen Oyna Dilber		2007
+Sagopa Kajmer	Ateşten Gömlek		2008
+Sagopa Kajmer	Baytar		2013
+Sagopa Kajmer	Toz Taneleri		2019
+Sagopa Kajmer	366.Gün		2017
+Sagopa Kajmer	Bir Çok Kez Öldüm		2014
+Nun Sultan & Sagopa Kajmer	Sussan da Olur		2025
+Sagopa Kajmer	Neyse		2019
+Sagopa Kajmer	Meftun		2013
+Sagopa Kajmer	Avutsun Bahaneler		2019
+Sagopa Kajmer	Merhametine Dön (2021 Tek Edit)		2021
+Sagopa Kajmer	Maskeli Balo		2004
+Sagopa Kajmer	Vesselam		2008
+Sagopa Kajmer	Sertlik Kanında Var Hayatın		2017
+Sagopa Kajmer	Gölge Haramileri		2008
+Sagopa Kajmer	Tanrı Çekti Tüm Resimleri (feat. Dr. Fuchs)		2004
+Patron & Sagopa Kajmer	Siyah		2020
+Sagopa Kajmer	Sabah Fabrikam (Enstrumantal)		2013
+Sagopa Kajmer & Faruk Sabancı	Bu Sen Değilsin		2020
+Sagopa Kajmer	İstisnalar Kaideyi Bozmaz		2006
+Sagopa Kajmer	Sessiz Ve Yalnız		2018
+Sagopa Kajmer	Vasiyet (Re-Mastered)		2005
+Sagopa Kajmer	Al 1'de Burdan Yak		2004
+Sagopa Kajmer	Geceler (feat. Mine Koşan)		2023
+Sagopa Kajmer	Oldu Olanlar (Sago K 2022 Remix)		2022
+Sagopa Kajmer	Bir Kulaç Daha Atsam Karadayım		2008
+Sagopa Kajmer	Istakoz		2013
+Norm Ender	Sözler Şerefsiz Oldu		2010
+Norm Ender	İçinde Patlar		2010
+Norm Ender	Kaktüs		2017
+Norm Ender	Çıktık Yine Yollara		2010
+Norm Ender & Ebru Gündeş	Bir Çift Göz		2025
+Norm Ender	Kezban		2017
+Norm Ender	Deli		2017
+Norm Ender	Depresyon Oteli		2010
+Norm Ender	Yarem		2017
+Norm Ender	Benim Stilim		2017
+Norm Ender	Sadece Dinle		2007
+Norm Ender	Kediler Aslan Olmaz		2021
+Norm Ender	Konu Kilit		2020
+Norm Ender	Avare		2017
+Norm Ender	Bu Düş Çok Güzel		2022
+Norm Ender	İhtiyacım Yok		2020
+Norm Ender	Sonumu Görüyorum		2017
+Faruk Sabancı & Norm Ender	Bulamazdım		2021
+Norm Ender	Kafam 1 Milyon		2007
+Norm Ender	Transparan		2007
+Norm Ender	Parla (100. Yıl Marşı)		2023
+Norm Ender	Kara Toprak		2017
+Norm Ender	Sadece Öpücem		2022
+Norm Ender	Star Benim		2026
+Norm Ender	O Zaman Dans		2017
+Norm Ender	Playboy		2007
+Norm Ender	Tekir		2007
+Norm Ender	Son Uyku		2007
+Norm Ender	Acil		2007
+Ezhel	Bana Ne Bu Sevdalardan		2026
+Ezhel	Başa Bela		2026
+Murda & Ezhel	Bi Sonraki Hayatımda Gel		2020
+Ezhel	Bul Beni		2021
+Ezhel	Kaybet		2026
+Ezhel	Deli Mi Ne		2025
+Ezhel	Nerdesin		2022
+Murda & Ezhel	AYA		2015
+Ezhel	Kazıdık Tırnaklarla		2018
+Ezhel	Kadehimi Boş Bırakma		2024
+Murda & Ezhel	Duman		2020
+Artz, Bugy & Ezhel	Hayrola		2021
+Ezhel & JUGGLERZ	Pofuduk		2023
+Ezhel	Mayrig		2021
+Ezhel	Ağlattın		2022
+Ezhel	Benim Derdim		2017
+Ezhel	Sakatat		2021
+Murda & Ezhel	DAYANAMAM		2025
+Ezhel	Olay		2019
+Vio & Ezhel	Iz Bırak		2020
+Ezhel	FaceTime		2024
+Ufo361 & Ezhel	Fallen		2019
+Murda & Ezhel	Söz		2020
+UZI	PAPARAZZI		2021
+GNG & UZI	Hızlı Sokaklar		2019
+UZI & Aksan	MA CHÉRIE		2025
+UZI	BACK IN BUSINESS		2025
+UZI	Paranoya		2020
+UZI & Motive	Şarkılar Sokaklara Ait		2026
+UZI & Motive	Cennet		2026
+UZI	Outro		2021
+UZI, Motive & F.T. Kings	Aklın Hep Bende		2026
+UZI	ZOR		2022
+UZI	Favela		2019
+UZI & Azer Bülbül	Caney		2023
+UZI	1 YIL		2025
+UZI & Mavi	SENIN UGRUNA		2022
+UZI & Chahid	KALİTE		2025
+UZI & Motive	Ismarla		2025
+UZI	DENE		2023
+Motive, UZI, Aksan & Güneş	Mektup		2021
+Tuhan & UZI	Yengen Kızar		2021
+UZI	YALAN DÜNYA		2025
+UZI	HESAP		2022
+UZI	Gecenin Içine Gir (feat. Mavi)		2021
+Murda & UZI	GNG Freestyle 1		2023
+UZI	366		2025
+BLOK3	Sebebi Yar		2026
+BLOK3	Kayıp Kalp		2026
+BLOK3	Kırgınım		2026
+BLOK3 & Poizi	Çok Güzel Gülüyorsun		2026
+BLOK3	KUSURA BAKMA		2025
+BLOK3	napıyosun mesela ?		2025
+BLOK3	Allah Allah ?		2026
+BLOK3	SEVMEYİ DENEMEDİN		2024
+BLOK3	Değiştiremezsin Yazılmışsa		2026
+BLOK3	Sakin Ol Champ		2026
+BLOK3	git		2025
+Ati242 & BLOK3	Keşke		2025
+BLOK3	aklına ben gelicem		2023
+BLOK3	VUR		2022
+BLOK3	BAYBAY		2023
+BLOK3	GELME İSTEMEM		2024
+BLOK3	Hako diyorlar		2025
+BLOK3	YAPTIRICAZ TIRNAKLARINI		2023
+BLOK3	N'aptığını Bilmesem De		2023
+BLOK3	GÜZEL VE İDDİALI		2024
+BLOK3	LAF		2024
+BLOK3	ZEHİRLİ GÜL		2024
+BLOK3	Son Bi Dans		2026
+BLOK3	BABA		2026
+BLOK3	GÜZEL KIZIM		2024
+BLOK3	Mosmor Perde		2025
+BLOK3	keçi		2025
+Sefo & Demet Akalın	Yerinde Dur		2025
+Sefo	Bilmem Mi?		2021
+Afra & Sefo	Aşiyan		2025
+Sefo	IMPARATOR		2023
+Sefo	Tutsak		2022
+Semicenk & Sefo	Sabrettim		2025
+Soner Sarıkabadayı, Sefo & Aerro	Her İki Durumda		2025
+Sefo	Yine Seni Severdim		2026
+Sefo	Affettim		2022
+Sefo & Mustafa Sandal	İsyankar (Mustafa Sandal Saygı 1)		2026
+Sefo & Jako	kördüğüm		2022
+Sefo & Reynmen	Bonita		2021
+Sefo	toz duman		2021
+Sefo & İrem Derici	Senden Kalanlar		2026
+Sefo & CAPO	ISABELLE		2022
+Sefo	ARABA		2023
+Sefo	Kapalı Kapılar		2024
+Sefo	Veda Saati		2023
+Sefo & Simge	Görmem Böylesini		2023
+Sefo	Derdi Ne?		2019
+Sefo & Revart	yarım kalır		2022
+Sefo	Bi' Bilsen (feat. Sena Şahin)		2026
+Sefo	Kaçak Göçek		2024
+Sefo	SULU SULU		2024
+Sefo	beni beni		2022
+Sefo	Rest		2020
+Sefo	Geri Gel		2020
+Sefo	Ardından		2020
+Sefo	AFACAN		2025
+Gazapizm	Sağı Solu Kes		2020
+Gazapizm	Unutulacak Dünler		2020
+Gazapizm	Sanki Bir Halkın		2014
+Gazapizm & Melike Şahin	Olur Mu		2022
+Gazapizm	Müşkül		2024
+Gazapizm	Kalbim Çukurda (feat. Cem Adrian)		2002
+Gazapizm	Perişan (feat. Gaye Su Akyol)		2020
+Gazapizm	Gece Sabahın		2016
+Gazapizm	Aborjin		2025
+Gazapizm	Memleketsiz		2016
+Gazapizm	Kafam Karışıyor		2014
+Gazapizm	Bu Rüya Benim		2020
+Gazapizm	Yeraltı Edebiyatı		2014
+Gazapizm	İsminizi İstiyorlar		2016
+Gazapizm	Yaşanırsa Diye (feat. Cem Adrian)		2020
+Gazapizm	Bir Gün Her Şey		2016
+Gazapizm	Bir Anne Sohbeti		2024
+Gazapizm	Yaşatmadın Dünya		2024
+Gazapizm	İzaf		2022
+Gazapizm	Kayıp Kelimeler		2014
+Gazapizm	Seni Özlüyorum		2024
+Gazapizm	Bağır		2016
+Gazapizm	Çıkar Kendini		2016
+Gazapizm	Hakikatler (feat. Sansar Salvo)		2016
+Gazapizm	Paranı Kovala		2016
+Gazapizm & Cem Adrian	Af		2024
+Gazapizm	Borandan (feat. Çağrı Sinci & Zézé)		2014
+Gazapizm	Evini Başına Yıkan		2024
+Ben Fero	KRAMP (feat. Ezhel)		2020
+Ben Fero	ENGEREK		2020
+Ben Fero & Anıl Piyancı	Sıkı Dur		2020
+Ben Fero	BENİ ANLASANA		2020
+Maho G & Ben Fero	İzmir'in Ateşi		2020
+Grogi & Khontkar	Gelemem		2019
+Khontkar	Hiçbir Şeyim Yok		2017
+Motive & Khontkar	REFILL		2026
+Khontkar	Gözyaşı Rapsodi 1		2023
+Khontkar	YALNIZ ADAM		2024
+Khontkar & GRKM	BİLMECE		2021
+Khontkar & Kozmos	NEREYE		2025
+Khontkar & Murda	ZODIAC SIGN		2025
+Khontkar	GÖZLERİNDE		2025
+Khontkar	Fıstığa Bak (Radio Edit)		2020
+Khontkar & Tuby	SİNEMATOGRAF		2026
+Kozmos & Khontkar	ÜSTÜNDE NE VAR		2021
+Metth & Khontkar	Ne Var?		2019
+Khontkar & Saçkolik Adam	Saçkolik Adam		2018
+Khontkar	Nothin Can Do About It		2019
+Zen-G & Khontkar	TATTOO		2021
+Mavi & Khontkar	PAPAGAN		2026
+Lotusx & Khontkar	yarına kadar		2025
+Metth & Khontkar	Deli mi Ne?		2019
+Khontkar	BENCİL		2025
+Khontkar	MLBB		2024
+Bixi Blake & Khontkar	Derine Dal		2023
+Khontkar & Metth	İÇİN RAHAT ETSİN		2025
+Khontkar & Young Bego	Bendim		2023
+Simülasyon, Khontkar & Metth	Gözüm Kara		2020
+Motive	YIN YANG		2026
+Motive	pVg		2024
+Motive	Bellydance		2025
+Motive	HANIMEFENDİ		2023
+Motive	ROMANTİK		2023
+Yung Kafa & Kücük Efendi, Motive & JUMPA	KARANLIK		2025
+Kleo, Segah & Motive	A La Carte		2023
+Motive & Pango	LACIVERT		2023
+Motive	Takip		2021
+Motive	MAN DOWN FREESTYLE		2023
+Motive & Murda	Ömrüm		2021
+Motive	MASAL		2022
+Motive	KALA KAL		2000
+Motive	Yüce Aşk		2020
+Motive	Nereden		2020
+Motive, Cairo & Narco	GANG		2023
+Motive	DAMLA		2023
+manifest, Motive & Pango	pVg (Manifest Live Remix)		2026
+Motive	Eşkiya		2019
+Motive	Makaveli		2020
+Motive	champion		2024
+Motive & Reckol	BYE		2026
+Hadise & Motive	Küçük Bir Yol (Red Bull Track Takeover)		2026
+Lvbel C5	TAK TAK TAK		2025
+Lvbel C5 & AKDO	vODKA BELUGA		2026
+Lvbel C5 & AKDO	MERMER		2025
+Lvbel C5 & AKDO	PEKİ PEKİ		2025
+Lvbel C5	AŞKIM ALLAH KURTARSIN		2025
+Lvbel C5	nE !?		2024
+Lvbel C5 & AKDO	CADDEBOSTAN		2026
+Lvbel C5 & AKDO	TEMPO		2024
+Lvbel C5 & AKDO	ÇÖZEMEZLER		2024
+Lvbel C5	Sezen Aksu		2024
+AKDO & Lvbel C5	SUBMARINER		2024
+Lvbel C5 & Melis Kar	DACIA X YATIYA (Remix)		2024
+Lvbel C5	DACIA		2023
+Eftalya Yağcı & Lvbel C5	Sevmiş Gibi		2022
+Demet Akalın & Lvbel C5	Beni Unutma		2025
+Lvbel C5	200 MİLYAR		2022
+Lvbel C5 & AKDO	ABV		2025
+Lvbel C5, Jabbar & Deeperise	Raf x yıldızlar şahit aşkıma		2025
+Lvbel C5 & RAF Camora	BANA GÖNDER!		2023
+Lvbel C5	olsun		2022
+Lvbel C5	İNATLA		2022
+Lvbel C5 & Güneş	NKBİ X YAPAMAM (Remix)		2022
+Lvbel C5	GÖRDÜN BENİ		2023
+Lvbel C5	GÖRÜN NE HALİNİZ VARSA		2011
+Lvbel C5 & AKDO	5 YILDIZ		2026
+Lvbel C5 & AKDO	NERDESİNİZ		2024
+Lvbel C5 & AKDO	İKİ TANE SARI		2025
+Lvbel C5 & AKDO	YAZ GELDİ		2025
+AKDO & Lvbel C5	KILLA INTRO		2024
+Anıl Piyancı & Zeynep Bastık	Bırakman Doğru Mu		2019
+Anıl Piyancı	Döndüm Durdum		2020
+Anıl Piyancı & Efe Parlakdemir	Senin Olmama Rağmen		2026
+Anıl Piyancı & Perdenin Ardındakiler	Yağmurlar		2020
+Anıl Piyancı & Contra	Tavşan		2018
+Zeynep Bastık & Anıl Piyancı	Bırakman Doğru Mu 2		2020
+Anıl Piyancı & Kaan Boşnak	Varsın		2019
+Anıl Piyancı & Ceg	Yeşillendir		2020
+Anıl Piyancı	Profesör		2018
+EDIS, Anıl Piyancı & Ekin Beril	Kâinat		2021
+Anıl Piyancı	Beraber Büyüdük		2021
+Anıl Piyancı & Kaan Boşnak	Göklerde Süzülürken		2021
+Anıl Piyancı & Set	La Turka		2023
+Anıl Piyancı	Palavra		2017
+Anıl Piyancı	Açık Ara Bul Kon		2024
+Anıl Piyancı	Git (feat. Emrah Karakuyu & Şehinşah)		2013
+Anıl Piyancı & TurkodiRoma	Adam Olmaz X Yay Burcun Seni Geriyor		2026
+Contra & Anıl Piyancı	Tavşan		2018
+Anıl Piyancı & Kaan Boşnak	Nedeni Göremem		2024
+Anıl Piyancı & Kaan Boşnak	Taksim		2022
+Anıl Piyancı	İnan İsterdim		2013
+Anıl Piyancı	SON Bİ GECE DAHA		2019
+Anıl Piyancı	Gece Modu		2022
+Anıl Piyancı & Kaan Boşnak	Kalmadı Tadım Tuzum		2023
+Patron	Güzel Kızlar Patron Dinler		2018
+Bedo & Patron	Ölebilirim		2020
+Patron	Benden Bu Kadar		2019
+Patron	Manzaralar		2019
+Patron & FRO	Yandırdın Beni		2021
+SLOWFLOWS' & Patron	Benden Bu Kadar (Akustik)		2023
+Patron	Risk		2024
+Patron	Bıktım Yalanlarından		2020
+Patron	EV		2022
+Patron	OKYANUS		2022
+Patron	Sevdik de noldu sanki		2020
+Cem Solo & Patron	Dönmem Artık		2021
+Patron	Aşık		2018
+Patron	HANÇER		2023
+Emir Can İğrek & Patron	Darbe		2020
+Patron	Taviz Yok (feat. Ceg)		2018
+Patron	Acaba		2023
+Patron & FRO	Kırgın Adımlar		2019
+Deeperise, Patron & Yaprak Çamlıca	Unut Geçmişi		2020
+Aspova & Patron	Uçurum		2022
+Patron & SLOWFLOWS'	ACABA		2025
+Patron	Geceye mi küssem? (feat. Burak King)		2017
+Allame	Hayalin Yeri Yok		2012
+Allame	Allame Sendromu		2009
+Allame	Kısır Döngü		2017
+Allame & Joker	Galaktik		2024
+Allame	Yak Gemilerini (feat. 9Canlı, Eypio & Yener Cevik)		2017
+Allame	Fare Kapanı		2009
+Allame	Şehir (feat. Ados)		2017
+Allame	Teybim Çalar		2012
+Allame	Dayan		2016
+Allame	Bir Dakika		2014
+Allame	Manifesto (feat. Hayki)		2012
+Allame & Hidra	Bumerang		2023
+Allame	Sevilmiyor		2017
+Allame & Sagopa Kajmer	Bir Şansım Daha Olsa		2026
+Allame	Görev Gibi Yaşa		2024
+Allame & Defkhan	Girdap		2024
+Allame	Yan Yana		2019
+Allame	Yakına Gel (feat. Patron)		2017
+Allame	Bavul		2017
+Allame	Son Kurşun		2017
+Allame, Harim, Vesca, aspi & Zizzy	SİS VE GECE		2025
+Allame	Yoluna Devam Et		2012
+Kubilay Karça & Allame	Yarınım Yok		2020
+Allame	Yaz Baştan		2023
+Allame, aspi, Vesca, Harim, Joker & Zizzy	Lab Cypher		2024
+Allame	Toprak		2021
+Sansar Salvo	Bombalar Hedef Bulur		2009
+Sansar Salvo	Ağır Roman		2008
+Sansar Salvo	Dum Taka Dum		2013
+Sansar Salvo	Ne Kadar Umrumda ?		2013
+Sansar Salvo	Gözlerimin İçinde		2008
+Sansar Salvo	Ne		2013
+Sansar Salvo	Psikopat Yazar		2005
+Pit10 & Sansar Salvo	Kasımpatı		2012
+Diyar Pala & Sansar Salvo	Şerefsiz		2010
+Sansar Salvo	Koptu Kayış (feat. Kaan Boşnak)		2019
+Sansar Salvo	Sigara Yanınca		2012
+Sansar Salvo	Sorgu		2013
+Sansar Salvo	Yarın Ölümü Beklemek Yerine (feat. Şanışer)		2016
+Sansar Salvo	Kördüğüm		2021
+Sansar Salvo	Kararlı Kaygı		2022
+Sansar Salvo	Arkadaş		2022
+Sansar Salvo	Pelesenk		2022
+Sansar Salvo	Gecenin Bir Vakti		2008
+Anıl Piyancı & Sansar Salvo	Herkes Doğru		2014
+Sansar Salvo	Korkma (feat. Xir, Heja & Şebnem Keskin)		2015
+Ayben	Başkan		2017
+Ayben	Yol Ver		2017
+Ayben	Fenomen (feat. Ceza)		2017
+Ayben	Oha Dersin		2013
+Ayben	Benim O		2005
+Ayben	BEATCOIN		2024
+Ayben	Kimsin (Avlu Dizi Müziği)		2018
+Ayben	Seçin		2019
+Vio, Ayben & Kamufle	Sonunda		2020
+Ayben	Kork Bizden		2005
+Ayben	La La		2017
+Ayben	Raptiye Rap Rap		2005
+Ayben	Ne Var Ne Yok		2017
+Ayben	Oyun Parkı		2020
+Ayben	Dur Kaç		2017
+Ayben	Yeniden		2017
+Ayben	Umut Var		2017
+LEWO, Naci Berktaş & Ayben	Pisi Pisine		2019
+Ayben	Yalanlar		2017
+Ayben	Kime Göre		2017
+Yener Çevik	Hüznü Hecem		2016
+Yener Çevik	Yıkıla Yıkıla		2021
+Yener Çevik	Dikkat İnat		2016
+Yener Çevik	Parçanın Adı Yok		2016
+Yener Çevik	Bi Siyah Bi Beyaz		2023
+Yener Çevik	Hasta İşi (Ben Büdü Remix)		2017
+Yener Çevik	Gönlündekileri Gördüm		2016
+Yener Çevik	Tablo (feat. Eypio & Hayki)		2016
+Yener Çevik	Med Cezir		2024
+Yener Çevik	Kumbarada Birikenler		2021
+Eypio & Yener Çevik	Bana Sor		2025
+Yener Çevik	Bugün Bu Halim		2017
+Yener Çevik	Öyle Kal (feat. Yıldız Tilbe) [feat. Yıldız Tilbe]		2023
+Yener Çevik	Duvar		2017
+Yener Çevik	Sarı Kız		2021
+Kerim Araz & Yener Çevik	Uçurumlar		2021
+Hopera & Yener Çevik	Seni Bana Yar Etmezler		2025
+Yener Çevik	Sora Sora		2018
+Yener Çevik	Etraf		2019
+Ali Kınık & Yener Çevik	Yalnız Değilsin		2022
+Yener Çevik	Gözümle Gördüm		2018
+Yener Çevik & Catwork	Falan Filan		2019
+Yener Çevik	Kadro (feat. Xir, Sansar Salvo & Defkhan)		2016
+Yener Çevik	Hatıra (feat. Nasihat)		2016
+Güllü & Yener Çevik	Farketmez Hesaplaşırız		2025
+Kamufle	Hayale Daldım (feat. Da Poet)		2015
+Kamufle	Bi Yolunu Bul		2015
+Kamufle	Beni Görmeden Ölme		2018
+Kamufle & Red	Sorunumuz Var		2017
+Kamufle & Lara Di Lara	Hissizleşmiş		2021
+Kamufle	Olumsuzluklar		2012
+Kamufle	All-Stars (feat. Allame, Pit10, Sahtiyan, Sansar Salvo & Patron)		2015
+Kamufle & Deniz Tekin	Fugithora		2020
+Çağrı Sinci & Kamufle	Fesupanallah		2021
+Kamufle & Elektro Hafiz	USANDIM		2022
+Kamufle & Lara Di Lara	Yapma Be Arkadaşım (feat. Barış Demirel)		2021
+Kamufle & Ahiyan	Gül Dikenleri		2020
+Kamufle	because of you		2026
+Da Poet	Kördüğüm (feat. Ceza)		2011
+Da Poet	Sonbahar		2011
+Da Poet	Taş Kağıt Makas		2011
+Da Poet	Halüsinasyon (feat. Saian)		2011
+Da Poet	Tersine Dünya (Instrumental)		2008
+Da Poet & İdil Meşe	Atılgan		2021
+Da Poet	Diz Çök (feat. Fuat)		2011
+Da Poet	Hip Hop (feat. Hayki)		2011
+M Lisa & Da Poet	İNTİKAM YOK - REDBULL 64 BARS		2025
+Da Poet	Kendini Bul		2021
+Da Poet	Dipsomani		2021
+Ozbi & Da Poet	Yes Rakı,No Pain (64Bars)		2022
+Da Poet & Baneva	İyi Ki Yoksun		2021
+Critical & Da Poet	64BARS		2022
+Da Poet	Organistza (feat. Hayki, Patron & Karaçalı)		2011
+Da Poet & Şam	Taze Kan		2021
+Da Poet & Barış Demirel	Uyku Yok		2020
+Da Poet & Kayra	Son Kez Gibi		2021
+Da Poet & Kayra	VOLTRAN (feat. Ceza)		2024
+Da Poet & Kayra	Kalamam Aranızda (feat. Deniz Tekin)		2024
+Da Poet & Savai	Meteor		2021
+Da Poet	Dur Dünya		2011
+Da Poet & Kayra	OLMUYORSA OLMASIN		2024
+Da Poet	Avcumda Ritmin Kalp Atışları		2011
+Killa Hakan	Tek Şans		2018
+Killa Hakan, Massaka & Summer Cem	Fight Kulüp 2 (feat. Contra, Khontkar, Anıl Piyancı & Ceza)		2020
+Ceza & Killa Hakan	Basit Bir Suç		2008
+Ceza & Killa Hakan	Bomba Plak		2008
+Killa Hakan	Saniye Saniye		2020
+Eko Fresh, Killa Hakan & Uzi	Turkish Nightmare (feat. Motive & Hayki)		2020
+Killa Hakan	Hey Sen		2012
+Killa Hakan	Ghetto Insider		2013
+Ceza & Killa Hakan	Üzerimizde Gözler		2008
+Ceza & Killa Hakan	Rap Özgürlük Demek		2008
+Ceza & Killa Hakan	Geceden Korkma Gel (feat. Ayaz Kaplı)		2008
+Killa Hakan	Gardenya		2018
+Ceza & Killa Hakan	Ayrı Gayrı Yok		2008
+Ceza & Killa Hakan	Bu Bizim Yolumuz (feat. Murselin Yiyin)		2008
+Killa Hakan	Fantastik Dört (feat. Summer Cem & Eko Fresh)		2013
+Killa Hakan	Hardcore Rap		2012
+Ceza & Killa Hakan	Kapı Çalıyor Kim O		2008
+FUAT	Üç Dil		2005
+FUAT	Okyanuslar		2005
+FUAT	İllegal-Rap Emrimde 2 (feat. Ceza & Ayben)		2005
+Toygar Işıklı & FUAT	Çukurdan Kaçış Yok (Çukur Orijinal Dizi Müziği)		2020
+Fuat Saka	Şimdi Ne Yapar		2004
+FUAT	Hep Aynı		2009
+FUAT	Metastaz 2: Cendere		2020
+FUAT	Geri Geldi		2005
+Fuat Saka	Rapatma 4 (Livera)		2004
+Fuat Saka	Rap-Atma		1997
+FUAT	İllegal (feat. Ceza & Ayben)		2005
+FUAT & Eypio	KAPI (Cuts by DJ Boba Fettt)		2021
+Nefret	İstanbul		2000
+Nefret	Anahtar		2001
+Nefret	Pop Pop (feat. Bektaş & Kader K)		2001
+Nefret	Hip Hop Bir Bomba		2000
+Contra	ıslak kum		2020
+Contra	Tehlikeli		2015
+Contra	Efsane		2015
+Contra	Çivi		2015
+Contra	afaki		2022
+Contra	pusu		2021
+Contra & Timu322	GİTTİN GİDELİ		2021
+Tanerman & Contra	Bi' Şarkı		2021
+Contra	Ötesi		2013
+Contra	Bir Yana		2019
+Contra	Mahkum		2016
+Contra	KOVA		2026
+Contra, Reckol & Yung Ouzo	TIRMANDIM		2025
+Contra & Anıl Piyancı	YERDEN YÜKSEK 2		2018
+Emir Can İğrek & Contra	Kor x Islak Kum - Mashup		2024
+Contra & efey4hya	FERİŞTAH		2026
+Contra	Benden Bil		2022
+Contra	Böyle (feat. Mister Geng & Orking)		2016
+Contra & Konuya Fransız	Buz Sarkıtı		2021
+Contra	Zyon		2015
+Contra	Tiryaki		2024
+Aspova	Eskimiş Senelere		2019
+Aspova & Hidra	İSTEMEM		2022
+Aspova	Sağanak		2020
+Aspova & Şehinşah	Kader		2021
+Aspova & Şanışer	Suç		2020
+Aspova	Sen ve Ben		2020
+Aspova & Tanerman	Nude		2019
+Aspova	En Güzel Şarkım		2024
+Aspova	SERT		2023
+Aspova	Siyah		2022
+Aspova & Worry	Nasıl İnandım Sözüne		2024
+Tuğkan & Aspova	Ecel		2021
+Aspova	Dur Dedik		2020
+Aspova, Mert Kurt & Erhan Boraer	Eskimiş Senelere (Remix)		2020
+Aspova	Masal Kanunu		2023
+Aspova	İstanbul		2021
+Aspova & Worry	Düş		2019
+Aspova	Öpünce Geçer mi		2016
+Aspova & Bahadır Tatlıöz	Affet Beni		2024
+Aspova	Tek Başıma		2020
+Aspova & Zen-G	allahımakılsağlığımıkoru		2023
+Heijan & Muti	Hokkabazlar		2020
+Heijan	Bi Bedeli Var		2021
+Heijan	Hasbihal		2026
+Heijan	Değilim Bi Âşık		2022
+Heijan & Muti	Düşme		2018
+Heijan & Muti	Yansın Geceler		2017
+Heijan & Muti	Davay Davay		2017
+Canbay & Wolker, Heijan & Muti	Bertaraf		2023
+Heijan	Maşallah		2026
+Heijan & Muti	Yokuş		2019
+Heijan	Bahtımın Karası		2021
+Heijan & Muti	Suç Ortağı		2019
+Heijan	Istanbul		2021
+Heijan	Dünya		2026
+Heijan & Azer Bülbül	Bu Gece Karakolluk Olabilirim		2024
+Heijan & Muti	Aynen		2023
+Heijan, Muti & Canbay & Wolker	Sen Affetme		2023
+Heijan & Muti	Deli Ediyor		2018
+Heijan & Muti	Bigman		2023
+Heijan, Muti & Critical	Şart		2023
+Heijan	Sorunlarım Var		2021
+Ogi & Heijan	Cinnet		2022
+Heijan & Muti	Suç		2024
+Muti & Heijan	Enayi		2020
+Heijan	Elçi		2021
+Heijan & Muti	Keke		2020
+Heijan, Muti & Murda	Ay Le Le		2023
+Heijan	Yaranamadım		2021
+Muti & Heijan	Cesaret		2023
+Şanışer	Beni Bana Yar Etmezler		2018
+Şanışer	Geçemiyorum Serden		2015
+Şanışer	Senden & Benden (feat. Emar Hoca)		2015
+Şanışer	Kara Geceler (feat. Sezen Aksu)		2019
+Şanışer	Benim Aklımdan Zorum Var		2012
+Şanışer	Kaç Kere Öldün?		2018
+Şanışer	9 Yıl Öncesine Mektup		2015
+Şanışer	Yalan (feat. Sokrat ST)		2017
+Şanışer	Yazamam Ecele		2016
+Şanışer	Tarihimin Günahları		2018
+Şanışer	Bütün Gülleri Çalmışlar		2021
+Çağan Şengül & Şanışer	Yolu Yok		2022
+Şanışer	Dünyadan Alacaklarım Var		2018
+Şanışer & Sehabe	Aşılmaz Yollar		2016
+Şanışer	Artık Anlamıyorum		2015
+Şanışer	Yanlışlara Gidiyorum		2018
+Şanışer	Beni Kır		2021
+Şanışer	Kuytu Köşelerde		2021
+Şanışer	Belki Bir Gün Barışırız		2021
+Şanışer	Adaletin Yok		2018
+Ados & Şanışer	En Derine		2019
+Şanışer	Hüsran Hepsi		2024
+Şanışer	Ölüm Aklımı Çelmek Üzere (feat. Sezgin Alkan)		2018
+Şanışer	Kaybederim Azabı		2016
+Şanışer	Cinayet		2016
+Şehinşah	Yak Yak Yak		2018
+Şehinşah	Dünya'dan Atlas'a		2018
+Şehinşah	Pirana		2019
+Şehinşah	Darilmak Yok		2020
+Kubilay Karça & Şehinşah	Kıskanç		2019
+Hidra, Şehinşah & FerzanBeats	Nabız		2017
+Şehinşah	Yaz Yağmurum (feat. Onur Betin)		2019
+Şehinşah	M.I.Ş		2021
+Şehinşah	Samanyolu		2021
+Şehinşah & Cotard	Galvanize		2023
+Vio & Şehinşah	Kabul Olmaz Bizim Gibiler		2020
+Sagopa Kajmer & Şehinşah	Bla Bla Bla Bla		2022
+Şehinşah, Cotard & Emrah Turken	KYOTO/GEISHA		2023
+Şehinşah	Talep - Arz		2019
+Şehinşah	Aslan Marşı		2019
+Orkundk & Şehinşah	Merhamet Yok		2021
+Arda Gezer, Şehinşah & Caner Özgür	Lanet		2021
+Şehinşah, Cotard & ERU	Fırtına		2023
+Şehinşah	Meclis-i Ala		2024
+Şehinşah & Cem Adrian	Dön Dünya		2020
+Şehinşah	Prenses		2023
+Şehinşah	Ellerinde		2022
+Tankurt Manas	Mola		2016
+Tankurt Manas	Yok		2015
+Tankurt Manas	Hepsini Vur		2021
+Tankurt Manas	Çene Kemiklerimi Kırdım		2013
+Tankurt Manas	Say		2016
+Tankurt Manas	Flex Man		2016
+Tankurt Manas	Uçuyorum		2020
+Tankurt Manas	Art Arda		2018
+Tankurt Manas	Beni 1 Salın		2019
+Tankurt Manas	Keyfim Yok		2018
+Grogi, Ceg & Tankurt Manas	Bu Gece Bizim		2020
+Tankurt Manas	Turluyorum (feat. Ayşe Akın)		2018
+Tankurt Manas	Sıkıntı Yok		2017
+Sefo, Tankurt Manas & Furkan Karakılıç	Beni Sevmon Mu?		2021
+Tankurt Manas	Yükseklere (feat. Baneva)		2018
+Tankurt Manas	Sakıncalı (feat. Ayben)		2018
+Tankurt Manas	Akıl Hastası (feat. Allame)		2016
+Tankurt Manas	Yeşil		2020
+Tankurt Manas	KGY		2019
+Tankurt Manas	Bu Benim Olayım (Tanerman Remix)		2018
+Tankurt Manas	Zehirle		2022
+Tankurt Manas	Bu Böyle		2017
+Tankurt Manas	Delil		2015
+Tankurt Manas	Yok 2 (feat. Burak Alkın)		2016
+Tankurt Manas	Dövüş		2018
+Tankurt Manas	Olmadığın Her Yer (feat. Eda Gören)		2018
+Tankurt Manas	Yol		2018
+Hidra	Ölüme İnat		2013
+Hidra	Çünkü Bu		2012
+Hidra	Reptilian		2021
+Hidra	Hedefte		2013
+Hidra	Doğu Türkistan		2013
+Hidra & Allame	Memleket		2025
+Hidra & FerzanBeats	Uzağa Gidelim		2017
+Hidra	Kabus (feat. Saki)		2018
+Hidra & FerzanBeats	Var		2017
+Hidra	Bilmeceler		2023
+Hidra & FerzanBeats	Kırmızı Kalp		2017
+Hidra & FerzanBeats	Kudurtan Şehir		2017
+Hidra	Kadınlar		2013
+Hidra & FerzanBeats	Cehennem		2017
+Hidra & FerzanBeats	Bye Bye		2017
+SALİ, Hidra & Arda Gezer	Unuturum		2023
+Bağzıları & Hidra	Akış		2022
+Hidra & Aspova	İSTEMEM		2022
+Hidra	2011		2026
+FerzanBeats & Hidra	Avuntu Amortiler (feat. Şanışer)		2023
+Hidra	İyi ya da Kötü		2013
+Hidra	İlk Adım		2014
+Hidra	Korsan		2013
+Canbay & Wolker	Düşmez Kalkmaz		2024
+Canbay & Wolker	Fersah		2019
+Canbay & Wolker	Leylim Yar		2022
+Canbay & Wolker	Elbet Bir Gün		2018
+Canbay & Wolker & Aleyna Kalaycıoğlu	EPEY ZAMAN GEÇTİ		2025
+Canbay & Wolker	Ne İş Hayrola (Dönence)		2026
+Canbay & Wolker	Karanlık Dünyam		2023
+Canbay & Wolker	Yangınlar (feat. Sertan)		2020
+Canbay & Wolker	Nefsi Müdafaa		2018
+Canbay & Wolker	Dünya		2019
+Canbay & Wolker	Çubuklu		2022
+Canbay & Wolker	Dört Duvar (feat. Decrat)		2018
+Canbay & Wolker	Ters		2018
+Canbay & Wolker	Dayanamam		2019
+Canbay & Wolker	Çaki		2021
+Canbay & Wolker	RÜSVA		2025
+Canbay & Ogi	Yana Yana		2019
+Canbay & Wolker & Velet	Düştüm		2023
+Canbay & Wolker & Decrat	Of Aman		2023
+Canbay & Wolker	Bakkal		2023
+Canbay & Wolker, Burak Gassanov & Audaz	Abin Tanır		2023
+Joker	Kafamıza Göre		2018
+Joker	Müptela		2018
+Joker	Parola		2018
+Joker	Yaşamak Öldürür P2		2015
+Joker	Microphone Show (feat. Ayben)		2015
+Joker	Karıştır Kartları		2015
+Joker	Sürgün		2019
+Ados	Yıkılır		2020
+Ados	Ahmak (feat. Atiberk)		2016
+Ados	Gri		2014
+Ados	Efkarın Delisi (feat. Atiberk)		2016
+Ados	Yok Yolu		2021
+Ados	Sırrım		2014
+Ados & Çağan Şengül	Güneş		2022
+Ados & Çağan Şengül	Bir Daha		2023
+Ados	Göklerden		2021
+Ados	Kamber		2012
+Ados	An Be An		2018
+Ados	Delirirken		2016
+Ados	Gamlı		2022
+Ados	Kalender		2014
+Ados	Kan Kaybı (feat. Karaçalı)		2016
+Ados	Zamansız Ağrılar (feat. Da Poet & Kayra)		2016
+Ados	Mezarlıklar		2023
+Ados	Sabahtan Geceye		2016
+Ados	Siyaha Dal		2016
+Ados	Yoruldum		2014
+Şanışer & Ados	Kendim İçin		2021
+Ados	Gelme (feat. Allame)		2016
+Ados	Canavar		2022
+Ados	Çare Ados		2017
+Muti & Azer Bülbül	İlle De Sen		2023
+Muti	Anlatamam		2024
+Heijan & Muti	Parra		2017
+Heijan & Muti	Alev Alev		2022
+Muti & Heijan	Sabaha Kadar		2020
+Muti	Bu Neyin Kafası?		2020
+Muti	Bad Boy		2019
+MUTI	Дал Дал Ушёл		2020
+FMG, Muti & UZI	Babacan		2026
+Muti	Puma		2020
+Muti	Godoman		2020
+MUTI	дал дал пришёл		2020
+Muti & Pango	TER		2023
+Kolera	Sen Nasıl Bir İnsansın		2008
+Kolera	Aşık ile Maşuk		2008
+Kolera	Kolaysa Anlat		2007
+Kolera	Zor İş		2008
+Kolera	Pespaye		2008
+Kolera	Hırçınlar (feat. Sagopa Kajmer)		2016
+Kolera	Umudunu Kaybetme		2020
+Kolera	Varsa Yoksa		2008
+Kolera	Ezberimi Bozdurdun		2022
+Kolera	Şermin		2008
+Kolera	Aklımın Odaları		2005
+Kolera	Beni Bana Bırak		2019
+Kolera	Bir Dilek Hakkı		2008
+Kolera	İnziva		2008
+Kolera	Eyvah (feat. Şahsi)		2021
+Kolera	Cendere		2008
+Kolera	Bana Sorabilirsin		2019
+Kolera	Bir Sen		2022
+Kolera	Mavi		2023
+Karaçalı & Saian	Söz Ver		2009
+Karaçalı	Sesindeki Yalnızlık (feat. Cem Adrian & Melis Danişmend)		2016
+Karaçalı	Sesindeki Haziran (Mt Beyazkin Remake)		2019
+Karaçalı & Saian	Battle Royal		2009
+Karaçalı & Saian	Kutsal		2009
+Karaçalı & Saian	Kavga		2009
+Karaçalı & Saian	Safkan Afgan		2009
+Karaçalı	Sensizliği Tıbbi Bir Tanım Sanırdım		2007
+Karaçalı & Saian	Mayday		2009
+Karaçalı	Yabancıma Hey		2007
+Server Uraz	Buz Dağları		2024
+Server Uraz	Akbaba Ziyafeti		2017
+Server Uraz	Sürüyorum (feat. Fery)		2017
+MRF & Server Uraz	Ver Sona Sesi		2017
+Server Uraz	Koma		2018
+Server Uraz & Kanat	Yokuşlarında		2020
+Server Uraz	Alley Alley		2020
+Server Uraz	Cansu		2018
+Server Uraz & Anıl Piyancı	İçine At		2018
+Server Uraz	Hayal Bile Kuramam		2024
+Server Uraz	Olmaz		2017
+Server Uraz, Dehhan & Selim Muran	Sana Söz		2018
+Server Uraz	Asker (feat. Esin İRİS)		2024
+Server Uraz	Yine de Güzel		2024
+Server Uraz	Kime Ne (feat. Beta Berk Bayındır)		2017
+Server Uraz & Beta Berk Bayındır	Sobe		2018
+Server Uraz	Darmaduman		2024
+Server Uraz	Kırmızı Işık		2018
+Server Uraz	Yan Yana (feat. Sansar Salvo)		2017
+Server Uraz	Mokoko		2018
+Server Uraz	Bana Masal Anlatma		2018
+Server Uraz	Ben Senin		2017
+Server Uraz	Teo		2018
+Server Uraz	Biri Bizi Gözetliyor		2017
+Server Uraz	Bilinmez		2018
+Server Uraz	Yok Olmadan (feat. Deniz Gürzumar)		2017
+Server Uraz	Paradoks		2018
+Batuflex	Hermès 2.0		2026
+Batuflex, ERAY067 & MANSUR	BURADA SOKAKLAR		2025
+Batuflex	Dalga		2021
+Batuflex & Era7capone	2 KUZUKULAGI		2026
+Era7capone & Batuflex	VeRseNe GaSSoLiNaa		2026
+Batuflex	BOYNA GALAVA		2025
+Batuflex	Otel Odası		2022
+Batuflex	TANK TANK		2026
+Batuflex	DUNYA		2024
+Batuflex	Dönüyo Başım		2025
+Batuflex	İllegale		2022
+UZI & Batuflex	BYE BYE		2025
+Narco, Batuflex & Organize	Beni Yargılama		2024
+Batuflex	Hermès		2026
+Batuflex & Lvbel C5	Paranoya		2022
+Batuflex	Sahibinden		2023
+Batuflex	BATUFLEX		2025
+Batuflex	Randuman / Ring Ring Ring		2023
+Batuflex	Fendi Gucci Prada		2022
+Batuflex	Rakamlar		2022
+Batuflex	Yükselmemi İstemezler		2019
+Batuflex	HUHU!		2025
+Etki & Batuflex	Senin Yüzünden		2024
+Batuflex	Marka		2022
+Sir Speedy, Batuflex, Era7capone & Narco	Cistak		2024
+Batuflex	Kavga		2022
+Batuflex	İntro		2022
+Batuflex	SLM (feat. DJEZJA)		2025

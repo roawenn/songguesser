@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #0a0b0d; }
+  body { font-family: "IBM Plex Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #8ecfe8; text-decoration: none; }
+  a:hover { color: #cdeaf6; }
+  input { font: inherit; }
+  button { font: inherit; cursor: pointer; }
+  ::selection { background: rgba(125,211,252,0.25); }
+  @keyframes nk-spin { to { transform: rotate(360deg); } }
+  @keyframes nk-bar { 0%,100% { transform: scaleY(0.18); } 50% { transform: scaleY(1); } }
+  @keyframes nk-shake { 10%,90% { transform: translateX(-2px); } 30%,70% { transform: translateX(4px); } 50% { transform: translateX(-4px); } }
+  @keyframes nk-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes nk-flick { 0%,100% { opacity: .95; } 42% { opacity: .82; } 46% { opacity: 1; } }
+</style>
+</helmet>
+
+<div style="--acc: {{ acc }}; --accSoft: {{ accSoft }}; position: relative; min-height: 100vh; overflow: hidden; background:
+  radial-gradient(120% 80% at 50% -10%, #14171b 0%, #0a0b0d 55%, #07080a 100%);
+  color: #e6e8ea;">
+
+  <div ref="{{ spotRef }}" style="position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(26vmax 26vmax at var(--mx, 50%) var(--my, 24%), var(--accSoft, rgba(125,211,252,0.17)) 0%, rgba(125,211,252,0.05) 36%, rgba(0,0,0,0) 66%),
+      radial-gradient(70vmax 40vmax at var(--mx, 50%) -8%, rgba(255,255,255,0.035) 0%, rgba(0,0,0,0) 70%);
+    animation: nk-flick 7s ease-in-out infinite;"></div>
+
+  <div style="position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: {{ scanOpacity }};
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 3px);"></div>
+
+  <div style="position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: .045; mix-blend-mode: overlay; background-size: 3px 3px, 4px 4px, 7px 7px;
+    background-image: repeating-conic-gradient(rgba(255,255,255,0.5) 0% 25%, rgba(0,0,0,0.5) 0% 50%), repeating-conic-gradient(rgba(0,0,0,0.45) 0% 25%, rgba(255,255,255,0.45) 0% 50%), repeating-linear-gradient(58deg, rgba(255,255,255,0.4) 0 1px, rgba(0,0,0,0) 1px 4px);"></div>
+
+  <div style="position: relative; z-index: 2; display: flex; flex-direction: column; min-height: 100vh;">
+
+    <header style="display: flex; align-items: center; gap: 16px; padding: 18px 20px 12px; max-width: 1180px; width: 100%; margin: 0 auto;">
+      <button onClick="{{ toggleMenu }}" aria-label="Menü" style="display: grid; gap: 4px; width: 38px; height: 38px; place-content: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; background: rgba(255,255,255,0.03); color: #cfd3d6;" style-hover="border-color: rgba(255,255,255,0.24); background: rgba(255,255,255,0.06);">
+        <span style="display: block; width: 15px; height: 1.5px; background: currentColor;"></span>
+        <span style="display: block; width: 15px; height: 1.5px; background: currentColor;"></span>
+        <span style="display: block; width: 9px; height: 1.5px; background: currentColor;"></span>
+      </button>
+
+      <div style="flex: 1; text-align: center;">
+        <div style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 30px; line-height: 1; letter-spacing: .01em; color: #f2f4f5; text-shadow: 0 0 28px var(--accSoft, rgba(125,211,252,0.13));">nakarat</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase; color: #676d72; margin-top: 5px;">şarkı tahmin oyunu</div>
+      </div>
+
+      <div style="width: 38px; flex: none;"></div>
+    </header>
+
+    <div style="max-width: 1180px; width: 100%; margin: 0 auto; padding: 4px 20px 0; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <nav style="flex: 1; min-width: 220px; overflow-x: auto; scrollbar-width: none;">
+        <div style="display: flex; gap: 8px; padding: 8px 0 14px; min-width: max-content;">
+          <sc-for list="{{ cats }}" as="c" hint-placeholder-count="8">
+            <button onClick="{{ c.pick }}" style="white-space: nowrap; padding: 8px 15px; border: 1px solid {{ c.bd }}; border-radius: 4px; background: {{ c.bg }}; color: {{ c.fg }}; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: .04em; box-shadow: {{ c.glow }};">{{ c.label }}</button>
+          </sc-for>
+        </div>
+      </nav>
+      <div style="flex: none; display: flex; align-items: center; gap: 10px; padding-bottom: 6px; margin-left: auto;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .22em; text-transform: uppercase; color: #5c6267;">seviye</span>
+        <div style="display: flex; gap: 2px; padding: 3px; border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; background: rgba(255,255,255,0.02);">
+          <sc-for list="{{ diffs }}" as="d" hint-placeholder-count="3">
+            <button onClick="{{ d.pick }}" style="padding: 7px 12px; border: 0; border-radius: 999px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; background: {{ d.bg }}; color: {{ d.fg }};">{{ d.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <main style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 26px; padding: 18px 20px 60px; width: 100%; max-width: 640px; margin: 0 auto;">
+
+      <div ref="{{ shakeRef }}" style="position: relative; width: 100%; max-width: 440px; aspect-ratio: 10 / 6.2; border-radius: 8px;
+        background: linear-gradient(163deg, #2c3137 0%, #1e2227 34%, #14171b 72%, #0f1216 100%);
+        box-shadow: 0 46px 96px -42px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.09), inset 0 -2px 4px rgba(0,0,0,0.6), 0 0 90px -26px var(--accSoft, rgba(125,211,252,0.17));">
+
+        <div style="position: absolute; top: 8px; left: 8px; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3d4247, #15181c); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05);"></div>
+        <div style="position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3d4247, #15181c); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05);"></div>
+        <div style="position: absolute; bottom: 8px; left: 8px; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3d4247, #15181c); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05);"></div>
+        <div style="position: absolute; bottom: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3d4247, #15181c); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05);"></div>
+
+        <div style="position: absolute; left: 5.5%; right: 5.5%; top: 7%; height: 51%; border-radius: 3px; overflow: hidden;
+          background: linear-gradient(168deg, #f4f0e5 0%, #ece6d8 52%, #ddd6c4 100%);
+          box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3), inset 0 -8px 16px rgba(126,106,74,0.16), 0 1px 0 rgba(255,255,255,0.06);">
+
+          <div style="position: absolute; inset: 0; opacity: .55; background:
+            radial-gradient(52% 60% at 4% 4%, rgba(150,128,92,0.5), rgba(0,0,0,0) 72%),
+            radial-gradient(46% 54% at 97% 96%, rgba(140,118,86,0.45), rgba(0,0,0,0) 70%),
+            linear-gradient(97deg, rgba(0,0,0,0) 78%, rgba(120,100,70,0.22) 100%);"></div>
+
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 38%; display: flex; align-items: center; justify-content: space-between; padding: 0 13px; background: var(--acc, #7dd3fc); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.22);">
+            <span style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 17px; color: rgba(12,14,16,0.82);">nakarat</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: rgba(12,14,16,0.6);">side a</span>
+          </div>
+
+          <div style="position: absolute; top: 38%; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 0 13px;">
+            <div style="display: flex; align-items: baseline; gap: 9px; border-bottom: 1px solid rgba(60,50,35,0.28); padding-bottom: 5px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(70,58,40,0.55);">seçki</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: rgba(34,28,20,0.86);">{{ catLabel }}</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 9px; border-bottom: 1px solid rgba(60,50,35,0.22); padding-bottom: 5px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(70,58,40,0.55);">kayıt</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: rgba(34,28,20,0.6); letter-spacing: .12em;">{{ tapeCode }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="position: absolute; left: 11%; right: 11%; top: 62%; height: 24%; border-radius: 4px; overflow: hidden;
+          background: linear-gradient(#0b0e11, #0e1215);
+          box-shadow: inset 0 0 0 1px rgba(0,0,0,0.75), inset 0 3px 7px rgba(0,0,0,0.75), 0 1px 0 rgba(255,255,255,0.05);">
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 6%;">
+            <div style="position: relative; height: 82%; aspect-ratio: 1; flex: none;">
+              <div style="position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0 46%, #2b2f35 46% 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.55), inset 0 2px 5px rgba(0,0,0,0.5);"></div>
+              <div ref="{{ reelA }}" style="position: absolute; inset: 30%; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.45), inset 0 0 4px rgba(90,75,50,0.5); overflow: hidden;">
+                <div style="position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, #efe9da 0deg 14deg, #cdc6b5 14deg 28deg, #efe9da 28deg 42deg, #cdc6b5 42deg 56deg, #efe9da 56deg 70deg, #cdc6b5 70deg 84deg, #efe9da 84deg 98deg, #cdc6b5 98deg 112deg, #efe9da 112deg 126deg, #cdc6b5 126deg 140deg, #efe9da 140deg 154deg, #cdc6b5 154deg 168deg, #efe9da 168deg 182deg, #cdc6b5 182deg 196deg, #efe9da 196deg 210deg, #cdc6b5 210deg 224deg, #efe9da 224deg 238deg, #cdc6b5 238deg 252deg, #efe9da 252deg 266deg, #cdc6b5 266deg 280deg, #efe9da 280deg 294deg, #cdc6b5 294deg 308deg, #efe9da 308deg 322deg, #cdc6b5 322deg 336deg, #efe9da 336deg 350deg, #cdc6b5 350deg 360deg);"></div>
+                <div style="position: absolute; inset: 26%; border-radius: 50%; background: radial-gradient(circle at 42% 36%, #1b1e22, #0d1012); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6);"></div>
+              </div>
+            </div>
+            <div style="flex: 1; align-self: stretch; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding: 0 8px 16%; opacity: {{ waveOpacity }};">
+              <sc-for list="{{ bars }}" as="b" hint-placeholder-count="18">
+                <div style="width: 2px; height: 62%; border-radius: 1px; transform-origin: bottom; background: var(--acc, #7dd3fc); opacity: .55; animation: nk-bar {{ b.dur }} ease-in-out infinite; animation-delay: {{ b.delay }}; animation-play-state: {{ wavePlay }};"></div>
+              </sc-for>
+            </div>
+            <div style="position: relative; height: 82%; aspect-ratio: 1; flex: none;">
+              <div style="position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0 62%, #2b2f35 62% 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.55), inset 0 2px 5px rgba(0,0,0,0.5);"></div>
+              <div ref="{{ reelB }}" style="position: absolute; inset: 30%; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.45), inset 0 0 4px rgba(90,75,50,0.5); overflow: hidden;">
+                <div style="position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 11deg, #efe9da 0deg 14deg, #cdc6b5 14deg 28deg, #efe9da 28deg 42deg, #cdc6b5 42deg 56deg, #efe9da 56deg 70deg, #cdc6b5 70deg 84deg, #efe9da 84deg 98deg, #cdc6b5 98deg 112deg, #efe9da 112deg 126deg, #cdc6b5 126deg 140deg, #efe9da 140deg 154deg, #cdc6b5 154deg 168deg, #efe9da 168deg 182deg, #cdc6b5 182deg 196deg, #efe9da 196deg 210deg, #cdc6b5 210deg 224deg, #efe9da 224deg 238deg, #cdc6b5 238deg 252deg, #efe9da 252deg 266deg, #cdc6b5 266deg 280deg, #efe9da 280deg 294deg, #cdc6b5 294deg 308deg, #efe9da 308deg 322deg, #cdc6b5 322deg 336deg, #efe9da 336deg 350deg, #cdc6b5 350deg 360deg);"></div>
+                <div style="position: absolute; inset: 26%; border-radius: 50%; background: radial-gradient(circle at 42% 36%, #1b1e22, #0d1012); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6);"></div>
+              </div>
+            </div>
+          </div>
+          <div style="position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: #1a1d21; opacity: .9;"></div>
+        </div>
+
+        <div style="position: absolute; left: 0; right: 0; bottom: 4.5%; display: flex; justify-content: center; gap: 13%;">
+          <div style="width: 7%; height: 6px; border-radius: 3px; background: #0c0f12; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);"></div>
+          <div style="width: 11%; height: 6px; border-radius: 3px; background: #0c0f12; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);"></div>
+          <div style="width: 7%; height: 6px; border-radius: 3px; background: #0c0f12; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);"></div>
+        </div>
+
+        <div style="position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
+          background: linear-gradient(112deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.035) 100%);
+          box-shadow: inset 0 0 42px rgba(0,0,0,0.45);"></div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; width: 100%; max-width: 430px;">
+        <div style="width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.04);"></div>
+        <div style="flex: 1; display: flex; gap: 4px;">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
+            <div style="flex: 1; height: 9px; border-radius: 2px; border: 1px solid {{ s.bd }}; background: {{ s.bg }}; position: relative; overflow: hidden;">
+              <div style="position: absolute; inset: 0; width: {{ s.fill }}; background: var(--acc, #7dd3fc); opacity: .85;"></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.04);"></div>
+      </div>
+
+      <sc-if value="{{ playingPhase }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 18px;">
+            <button onClick="{{ play }}" aria-label="Çal" style="position: relative; width: 78px; height: 78px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.14); background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.12), rgba(255,255,255,0.02) 60%), #15181c; box-shadow: 0 0 0 8px rgba(255,255,255,0.015), 0 18px 40px -22px var(--acc, #7dd3fc);" style-hover="border-color: var(--acc, #7dd3fc);">
+              <span style="display: block; width: 0; height: 0; margin: 0 auto; border-left: 17px solid var(--acc, #7dd3fc); border-top: 11px solid transparent; border-bottom: 11px solid transparent; transform: translateX(3px);"></span>
+            </button>
+            <div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; color: var(--acc, #7dd3fc); letter-spacing: .02em;">{{ clock }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6a7075; margin-top: 4px;">{{ attemptLabel }}</div>
+            </div>
+          </div>
+
+          <sc-if value="{{ isChoice }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 9px; width: 100%;">
+              <sc-for list="{{ options }}" as="o" hint-placeholder-count="4">
+                <button onClick="{{ o.pick }}" style="text-align: left; padding: 13px 15px; border: 1px solid rgba(255,255,255,0.09); border-radius: 5px; background: rgba(255,255,255,0.025); color: #dfe2e4;" style-hover="border-color: var(--acc, #7dd3fc); background: rgba(255,255,255,0.05);">
+                  <div style="font-size: 14px; font-weight: 500;">{{ o.title }}</div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #757b80; margin-top: 3px;">{{ o.artist }}</div>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ true }}">
+            <div style="width: 100%; position: relative;">
+              <div style="display: flex; gap: 8px;">
+                <input value="{{ guess }}" onChange="{{ onType }}" onKeyDown="{{ onKey }}" placeholder="Şarkı adını yaz…" style="flex: 1; padding: 13px 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; background: rgba(255,255,255,0.03); color: #e6e8ea; outline: none;" style-focus="border-color: var(--acc, #7dd3fc);" />
+                <button onClick="{{ submit }}" style="padding: 13px 20px; border: 1px solid var(--acc, #7dd3fc); border-radius: 5px; background: rgba(125,211,252,0.1); color: var(--acc, #7dd3fc); font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;" style-hover="background: rgba(125,211,252,0.18);">Tahmin</button>
+              </div>
+              <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; background: #13161a; box-shadow: 0 24px 50px -20px rgba(0,0,0,0.9); overflow: hidden; z-index: 5;">
+                  <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
+                    <button onClick="{{ s.pick }}" style="display: block; width: 100%; text-align: left; padding: 10px 14px; border: 0; border-bottom: 1px solid rgba(255,255,255,0.05); background: transparent; color: #d7dadd; font-size: 13.5px;" style-hover="background: rgba(255,255,255,0.05);">{{ s.text }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <div style="display: flex; align-items: center; gap: 18px;">
+            <button onClick="{{ skip }}" style="display: inline-flex; align-items: center; gap: 9px; padding: 12px 20px; border: 1px solid rgba(255,255,255,0.18); border-radius: 5px; background: rgba(255,255,255,0.04); color: #dfe2e4; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;" style-hover="border-color: var(--acc, #7dd3fc); color: var(--acc, #7dd3fc); background: rgba(255,255,255,0.07);">Geç <span style="font-size: 14px;">→</span></button>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4e5459;">{{ nextHint }}</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ overPhase }}" hint-placeholder-val="{{ false }}">
+        <div style="width: 100%; animation: nk-rise .45s ease both; display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; gap: 16px; align-items: center; padding: 16px; border: 1px solid rgba(255,255,255,0.09); border-radius: 8px; background: rgba(255,255,255,0.025);">
+            <div style="width: 84px; height: 84px; flex: none; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: grid; place-content: center; text-align: center; background: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 6px, rgba(255,255,255,0.015) 6px 12px);">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: .12em; color: #6d7378; line-height: 1.5;">albüm<br />kapağı</span>
+            </div>
+            <div style="min-width: 0;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: {{ resultColor }};">{{ resultLabel }}</div>
+              <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 27px; line-height: 1.15; margin-top: 7px; color: #f1f3f4;">{{ answerTitle }}</div>
+              <div style="font-size: 14px; color: #8c9297; margin-top: 3px;">{{ answerArtist }} · {{ answerYear }}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <sc-for list="{{ grid }}" as="g" hint-placeholder-count="5">
+              <div style="width: 22px; height: 22px; border-radius: 3px; border: 1px solid {{ g.bd }}; background: {{ g.bg }};"></div>
+            </sc-for>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6a7075; margin-left: 4px;">{{ gridNote }}</span>
+            <button onClick="{{ copyShare }}" style="margin-left: auto; padding: 9px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; background: transparent; color: #b9bec2; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;" style-hover="border-color: var(--acc, #7dd3fc); color: var(--acc, #7dd3fc);">{{ shareLabel }}</button>
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <button onClick="{{ next }}" style="padding: 14px 26px; border: 1px solid var(--acc, #7dd3fc); border-radius: 5px; background: var(--acc, #7dd3fc); color: #0a0c0e; font-weight: 600; font-size: 14px;" style-hover="filter: brightness(1.1);">Sıradaki şarkı</button>
+            <a href="{{ storeUrl }}" target="_blank" rel="noreferrer" style="padding: 14px 18px; border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;">Apple Music'te dinle</a>
+            <a href="{{ spotifyUrl }}" target="_blank" rel="noreferrer" style="padding: 14px 18px; border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;">Spotify'da ara</a>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+
+    <footer style="padding: 0 20px 30px; display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #5e6469;">
+      <span>Seçki: <span style="color: #9aa0a5;">{{ catLabel }}</span></span>
+      <span style="color: #34393d;">/</span>
+      <span>Seviye: <span style="color: #9aa0a5;">{{ diffLabel }}</span></span>
+      <span style="color: #34393d;">/</span>
+      <button onClick="{{ showHowMenu }}" style="border: 0; background: transparent; padding: 0; color: #5e6469; font: inherit; border-bottom: 1px solid rgba(255,255,255,0.14);" style-hover="color: #cfd3d6;">Nasıl oynanır</button>
+    </footer>
+  </div>
+
+  <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 20; background: rgba(6,7,9,0.72); backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: flex-start; padding: 18px;">
+      <div style="width: 100%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: #101316; box-shadow: 0 40px 90px -30px rgba(0,0,0,0.95); animation: nk-rise .3s ease both; overflow: hidden;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid rgba(255,255,255,0.07);">
+          <div style="display: flex; gap: 14px;">
+            <button onClick="{{ showHow }}" style="border: 0; background: transparent; padding: 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: {{ howColor }};">Nasıl oynanır</button>
+            <button onClick="{{ showSet }}" style="border: 0; background: transparent; padding: 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: {{ setColor }};">Ayarlar</button>
+          </div>
+          <button onClick="{{ closeSheet }}" aria-label="Kapat" style="border: 0; background: transparent; color: #7b8186; font-size: 18px; line-height: 1; padding: 0 2px;">×</button>
+        </div>
+
+        <sc-if value="{{ sheetHow }}" hint-placeholder-val="{{ true }}">
+          <div style="padding: 18px; display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; line-height: 1.65; color: #b6bbbf;">
+            <p style="margin: 0;">Nakarat sana bir şarkının en başından kısa bir parça çalar. İlk denemede yarım saniye duyarsın; her yanlış tahmin ya da geçişte süre uzar.</p>
+            <div style="display: flex; gap: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #8d9398;">
+              <span>0.5s</span><span>→</span><span>1s</span><span>→</span><span>2s</span><span>→</span><span>5s</span><span>→</span><span>10s</span>
+            </div>
+            <p style="margin: 0;">Kolay seviyede dört şık arasından seçersin, Normal ve Zor'da şarkı adını kendin yazarsın. Beş deneme hakkın var.</p>
+            <p style="margin: 0; color: #7b8186;">Kategori değiştirdiğinde şarkı havuzu ve arayüz rengi birlikte değişir.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetSet }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 18px; display: flex; flex-direction: column; gap: 20px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6d7378;">
+                <span>Ses</span><span>{{ volPct }}</span>
+              </div>
+              <div onClick="{{ setVol }}" ref="{{ volRef }}" style="margin-top: 11px; height: 26px; display: flex; align-items: center; cursor: pointer;">
+                <div style="position: relative; width: 100%; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.09);">
+                  <div style="position: absolute; left: 0; top: 0; bottom: 0; width: {{ volPct }}; background: var(--acc, #7dd3fc); border-radius: 2px;"></div>
+                  <div style="position: absolute; top: 50%; left: {{ volPct }}; width: 13px; height: 13px; margin-left: -6.5px; margin-top: -6.5px; border-radius: 50%; background: #f0f2f3; box-shadow: 0 0 0 4px rgba(125,211,252,0.16);"></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+              <div>
+                <div style="font-size: 13.5px; color: #d5d9dc;">Azaltılmış animasyon</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6d7378; margin-top: 3px;">Spot ve makara hareketini durdurur</div>
+              </div>
+              <button onClick="{{ toggleReduce }}" aria-label="Azaltılmış animasyon" style="flex: none; width: 44px; height: 24px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: {{ reduceBg }}; position: relative;">
+                <span style="position: absolute; top: 2px; left: {{ reduceKnob }}; width: 18px; height: 18px; border-radius: 50%; background: #f0f2f3; transition: left .18s ease;"></span>
+              </button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;followMouse&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sahne&quot;},&quot;scanlines&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sahne&quot;}}">
+const POOL = [
+  { t: "Kutlama", a: "Sezen Aksu", y: 1997, c: "Türkçe Pop" },
+  { t: "Şımarık", a: "Tarkan", y: 1997, c: "Türkçe Pop" },
+  { t: "Bu Aşk Fazla Sana", a: "Sertab Erener", y: 2003, c: "Türkçe Pop" },
+  { t: "Kuzu Kuzu", a: "Tarkan", y: 2001, c: "2000'ler" },
+  { t: "Oynayalım", a: "Hande Yener", y: 2004, c: "2000'ler" },
+  { t: "Sarışın", a: "Mustafa Sandal", y: 1998, c: "90'lar" },
+  { t: "Kalbim Ege'de Kaldı", a: "Nilüfer", y: 1990, c: "90'lar" },
+  { t: "Her Şeyi Yak", a: "Duman", y: 2002, c: "Türkçe Rock" },
+  { t: "Bu Sabah Yağmur Var İstanbul'da", a: "Mor ve Ötesi", y: 2004, c: "Türkçe Rock" },
+  { t: "Gel", a: "Şebnem Ferah", y: 1996, c: "Türkçe Rock" },
+  { t: "Tam Ortasında", a: "Şebnem Ferah", y: 2001, c: "Türkçe Rock" },
+  { t: "Anlamazdın", a: "Müslüm Gürses", y: 1996, c: "Arabesk" },
+  { t: "Nikah Masası", a: "Ferdi Tayfur", y: 1981, c: "Arabesk" },
+  { t: "Ben Insan Değil miyim", a: "Orhan Gencebay", y: 1972, c: "Arabesk" },
+  { t: "Holocaust", a: "Sagopa Kajmer", y: 2004, c: "Rap" },
+  { t: "Susamam", a: "Şanışer", y: 2019, c: "Rap" },
+  { t: "Geceler", a: "Ceza", y: 2004, c: "Rap" },
+  { t: "Tatlı Dillim", a: "Moğollar", y: 1971, c: "Anadolu Rock" },
+  { t: "Dertli Kaval", a: "Erkin Koray", y: 1974, c: "Anadolu Rock" },
+  { t: "Anma Arkadaş", a: "Cem Karaca", y: 1974, c: "Anadolu Rock" },
+  { t: "Namus Belası", a: "Barış Manço", y: 1979, c: "Anadolu Rock" }
+];
+
+const CATS = ["Karışık", "Türkçe Pop", "Türkçe Rock", "Arabesk", "90'lar", "2000'ler", "Rap", "Anadolu Rock"];
+const HUES = { "Karışık": 205, "Türkçe Pop": 330, "Türkçe Rock": 12, "Arabesk": 38, "90'lar": 265, "2000'ler": 175, "Rap": 80, "Anadolu Rock": 145 };
+const DIFFS = ["Kolay", "Normal", "Zor"];
+const STEPS = [0.5, 1, 2, 5, 10];
+
+function norm(s) {
+  return (s || "").toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü ]/gi, "").trim();
+}
+
+class Component extends DCLogic {
+  state = {
+    cat: "Karışık", diff: "Normal", song: POOL[0], options: [],
+    attempt: 0, status: "playing", playing: false, elapsed: 0,
+    guess: "", history: [], sheet: null, vol: 0.7, reduce: false, copied: false
+  };
+
+  componentDidMount() {
+    this.newSong();
+    this._t = { x: 50, y: 24 };
+    this._c = { x: 50, y: 24 };
+    this._mouse = (e) => {
+      if (!(this.props.followMouse ?? true)) return;
+      this._t.x = e.clientX / window.innerWidth * 100;
+      this._t.y = e.clientY / window.innerHeight * 100;
+    };
+    const follow = () => {
+      const el = this.refs && this.refs.spot;
+      if (el) {
+        const k = this.state.reduce ? 1 : 0.09;
+        this._c.x += (this._t.x - this._c.x) * k;
+        this._c.y += (this._t.y - this._c.y) * k;
+        el.style.setProperty("--mx", this._c.x.toFixed(2) + "%");
+        el.style.setProperty("--my", this._c.y.toFixed(2) + "%");
+      }
+      this._spotRaf = requestAnimationFrame(follow);
+    };
+    follow();
+    this._key = (e) => {
+      if (e.code === "Space" && e.target.tagName !== "INPUT") { e.preventDefault(); this.play(); }
+    };
+    window.addEventListener("pointermove", this._mouse);
+    window.addEventListener("keydown", this._key);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("pointermove", this._mouse);
+    window.removeEventListener("keydown", this._key);
+    cancelAnimationFrame(this._raf);
+    cancelAnimationFrame(this._spotRaf);
+  }
+
+  pool() {
+    return this.state.cat === "Karışık" ? POOL : POOL.filter(s => s.c === this.state.cat);
+  }
+
+  newSong(cat) {
+    const c = cat || this.state.cat;
+    const pool = c === "Karışık" ? POOL : POOL.filter(s => s.c === c);
+    const song = pool[Math.floor(Math.random() * pool.length)] || POOL[0];
+    const others = POOL.filter(s => s !== song).sort(() => Math.random() - 0.5).slice(0, 3);
+    const options = [song, ...others].sort(() => Math.random() - 0.5);
+    cancelAnimationFrame(this._raf);
+    this.setState({ cat: c, song, options, attempt: 0, status: "playing", playing: false, elapsed: 0, guess: "", history: [], copied: false });
+  }
+
+  dur() { return STEPS[Math.min(this.state.attempt, 4)]; }
+
+  play = () => {
+    if (this.state.playing || this.state.status !== "playing") return;
+    const dur = this.dur() * 1000;
+    const t0 = performance.now();
+    this.setState({ playing: true, elapsed: 0 });
+    const tick = () => {
+      const e = performance.now() - t0;
+      if (e >= dur) {
+        this.setState({ playing: false, elapsed: dur });
+        if (!this.state.reduce) this.spinStop();
+        return;
+      }
+      this.setState({ elapsed: e });
+      this._raf = requestAnimationFrame(tick);
+    };
+    this.spinStart();
+    this._raf = requestAnimationFrame(tick);
+  };
+
+  spinStart() {
+    if (this.state.reduce) return;
+    [this.refs.reelA, this.refs.reelB].forEach(el => {
+      if (el) el.style.animation = "nk-spin 2.6s linear infinite";
+    });
+  }
+  spinStop() {
+    [this.refs.reelA, this.refs.reelB].forEach(el => { if (el) el.style.animation = "none"; });
+  }
+
+  wrong() {
+    const el = this.refs.shake;
+    if (el && !this.state.reduce) {
+      el.style.animation = "none";
+      void el.offsetWidth;
+      el.style.animation = "nk-shake .4s ease";
+    }
+  }
+
+  advance(mark) {
+    const history = [...this.state.history, mark];
+    const attempt = this.state.attempt + 1;
+    cancelAnimationFrame(this._raf);
+    this.spinStop();
+    if (attempt >= 5) this.setState({ history, attempt: 4, status: "lost", playing: false, elapsed: 0, guess: "" });
+    else this.setState({ history, attempt, playing: false, elapsed: 0, guess: "" });
+    this.wrong();
+  }
+
+  tryGuess(title) {
+    if (this.state.status !== "playing") return;
+    if (norm(title) && norm(title) === norm(this.state.song.t)) {
+      cancelAnimationFrame(this._raf);
+      this.spinStop();
+      this.setState({ status: "won", playing: false, history: [...this.state.history, "ok"] });
+    } else this.advance("wrong");
+  }
+
+  renderVals() {
+    const s = this.state;
+    const hue = HUES[s.cat] ?? 205;
+    const acc = `oklch(0.81 0.12 ${hue})`;
+    const accSoft = `oklch(0.62 0.13 ${hue} / 0.17)`;
+    const over = s.status !== "playing";
+    const dur = this.dur();
+    const prog = s.playing ? Math.min(1, s.elapsed / (dur * 1000)) : (s.elapsed > 0 ? 1 : 0);
+
+    const bars = Array.from({ length: 18 }, (_, i) => ({
+      dur: (0.7 + (i % 5) * 0.16).toFixed(2) + "s",
+      delay: ((i % 7) * 0.09).toFixed(2) + "s"
+    }));
+
+    const q = norm(s.guess);
+    const sugg = (s.diff === "Normal" && q.length > 1)
+      ? this.pool().filter(x => norm(x.t).includes(q)).slice(0, 5)
+      : [];
+
+    return {
+      acc, accSoft,
+      scanOpacity: (this.props.scanlines ?? true) ? 0.5 : 0,
+      spotRef: (el) => { this.refs = this.refs || {}; this.refs.spot = el; },
+      shakeRef: (el) => { this.refs = this.refs || {}; this.refs.shake = el; },
+      reelA: (el) => { this.refs = this.refs || {}; this.refs.reelA = el; },
+      reelB: (el) => { this.refs = this.refs || {}; this.refs.reelB = el; },
+      volRef: (el) => { this.refs = this.refs || {}; this.refs.volEl = el; },
+
+      cats: CATS.map(c => ({
+        label: c,
+        pick: () => this.newSong(c),
+        bg: c === s.cat ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.015)",
+        fg: c === s.cat ? "#f0f2f3" : "#7b8186",
+        bd: c === s.cat ? acc : "rgba(255,255,255,0.08)",
+        glow: c === s.cat ? `0 0 22px -6px ${accSoft}` : "none"
+      })),
+      diffs: DIFFS.map(d => ({
+        label: d,
+        pick: () => this.setState({ diff: d }),
+        bg: d === s.diff ? "rgba(255,255,255,0.08)" : "transparent",
+        fg: d === s.diff ? "#f0f2f3" : "#71777c"
+      })),
+      catLabel: s.cat, diffLabel: s.diff,
+      tapeCode: "NK-" + String(POOL.indexOf(s.song) + 1).padStart(3, "0"),
+      showHowMenu: () => this.setState({ sheet: "how" }),
+
+      steps: STEPS.map((v, i) => ({
+        bd: i <= s.attempt ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.07)",
+        bg: i < s.attempt ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
+        fill: i < s.attempt ? "100%" : (i === s.attempt ? (prog * 100).toFixed(1) + "%" : "0%")
+      })),
+
+      bars,
+      wavePlay: s.playing ? "running" : "paused",
+      waveOpacity: s.playing ? 1 : 0.45,
+
+      playingPhase: !over,
+      overPhase: over,
+      play: this.play,
+      clock: (s.playing ? (s.elapsed / 1000).toFixed(1) : dur.toFixed(1)) + "s",
+      attemptLabel: `${s.attempt + 1}. deneme / 5`,
+      nextHint: s.attempt < 4 ? `sonraki: ${STEPS[s.attempt + 1]}s` : "son hak",
+
+      isChoice: s.diff === "Kolay",
+      isSearch: s.diff !== "Kolay",
+      options: s.options.map(o => ({ title: o.t, artist: o.a, pick: () => this.tryGuess(o.t) })),
+
+      guess: s.guess,
+      onType: (e) => this.setState({ guess: e.target.value }),
+      onKey: (e) => { if (e.key === "Enter") this.tryGuess(s.guess); },
+      submit: () => this.tryGuess(s.guess),
+      hasSuggestions: sugg.length > 0,
+      suggestions: sugg.map(x => ({ text: `${x.t} — ${x.a}`, pick: () => this.tryGuess(x.t) })),
+      skip: () => this.advance("skip"),
+
+      resultLabel: s.status === "won" ? "bildin" : "bilemedin",
+      resultColor: s.status === "won" ? acc : "#8a5f5f",
+      answerTitle: s.song.t, answerArtist: s.song.a, answerYear: String(s.song.y),
+      grid: Array.from({ length: 5 }, (_, i) => {
+        const h = s.history[i];
+        return {
+          bd: h ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)",
+          bg: h === "ok" ? acc : h === "wrong" ? "rgba(160,90,90,0.45)" : h === "skip" ? "rgba(255,255,255,0.1)" : "transparent"
+        };
+      }),
+      gridNote: s.status === "won" ? `${s.history.length}. denemede` : "hak doldu",
+      shareLabel: s.copied ? "kopyalandı" : "sonucu kopyala",
+      copyShare: () => {
+        const line = Array.from({ length: 5 }, (_, i) => {
+          const h = s.history[i];
+          return h === "ok" ? "🟩" : h === "wrong" ? "🟥" : h === "skip" ? "⬜" : "⬛";
+        }).join("");
+        const txt = `nakarat · ${s.cat}\n${line}\n${s.status === "won" ? s.history.length + "/5" : "X/5"}`;
+        if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+        this.setState({ copied: true });
+      },
+      next: () => this.newSong(),
+      storeUrl: `https://music.apple.com/tr/search?term=${encodeURIComponent(s.song.a + " " + s.song.t)}`,
+      spotifyUrl: `https://open.spotify.com/search/${encodeURIComponent(s.song.a + " " + s.song.t)}`,
+
+      toggleMenu: () => this.setState({ sheet: s.sheet ? null : "how" }),
+      sheetOpen: !!s.sheet,
+      sheetHow: s.sheet === "how",
+      sheetSet: s.sheet === "set",
+      showHow: () => this.setState({ sheet: "how" }),
+      showSet: () => this.setState({ sheet: "set" }),
+      closeSheet: () => this.setState({ sheet: null }),
+      howColor: s.sheet === "how" ? "#f0f2f3" : "#6d7378",
+      setColor: s.sheet === "set" ? "#f0f2f3" : "#6d7378",
+
+      volPct: Math.round(s.vol * 100) + "%",
+      setVol: (e) => {
+        const el = this.refs && this.refs.volEl;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        this.setState({ vol: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) });
+      },
+      toggleReduce: () => {
+        const r = !s.reduce;
+        if (r) this.spinStop();
+        this.setState({ reduce: r });
+      },
+      reduceBg: s.reduce ? acc : "rgba(255,255,255,0.06)",
+      reduceKnob: s.reduce ? "22px" : "2px"
+    };
+  }
+}
+
+</script>
+</body>
+</html>
