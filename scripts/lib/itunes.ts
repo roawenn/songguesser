@@ -86,11 +86,11 @@ export type PreviewCheck =
 export async function checkPreview(url: string): Promise<PreviewCheck> {
   const res = await fetchWithBackoff(
     url,
-    { headers: { Range: 'bytes=0-1', Origin: 'https://nakarat.app' } },
+    { headers: { Range: 'bytes=0-1', Origin: 'https://tahmin.net' } },
     // CDN şeridi: Search API kotasına dahil değil.
     { label: 'preview kontrol', attempts: 2, lane: 'cdn' },
   )
   if (res.status !== 200 && res.status !== 206) return { ok: false, status: res.status }
   const acao = res.headers.get('access-control-allow-origin')
-  return { ok: true, cors: acao === '*' || acao === 'https://nakarat.app' }
+  return { ok: true, cors: acao === '*' || acao === 'https://tahmin.net' }
 }

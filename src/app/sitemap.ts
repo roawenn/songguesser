@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://nakarat.app'
+  const base = 'https://tahmin.net'
   const now = new Date()
   return [
     { url: base, lastModified: now, changeFrequency: 'daily', priority: 1 },

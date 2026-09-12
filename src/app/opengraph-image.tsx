@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og'
 /**
  * Paylaşım görseli.
  *
- * Oyunun ana yayılma kanalı paylaşım ("nakarat · Pop / 🟦🟦🟥🟩⬛") ama link
+ * Oyunun ana yayılma kanalı paylaşım ("tahmin.net · Pop / 🟦🟦🟥🟩⬛") ama link
  * boş bir kutu olarak görünüyordu. Kasetin sahne dilini taşıyan tek bir kare
  * yeter; kategoriye göre değişmesi gerekmiyor çünkü paylaşılan URL her zaman
  * kök adres.
@@ -11,7 +11,7 @@ import { ImageResponse } from 'next/og'
  * ⚠️ `next/og` Satori kullanır: yalnızca flexbox, `gap` yok, `oklch()` yok.
  * Bu yüzden renkler hex ve yerleşim `margin` ile kuruluyor.
  */
-export const alt = 'Nakarat — Türkçe şarkı tahmin oyunu'
+export const alt = 'tahmin.net — Türkçe şarkı tahmin oyunu'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -60,7 +60,7 @@ export default function OgImage() {
             display: 'flex',
           }}
         >
-          Nakarat
+          tahmin
         </div>
 
         <div

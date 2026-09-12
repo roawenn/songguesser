@@ -6,12 +6,15 @@ import { artworkAt } from '@/data/schema'
 import { cleanKey } from '@/text/keys'
 import type { SongRow } from '@/lib/supabase'
 import { AddPanel } from './AddPanel'
+import { Messages } from './Messages'
 
 const labelOf = (cat: CategoryId) => CHIPS.find((c) => c.id === cat)?.label ?? cat
 
 const PAGE = 60
 
 type Filter = 'hepsi' | 'kapali' | 'yeni'
+/** Panelin üst düzey görünümü. */
+type View = 'sarkilar' | 'mesajlar'
 
 export function AdminPanel({ configured }: { configured: boolean }) {
   const [authed, setAuthed] = useState<boolean | null>(null)
@@ -24,6 +27,8 @@ export function AdminPanel({ configured }: { configured: boolean }) {
   const [status, setStatus] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set())
+  const [view, setView] = useState<View>('sarkilar')
+  const [unread, setUnread] = useState(0)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playingId, setPlayingId] = useState<string | null>(null)
@@ -233,10 +238,25 @@ export function AdminPanel({ configured }: { configured: boolean }) {
     <main style={S.page}>
       <header style={S.head}>
         <div>
-          <h1 style={S.h1}>Şarkı havuzu</h1>
+          <h1 style={S.h1}>{view === 'sarkilar' ? 'Şarkı havuzu' : 'Mesajlar'}</h1>
           <p style={S.sub}>
-            Kaynak: Supabase · Her değişiklik <strong>anında</strong> oyuna yansır.
+            {view === 'sarkilar' ? (
+              <>
+                Kaynak: Supabase · Her değişiklik <strong>anında</strong> oyuna yansır.
+              </>
+            ) : (
+              <>Hakkında sayfasındaki formdan gelen mesajlar.</>
+            )}
           </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+          <button type="button" onClick={() => setView('sarkilar')} style={S.tab(view === 'sarkilar')}>
+            Şarkılar
+          </button>
+          <button type="button" onClick={() => setView('mesajlar')} style={S.tab(view === 'mesajlar')}>
+            Mesajlar {unread > 0 && <span style={S.count}>{unread}</span>}
+          </button>
         </div>
         <button
           type="button"
@@ -255,6 +275,10 @@ export function AdminPanel({ configured }: { configured: boolean }) {
         {err && <div style={S.errBox}>{err}</div>}
       </div>
 
+      {view === 'mesajlar' ? (
+        <Messages onCount={setUnread} />
+      ) : (
+      <>
       <div style={S.tabs}>
         {CATEGORY_IDS.map((c) => {
           const n = (rows ?? []).filter((r) => r.category === c && r.enabled).length
@@ -512,6 +536,8 @@ export function AdminPanel({ configured }: { configured: boolean }) {
         Yedek anlık görüntüyü tazelemek için: <code>npm run pool:snapshot</code> —
         Supabase&apos;e ulaşılamazsa oyun o dosyadan devam eder.
       </p>
+      </>
+      )}
     </main>
   )
 }

@@ -81,7 +81,7 @@ export async function searchTracks(term: string, limit = 18): Promise<FoundTrack
     })
 
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'Nakarat/1.0 (song quiz)' },
+    headers: { 'User-Agent': 'tahmin.net/1.0 (song quiz)' },
     next: { revalidate: 3600 },
   })
   if (!res.ok) throw new ITunesError(res.status)

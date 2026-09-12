@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    openGraph: { title: `nakarat · ${title}`, description, type: 'website' },
-    twitter: { card: 'summary_large_image', title: `nakarat · ${title}`, description },
+    openGraph: { title: `tahmin.net · ${title}`, description, type: 'website' },
+    twitter: { card: 'summary_large_image', title: `tahmin.net · ${title}`, description },
     // Paylaşım sayfaları sonsuz sayıda üretilebilir; arama dizinine girmesinler.
     robots: { index: false, follow: true },
   }
@@ -60,7 +60,7 @@ export default async function PaylasPage({ params }: Props) {
           color: '#f2f4f5',
         }}
       >
-        nakarat
+        tahmin
       </div>
 
       {r ? (

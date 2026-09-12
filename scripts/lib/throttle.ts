@@ -64,7 +64,7 @@ export async function fetchWithBackoff(
         fetch(url, {
           ...init,
           headers: {
-            'User-Agent': 'Nakarat/0.1 (Turkish song quiz; contact: beftli@futbolist.co)',
+            'User-Agent': 'tahmin.net/1.0 (Turkish song quiz; contact: beftli@futbolist.co)',
             ...init.headers,
           },
         }),

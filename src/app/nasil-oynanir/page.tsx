@@ -5,7 +5,7 @@ import { STEPS, ATTEMPTS, tr } from '@/game/ladder'
 export const metadata: Metadata = {
   title: 'Nasıl Oynanır',
   description:
-    'Nakarat nasıl oynanır? Adımlar, klip uzunlukları, kategoriler, zorluk seviyeleri ve yazım kuralları.',
+    'tahmin.net nasıl oynanır? Adımlar, klip uzunlukları, kategoriler, zorluk seviyeleri ve yazım kuralları.',
 }
 
 const ladder = STEPS.map((s) => `${tr(s)} sn`).join(' → ')
@@ -74,7 +74,7 @@ export default function NasilOynanirPage() {
 
       <h1 className="mt-6 font-serif text-4xl text-ink-0">Nasıl oynanır?</h1>
       <p className="mt-3 text-ink-2">
-        Nakarat, Türkçe şarkıları yarım saniyeden tanımaya çalıştığın bir tahmin oyunudur.
+        tahmin.net, Türkçe şarkıları yarım saniyeden tanımaya çalıştığın bir tahmin oyunudur.
         Pop, rap, arabesk, rock, halk, sanat ve fantezi seçkileriyle oynanır.
       </p>
 

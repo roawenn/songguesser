@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { ContactForm } from './ContactForm'
 
 export const metadata: Metadata = {
   title: 'Hakkında',
   description:
-    'Nakarat nasıl çalışır, şarkı önizlemeleri nereden gelir ve içerik kaldırma talepleri nasıl iletilir.',
+    'tahmin.net nasıl çalışır, şarkı önizlemeleri nereden gelir ve içerik kaldırma talepleri nasıl iletilir.',
 }
 
 export default function HakkindaPage() {
@@ -20,9 +21,9 @@ export default function HakkindaPage() {
 
       <div className="mt-8 flex flex-col gap-8 text-ink-2 leading-relaxed">
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-ink-0">Nakarat nedir?</h2>
+          <h2 className="mb-2 text-lg font-semibold text-ink-0">tahmin.net nedir?</h2>
           <p>
-            Nakarat, Türkçe şarkıları çok kısa ses kliplerinden tahmin etmeye dayanan bir
+            tahmin.net, Türkçe şarkıları çok kısa ses kliplerinden tahmin etmeye dayanan bir
             oyundur. Yarım saniyeyle başlar; her harcadığın adımda biraz daha uzun
             dinlersin. Kayıt yok, hesap yok — gir ve oyna.
           </p>
@@ -61,14 +62,15 @@ export default function HakkindaPage() {
             Hak sahibiyseniz ve bir parçanın havuzdan çıkarılmasını istiyorsanız, şarkı ve
             sanatçı adıyla birlikte bize ulaşın; talebi aldığımızda parça havuzdan kaldırılır.
           </p>
-          <p className="mt-3">
-            <a
-              href="mailto:beftli@futbolist.co"
-              className="underline underline-offset-4 hover:text-ink-0"
-            >
-              beftli@futbolist.co
-            </a>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-lg font-semibold text-ink-0">Bize yaz</h2>
+          <p className="mb-4">
+            Kaldırma talebi, hatalı bir kademe, eksik bir şarkı ya da aklına gelen
+            herhangi bir şey — buradan yaz, hepsini okuyoruz.
           </p>
+          <ContactForm />
         </section>
       </div>
     </main>

@@ -474,8 +474,8 @@ function captureAnchor(
 
 export const clipPlayer = new ClipPlayer()
 
-// Geliştirme köprüsü: konsoldan `__nakarat.lastFailure` ile takılma sebebine
+// Geliştirme köprüsü: konsoldan `__tahmin.lastFailure` ile takılma sebebine
 // bakılabilir. Üretim derlemesinde yer almaz.
 if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
-  ;(window as unknown as { __nakarat?: unknown }).__nakarat = clipPlayer
+  ;(window as unknown as { __tahmin?: unknown }).__tahmin = clipPlayer
 }

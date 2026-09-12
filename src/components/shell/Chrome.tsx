@@ -46,7 +46,7 @@ export function Header() {
           margin: 0,
         }}
       >
-        nakarat
+        tahmin
       </h1>
     </header>
   )

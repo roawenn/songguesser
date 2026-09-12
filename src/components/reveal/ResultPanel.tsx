@@ -5,26 +5,19 @@ import type { Song } from '@/data/schema'
 import { artworkAt } from '@/data/schema'
 import { ATTEMPTS, tr } from '@/game/ladder'
 import { heardLength, type Step } from '@/game/machine'
-import type { ChipId, Difficulty } from '@/data/categories'
-import {
-  chipLabel, emojiLine, encodeShare, marksOf, verdictLine,
-  type Mark, type ShareResult,
-} from '@/game/share'
-import { compareResults, encodeChallenge, type Outcome } from '@/game/challenge'
+import type { ChipId } from '@/data/categories'
+import { chipLabel, marksOf, type Mark } from '@/game/share'
 import { Confetti } from './Confetti'
 
 interface Props {
   song: Song
   won: boolean
   chip: ChipId
-  tier: Difficulty
   steps: Step[]
   listens: number
   heardIndex: number
   ladder: number[]
   reduce: boolean
-  /** Meydan okuma turuysa arkadaşın sonucu; yoksa panel bugünkü hâlinde kalır. */
-  rival?: ShareResult
   onNext: () => void
 }
 
@@ -52,32 +45,10 @@ function praise(heard: number): { headline: string; rank: string } {
   }
 }
 
-/** Beş kutuluk sonuç şeridi; meydan okumada etiketli iki kez basılır. */
-function MarkRow({
-  label, marks, sonuc, reduce, vurgula,
-}: {
-  label?: string
-  marks: Mark[]
-  sonuc: ShareResult
-  reduce: boolean
-  vurgula?: boolean
-}) {
+/** Beş kutuluk sonuç şeridi. */
+function MarkRow({ marks, reduce }: { marks: Mark[]; reduce: boolean }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-      {label && (
-        <span
-          style={{
-            minWidth: 68,
-            fontFamily: 'var(--font-mono)',
-            fontSize: 9.5,
-            letterSpacing: '.16em',
-            textTransform: 'uppercase',
-            color: vurgula ? '#b6bbbf' : '#6a7075',
-          }}
-        >
-          {label}
-        </span>
-      )}
       {marks.map((m, i) => (
         <div
           key={i}
@@ -103,54 +74,14 @@ function MarkRow({
           }}
         />
       ))}
-      {label && (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: '#757b80' }}>
-          {sonuc.won ? `${String(sonuc.heardSeconds).replace('.', ',')} sn` : 'bilemedi'}
-          {' · '}
-          {sonuc.listens} dinleme
-        </span>
-      )}
     </div>
   )
 }
-
-const S = {
-  paylas: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '9px 15px',
-    border: '1px solid var(--acc)',
-    borderRadius: 5,
-    background: 'oklch(0.81 0.12 var(--hue) / 0.1)',
-    color: 'var(--acc)',
-    fontFamily: 'var(--font-mono)',
-    fontSize: 11,
-    letterSpacing: '.1em',
-    textTransform: 'uppercase',
-  },
-  meydan: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '9px 15px',
-    border: '1px solid rgba(255,255,255,0.14)',
-    borderRadius: 5,
-    background: 'transparent',
-    color: '#b9bec2',
-    fontFamily: 'var(--font-mono)',
-    fontSize: 11,
-    letterSpacing: '.1em',
-    textTransform: 'uppercase',
-  },
-} as const
 
 export function ResultPanel({
   song,
   won,
   chip,
-  tier,
-  rival,
   steps,
   listens,
   heardIndex,
@@ -166,57 +97,6 @@ export function ResultPanel({
 
   // Ne kadar az hak harcadıysa konfeti o kadar coşkulu.
   const intensity = won ? 1 - Math.min(steps.length, ATTEMPTS) / ATTEMPTS : 0
-
-  /**
-   * Twitter'da paylaş.
-   *
-   * ⚠️ Şarkı adı ASLA metne girmez — cevabı sızdırır. Kutular ve süre yeter.
-   *
-   * Tweet'e doğrudan görsel eklenemez; bunun yerine sonucu kodlayan bir
-   * bağlantı paylaşılır ve Twitter o sayfanın kartını (kendi üretilen
-   * görselini) açar. Böylece hiçbir şey sunucuda saklanmadan paylaşılabilir
-   * bir kart oluşur — sonucun tamamı URL'in içindedir.
-   */
-  const result: ShareResult = { chip, marks: grid, won, heardSeconds, listens }
-  const outcome: Outcome | null = rival ? compareResults(result, rival) : null
-
-  function share() {
-    const origin = typeof window === 'undefined' ? '' : window.location.origin
-    const url = `${origin}/paylas/${encodeShare(result)}`
-
-    const text = [
-      `nakarat · ${categoryLabel}`,
-      emojiLine(grid),
-      `${verdictLine(result)} · ${listens} kez dinledim`,
-    ].join('\n')
-
-    const intent =
-      'https://twitter.com/intent/tweet?' +
-      new URLSearchParams({ text, url }).toString()
-
-    window.open(intent, '_blank', 'noopener,noreferrer')
-  }
-
-  /**
-   * Arkadaşına AYNI şarkıyı oynat.
-   *
-   * ⚠️ Şarkı adı metne GİRMEZ — yalnızca kutular ve süre; koddaki şarkı
-   * referansı da gizlenmiş durumda (bkz. `challenge.ts`).
-   */
-  function challenge() {
-    const kod = encodeChallenge({ result, tier, songId: song.id })
-    if (!kod) return
-    const origin = typeof window === 'undefined' ? '' : window.location.origin
-    const text = [
-      `nakarat · ${categoryLabel}`,
-      emojiLine(grid),
-      `${verdictLine(result)} — sen kaç saniyede bilirsin?`,
-    ].join('\n')
-    const intent =
-      'https://twitter.com/intent/tweet?' +
-      new URLSearchParams({ text, url: `${origin}/meydan/${kod}` }).toString()
-    window.open(intent, '_blank', 'noopener,noreferrer')
-  }
 
   const anim = (delay: number) =>
     reduce ? undefined : `nk-slide .42s cubic-bezier(.22,1,.36,1) ${delay}s both`
@@ -396,59 +276,13 @@ export function ResultPanel({
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          animation: anim(0.26),
-        }}
-      >
-        {/*
-          Meydan okumada iki satır: önce arkadaşın, sonra sen. Rakip yoksa
-          yalnızca kendi şeridin görünür — panelin bugünkü hâli değişmez.
-        */}
-        {rival && <MarkRow label="Arkadaşın" marks={rival.marks} sonuc={rival} reduce={reduce} />}
-        {rival && (
-          <MarkRow label="Sen" marks={grid} sonuc={result} reduce={reduce} vurgula />
-        )}
-        {!rival && <MarkRow marks={grid} sonuc={result} reduce={reduce} />}
-
-        {outcome && (
-          <div
-            role="status"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11.5,
-              letterSpacing: '.06em',
-              color:
-                outcome === 'sen' ? 'var(--acc)' : outcome === 'arkadas' ? '#d5b477' : '#8c9297',
-            }}
-          >
-            {outcome === 'sen'
-              ? 'Daha hızlısın.'
-              : outcome === 'arkadas'
-                ? 'Arkadaşın daha hızlı.'
-                : 'Berabere.'}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
-          <button type="button" onClick={share} className="nk-share" style={S.paylas}>
-            {/* X/Twitter kuş yerine güncel logo — tek path, ek varlık yok. */}
-            <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.9 2h3.3l-7.2 8.3L23.4 22h-6.6l-5.2-6.8L5.6 22H2.3l7.7-8.8L1.9 2h6.8l4.7 6.2L18.9 2Zm-1.2 18h1.8L7.4 3.8H5.4L17.7 20Z" />
-            </svg>
-            Sonucu paylaş
-          </button>
-
-          {/* Meydan okumanın kendisindeyken tekrar meydan okumak kafa karıştırır. */}
-          {!rival && (
-            <button type="button" onClick={challenge} className="nk-ghost" style={S.meydan}>
-              <span aria-hidden>⚔</span> Arkadaşına meydan oku
-            </button>
-          )}
-        </div>
+      {/*
+        Sonuç şeridi. Paylaşım düğmeleri kaldırıldı — Twitter kutusu sahnenin
+        diline oturmuyordu ve URL tabanlı meydan okuma yerini gerçek düello
+        moduna bırakıyor.
+      */}
+      <div style={{ display: 'flex', animation: anim(0.26) }}>
+        <MarkRow marks={grid} reduce={reduce} />
       </div>
 
       <div
@@ -518,7 +352,6 @@ export function ResultPanel({
       <style>{`
         .nk-ghost:hover { border-color: var(--acc) !important; color: var(--acc) !important; }
         .nk-next:hover { filter: brightness(1.1); }
-        .nk-share:hover { background: oklch(0.81 0.12 var(--hue) / 0.2) !important; }
       `}</style>
     </div>
   )

@@ -1,4 +1,4 @@
--- Nakarat — şarkı havuzu şeması
+-- tahmin.net — şarkı havuzu şeması
 --
 -- Tek tablo yeter: 321 şarkı, birkaç filtre. İlişkisel karmaşıklığa gerek yok.
 -- Kolon adları okunaklı tutuldu (panelde SQL editöründen bakılabilsin);
@@ -81,3 +81,32 @@ create index if not exists songs_admin_idx on public.songs (category, tier, arti
 alter table public.songs drop constraint if exists songs_year_chk;
 alter table public.songs add constraint songs_year_chk
   check (year between 1900 and 2100);
+
+-- --- İletişim mesajları ---
+--
+-- Site e-posta adresi yayınlamıyor; ziyaretçi formu doldurur, mesaj burada
+-- birikir ve yönetim panelinden okunur. Posta gönderimi YOK — kurulum,
+-- güvenlik ve maliyet olarak hiçbir karşılığı olmayan bir bağımlılık olurdu.
+create table if not exists public.messages (
+  id          bigint generated always as identity primary key,
+  name        text        not null,
+  surname     text        not null,
+  body        text        not null,
+  read        boolean     not null default false,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists messages_new_idx on public.messages (created_at desc);
+
+-- ⚠️ Uzunluk sınırları ŞEMADA. Uç nokta da doğruluyor ama tek savunma orası
+-- olmamalı: yazma yolu secret key ile çalıştığı için RLS'i baypas ediyor.
+alter table public.messages drop constraint if exists messages_len_chk;
+alter table public.messages add constraint messages_len_chk check (
+  length(name) between 1 and 80
+  and length(surname) between 1 and 80
+  and length(body) between 3 and 4000
+);
+
+-- RLS: mesajlar herkese açık DEĞİL. Ne okuma ne yazma politikası var; ikisi de
+-- yalnızca sunucu tarafındaki secret key ile yapılır.
+alter table public.messages enable row level security;

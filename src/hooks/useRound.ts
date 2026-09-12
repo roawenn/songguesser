@@ -39,10 +39,6 @@ export interface RoundApi {
   stalled: boolean
   /** Etiketteki kayıt numarası, örn. "NK-014". */
   tapeCode: string
-  /** Bu tur bir arkadaşın meydan okuması mı? */
-  isChallenge: boolean
-  /** Meydan okumanın akıbeti — arıza hâlinde oyuncuya ne söyleneceğini belirler. */
-  challengeStatus: ChallengeStatus
 
   play: () => void
   guess: (raw: string) => Verdict
@@ -56,28 +52,8 @@ export interface RoundApi {
   onWrong: (fn: () => void) => void
 }
 
-/**
- * Meydan okumanın akıbeti.
- *
- * ⚠️ Ortak kural: meydan okuma HİÇBİR ZAMAN oyunu durdurmaz. Her arıza yolu
- * "bir açıklama + normal tur" ile biter; `state.s === 'error'` ekranına asla
- * düşülmez. Arkadaşının bozuk linki oyuncunun oyununu bozmamalı.
- */
-export type ChallengeStatus =
-  | 'yok'
-  | 'cozuluyor'
-  | 'hazir'
-  | 'bulunamadi'
-  | 'calinamadi'
-
-export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
-  const { challengeSongId } = opts
+export function useRound(): RoundApi {
   const { category, tier, easySearch, volume, setTier } = useSettingsStore()
-
-  const [challengeSong, setChallengeSong] = useState<Song | null>(null)
-  const [challengeStatus, setChallengeStatus] = useState<ChallengeStatus>(
-    challengeSongId ? 'cozuluyor' : 'yok',
-  )
 
   const [state, dispatch] = useReducer(gameReducer, { s: 'booting' } as GameState)
   const [pool, setPool] = useState<Song[]>([])
@@ -129,36 +105,13 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
   // Zorluk kademesi havuzu süzer; küratörlük inceyse komşu kademeler eklenir.
   const filtered = useMemo(() => filterByTier(pool, tier), [pool, tier])
 
-  /**
-   * Metin eşleştirmenin gördüğü havuz.
-   *
-   * ⚠️ `filtered`'ın YERİNE geçmez, yanına eklenir — tur başlatma etkisi
-   * `filtered`'a bağlı kalsın diye. Meydan okunan şarkı alıcının kademesinde
-   * olmayabilir; o zaman `buildIndex` cevabı içermez ve "Kolay arama" açık bir
-   * oyuncu doğru şarkıyı öneri listesinden ASLA seçemez — tur oynanamaz hâle
-   * gelir. Aynı şekilde `judgeGuess`'in rakip havuzu da cevabı görmeli.
-   */
-  const universe = useMemo(
-    () =>
-      challengeSong && !filtered.some((s) => s.id === challengeSong.id)
-        ? [...filtered, challengeSong]
-        : filtered,
-    [filtered, challengeSong],
-  )
-
   // Öneri listesi ve belirsizlik koruması yalnızca oynanabilir havuzu görmeli.
   const index = useMemo(
-    () => (universe.length > 0 ? buildIndex(universe) : null),
-    [universe],
+    () => (filtered.length > 0 ? buildIndex(filtered) : null),
+    [filtered],
   )
 
-  /**
-   * ⚠️ Meydan okumada bastırılır. `GameShell` bu ekranı `ResultPanel`'den ÖNCE
-   * kontrol ediyor; ince bir kademeye gelen meydan okuma aksi hâlde "Bu zorlukta
-   * yeterli şarkı yok" ekranına takılır ve hiç oynanamaz.
-   */
-  const tooNarrow =
-    !challengeSong && !loading && pool.length > 0 && filtered.length < MIN_PLAYABLE
+  const tooNarrow = !loading && pool.length > 0 && filtered.length < MIN_PLAYABLE
 
   const ladder = useMemo(() => [...STEPS], [])
 
@@ -234,15 +187,12 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
         }
       } else if (result === 'dead-url') {
         /**
-         * ⚠️ Özyineleme `forced`'ı TAŞIMAZ. Taşısaydı çalınamayan bir meydan
-         * okuma şarkısı aynı ölü URL'i `DEAD_URL_LIMIT` kez deneyip hata
-         * ekranıyla biterdi. Doğrusu: meydan okuma düşer, oyuncu yine oynar.
+         * ⚠️ Özyineleme `forced`'ı TAŞIMAZ: sabitlenen şarkı çalınamıyorsa aynı
+         * ölü URL'i `DEAD_URL_LIMIT` kez denemenin anlamı yok. Sabit şarkıyla
+         * oynatan modlar (düello) sonucu görüp kendi kararını verir.
          */
         if (forced) {
-          setChallengeStatus('calinamadi')
-          // Bayrağı temizlemek tur başlatma etkisini tetikler; burada ayrıca
-          // startRound çağırmak turu iki kez kurardı.
-          setChallengeSong(null)
+          dispatch({ type: 'ARM_FAIL', reason: 'offline' })
           return
         }
         // Ölü URL: bu şarkıyı atla, oyuncuya hiç göstermeden sonrakine geç.
@@ -254,39 +204,11 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
     [],
   )
 
-  // Meydan okunan şarkıyı havuzda bul. Havuz zaten yükleniyor, ek istek yok.
   useEffect(() => {
-    if (!challengeSongId || challengeSong || loading || pool.length === 0) return
-    const hit = pool.find((s) => s.id === challengeSongId)
-    if (hit) {
-      setChallengeSong(hit)
-      setChallengeStatus('hazir')
-    } else {
-      // Şarkı silinmiş, kapatılmış ya da diskteki yedek havuz eski.
-      setChallengeStatus('bulunamadi')
-    }
-  }, [challengeSongId, challengeSong, pool, loading])
-
-  /**
-   * ⚠️ Meydan okuma bir FAZ, "bir kez çalıştır" bayrağı değil.
-   *
-   * StrictMode dev'de efektleri iki kez çalıştırıyor. Ref tabanlı bir bayrakta
-   * ikinci çalıştırma meydan okumanın üstüne normal tur kurar ve özelliği dev
-   * ortamında imkânsız hâle getirirdi. Faz olarak tutulunca ikinci çalıştırma
-   * AYNI şarkıyı yeniden kurar — normal turlarda bugün zaten olan davranış.
-   */
-  useEffect(() => {
-    if (loading) return
-    if (challengeSong) {
-      void startRound(universe, ladder, 0, challengeSong)
-      return
-    }
-    // Havuz henüz gelmediyse normal turu kurup meydan okumayı ezme.
-    if (challengeStatus === 'cozuluyor') return
-    if (filtered.length === 0) return
+    if (loading || filtered.length === 0) return
     void startRound(filtered, ladder)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, ladder, loading, challengeSong, challengeStatus])
+  }, [filtered, ladder, loading])
 
   const clipLength = currentClipLength(state)
 
@@ -318,7 +240,7 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
     (raw: string): Verdict => {
       if (state.s !== 'ready' && state.s !== 'playing') return { kind: 'empty' }
 
-      const verdict = judgeGuess(raw, state.track, universe, { easySearch })
+      const verdict = judgeGuess(raw, state.track, filtered, { easySearch })
 
       if (verdict.kind === 'correct') {
         clipPlayer.stop()
@@ -332,7 +254,7 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
       }
       return verdict
     },
-    [state, universe, easySearch, markWrong],
+    [state, filtered, easySearch, markWrong],
   )
 
   /** Kolay modu: şıktan seçim. Metin eşleştirmesine gerek yok, id yeter. */
@@ -377,23 +299,6 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
     clipPlayer.unlockFromGesture()
     clipPlayer.swapLanes()
 
-    /**
-     * ⚠️ Meydan okuma tek turluktur ve kademe YÜKSELTMEZ.
-     *
-     * Zorluğu oyuncu seçmedi, arkadaşı seçti; `tier` ise kalıcı bir ayar
-     * (`nakarat:ayarlar:v3`). Bir arkadaşın linki oyuncunun kendi ayarını
-     * kalıcı olarak değiştirmemeli.
-     *
-     * ⚠️ Burada `startRound` ÇAĞRILMAZ — bayrağı temizlemek tur başlatma
-     * etkisini tetikler ve turu o kurar. Aşağıdaki kademe değişimiyle birebir
-     * aynı değişmez.
-     */
-    if (challengeSong) {
-      setChallengeSong(null)
-      setChallengeStatus('yok')
-      return
-    }
-
     // Bildiyse bir üst kademeye çık; İmkansız'da (5) tavan.
     const climbed = state.s === 'won' ? Math.min(5, tier + 1) : tier
     if (climbed !== tier) {
@@ -403,7 +308,7 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
       return
     }
     void startRound(filtered, ladder)
-  }, [state, tier, setTier, filtered, ladder, startRound, challengeSong])
+  }, [state, tier, setTier, filtered, ladder, startRound])
 
   const clearAmbiguity = useCallback(() => setAmbiguous(null), [])
   const onWrong = useCallback((fn: () => void) => {
@@ -419,8 +324,6 @@ export function useRound(opts: { challengeSongId?: string } = {}): RoundApi {
   return {
     state, pool, filtered, tooNarrow, index, clipLength, loading, ambiguous, stalled, tapeCode,
     canPlay: canPlay(state),
-    isChallenge: challengeSong !== null,
-    challengeStatus,
     play, guess, guessSong, skip, reroll, next, clearAmbiguity, onWrong,
   }
 }

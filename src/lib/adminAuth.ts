@@ -10,12 +10,12 @@ import { cookies } from 'next/headers'
  * onlar da bu çerezle korunur. Tarayıcıdan doğrudan yazma zaten RLS ile kapalı.
  */
 
-export const ADMIN_COOKIE = 'nakarat_yonetim'
+export const ADMIN_COOKIE = 'tahmin_yonetim'
 
 function expectedToken(): string | null {
   const pw = process.env.ADMIN_PASSWORD
   if (!pw) return null
-  return createHash('sha256').update(`${pw}:nakarat`).digest('hex')
+  return createHash('sha256').update(`${pw}:tahmin.net`).digest('hex')
 }
 
 /** Şifre doğruysa çerez değerini döndürür. */

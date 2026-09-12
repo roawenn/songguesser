@@ -56,7 +56,7 @@ export const useSettingsStore = create<Settings>()(
     }),
     {
       // v3: seviye (giriş biçimi) yerine zorluk kademesi + kolay arama.
-      name: 'nakarat:ayarlar:v3',
+      name: 'tahmin:ayarlar:v3',
       partialize: (s) => ({
         category: s.category,
         tier: s.tier,

@@ -1,4 +1,4 @@
-# Nakarat
+# tahmin.net
 
 Türkçe şarkı tahmin oyunu. Yarım saniyelik bir klip çalınır; her yanlış tahmin
 ya da pas klibi uzatır. Hesap yok, kayıt yok — gir ve oyna.
@@ -163,7 +163,7 @@ npm run build
 ```
 
 Ses motorunu elle dinleyerek denemek için: `/dev/audio`. Geliştirme modunda
-konsoldan `__nakarat.lastTiming` ve `__nakarat.lastFailure` okunabilir —
+konsoldan `__tahmin.lastTiming` ve `__tahmin.lastFailure` okunabilir —
 takılmalar kullanıcıya yalnızca "bağlantı takıldı" olarak gösterildiği için
 gerçek sebebi görmenin tek yolu budur. Her kademede tık sesi
 olmamalı ve ölçülen sapma ±10 ms içinde kalmalı. **iOS Safari'de gerçek cihazda

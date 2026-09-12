@@ -37,16 +37,16 @@ const sans = IBM_Plex_Sans({
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_ENV === 'production'
-    ? 'https://nakarat.app'
+    ? 'https://tahmin.net'
     : process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : 'https://nakarat.app')
+      : 'https://tahmin.net')
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Nakarat — Türkçe Şarkı Tahmin Oyunu',
-    template: '%s · Nakarat',
+    default: 'tahmin.net — Türkçe Şarkı Tahmin Oyunu',
+    template: '%s · tahmin.net',
   },
   description:
     'Yarım saniyeden şarkıyı bil. Türkçe pop, rap, arabesk, rock, halk ve sanat müziğinden yüzlerce parça. Kayıt yok, reklam yok, anında oyna.',
@@ -56,18 +56,18 @@ export const metadata: Metadata = {
     'şarkıyı bil',
     'müzik bilgi yarışması',
     'türkçe heardle',
-    'nakarat',
+    'tahmin.net',
   ],
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    siteName: 'Nakarat',
-    title: 'Nakarat — Türkçe Şarkı Tahmin Oyunu',
+    siteName: 'tahmin.net',
+    title: 'tahmin.net — Türkçe Şarkı Tahmin Oyunu',
     description: 'Yarım saniyeden şarkıyı bilebilir misin?',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nakarat — Türkçe Şarkı Tahmin Oyunu',
+    title: 'tahmin.net — Türkçe Şarkı Tahmin Oyunu',
     description: 'Yarım saniyeden şarkıyı bilebilir misin?',
   },
   robots: { index: true, follow: true },

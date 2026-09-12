@@ -278,7 +278,7 @@ function CassetteBase({
               color: 'rgba(12,14,16,0.82)',
             }}
           >
-            nakarat
+            tahmin
           </span>
           {/*
             ⚠️ textTransform YOK. lang="tr" altında `uppercase` İngilizce

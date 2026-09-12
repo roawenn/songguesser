@@ -1,11 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
-import { useRound, type ChallengeStatus } from '@/hooks/useRound'
+import { useEffect, useRef } from 'react'
+import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { chipById, TIER_LABELS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
-import { decodeChallenge } from '@/game/challenge'
 import { Backdrop } from './stage/Backdrop'
 import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
@@ -15,17 +14,8 @@ import { ResultPanel } from './reveal/ResultPanel'
 import { Header, CategoryStrip, TierStrip, Footer } from './shell/Chrome'
 import { SettingsCard, HowToCard } from './shell/SidePanels'
 
-export function GameShell({ challenge }: { challenge?: string } = {}) {
-  /**
-   * Meydan okuma kodu yalnızca burada çözülür.
-   *
-   * ⚠️ Sunucu bileşeninde ÇÖZÜLMEZ. Çözülseydi sabitlenen şarkı Next'in RSC
-   * yükünde düz metin olarak otururdu ve "sayfa kaynağını görüntüle" ile
-   * okunabilirdi — linkin kendisinden çok daha büyük bir sızıntı.
-   */
-  const meydan = useMemo(() => (challenge ? decodeChallenge(challenge) : null), [challenge])
-
-  const round = useRound({ challengeSongId: meydan?.songId })
+export function GameShell() {
+  const round = useRound()
   const settings = useSettingsStore()
 
   /**
@@ -190,8 +180,6 @@ export function GameShell({ challenge }: { challenge?: string } = {}) {
                 width: '100%',
               }}
             >
-              {meydan && <ChallengeNotice status={round.challengeStatus} />}
-
               <Cassette
                 handleRef={cassette}
                 categoryLabel={chip.label}
@@ -282,8 +270,6 @@ export function GameShell({ challenge }: { challenge?: string } = {}) {
                   song={state.track}
                   won={state.s === 'won'}
                   chip={settings.category}
-                  tier={settings.tier}
-                  rival={round.isChallenge ? meydan?.result : undefined}
                   steps={steps}
                   listens={listens}
                   heardIndex={heardIndex}
@@ -364,12 +350,7 @@ export function GameShell({ challenge }: { challenge?: string } = {}) {
                       Şarkı değiştirmek pas geçmekten farklı: hak tüketmez,
                       turu sıfırdan kurar. Tanımadığı bir parçayı beş hak
                       boyunca zorlamak zorunda kalmasın.
-
-                      ⚠️ Meydan okumada GİZLİ: "şarkıyı değiştir" meydan
-                      okumanın tam zıddı, basılsa sabitlenen şarkı sessizce
-                      kaybolurdu.
                     */}
-                    {!round.isChallenge && (
                     <button
                       type="button"
                       onClick={round.reroll}
@@ -384,7 +365,6 @@ export function GameShell({ challenge }: { challenge?: string } = {}) {
                     >
                       <span aria-hidden style={{ fontSize: 13 }}>↻</span> Şarkıyı değiştir
                     </button>
-                    )}
                   </div>
                 </div>
               )}
@@ -413,47 +393,6 @@ export function GameShell({ challenge }: { challenge?: string } = {}) {
           background: rgba(201,162,94,0.14) !important;
         }
       `}</style>
-    </div>
-  )
-}
-
-/**
- * Meydan okumanın durumunu anlatan ince şerit.
- *
- * ⚠️ Arıza hâlinde bile oyun DURMAZ — şerit ne olduğunu söyler, oyuncu normal
- * bir turla oynamaya devam eder.
- */
-function ChallengeNotice({ status }: { status: ChallengeStatus }) {
-  const metin: Record<ChallengeStatus, string | null> = {
-    yok: null,
-    cozuluyor: 'Meydan okuma hazırlanıyor…',
-    hazir: 'Arkadaşının meydan okuması — aynı şarkı',
-    bulunamadi: 'Meydan okunan şarkı artık listede yok; rastgele bir tur başladı',
-    calinamadi: 'Meydan okunan şarkı şu an çalınamıyor; rastgele bir tur başladı',
-  }
-  const söz = metin[status]
-  if (!söz) return null
-
-  const uyari = status === 'bulunamadi' || status === 'calinamadi'
-  return (
-    <div
-      role="status"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '7px 14px',
-        borderRadius: 999,
-        border: `1px solid ${uyari ? 'rgba(201,162,94,0.35)' : 'var(--acc)'}`,
-        background: uyari ? 'rgba(201,162,94,0.07)' : 'oklch(0.81 0.12 var(--hue) / 0.1)',
-        color: uyari ? '#d5b477' : 'var(--acc)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 11,
-        letterSpacing: '.06em',
-        textAlign: 'center',
-      }}
-    >
-      {söz}
     </div>
   )
 }
