@@ -520,21 +520,57 @@ export function HowToCard() {
         &ldquo;Gülpembe&rdquo; kabul edilir. Küçük yazım hataları da affedilir.
       </p>
 
-      {/*
-        ⚠️ İki bağlantı, aynı yeri BÖLEN iki düğme.
-        Küçük metin bağlantıları olarak yan yana dururken tıklanabilir
-        oldukları belli olmuyordu; eşit bölünmüş iki düğme hem hedefi
-        büyütüyor hem de ikisinin eş değerde olduğunu gösteriyor.
-      */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 8,
-          paddingTop: 14,
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
+      {/* Apple atfı footer'a taşındı — burada kartın dibinde kayboluyordu. */}
+    </section>
+  )
+}
+
+/**
+ * Klavye kısayolları — KENDİ kartı.
+ *
+ * Önce "Nasıl oynanır"ın dibinde, ayıraçla bölünmüş bir bölümdü. Kart üç ayrı
+ * konuyu (adımlar, bağlantılar, kısayollar) tek çerçevede taşıyınca hiçbiri
+ * kendi başlığıyla okunmuyordu; ayrı kart, listedeki diğer kartlarla aynı
+ * dilde konuşuyor.
+ */
+export function KeyboardCard() {
+  return (
+    <section style={CARD} aria-label="Klavye kısayolları">
+      <CardTitle>Klavye</CardTitle>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[
+          { key: 'Boşluk', what: 'klibi çal' },
+          { key: 'Enter', what: 'tahmini gönder' },
+          { key: '↑ ↓', what: 'önerilerde gez' },
+        ].map((k) => (
+          <div
+            key={k.key}
+            style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12 }}
+          >
+            <kbd style={KBD}>{k.key}</kbd>
+            <span style={{ color: '#7b8186' }}>{k.what}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Sayfa bağlantıları — sütunun EN ALTINDA, kendi kartında.
+ *
+ * ⚠️ İki bağlantı, aynı yeri BÖLEN iki düğme. Küçük metin bağlantıları olarak
+ * yan yana dururken tıklanabilir oldukları belli olmuyordu; eşit bölünmüş iki
+ * düğme hem hedefi büyütüyor hem de ikisinin eş değerde olduğunu gösteriyor.
+ *
+ * Başlık yok: iki düğme ne olduklarını zaten söylüyor, üstlerine bir etiket
+ * koymak kartı içeriğinden çok çerçevesiyle büyütürdü.
+ */
+export function LinksCard() {
+  return (
+    <nav style={{ ...CARD, padding: 14, gap: 0 }} aria-label="Sayfalar">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <a href="/nasil-oynanir" className="nk-kart-dugme" style={KART_DUGME}>
           Tüm kurallar
         </a>
@@ -542,28 +578,6 @@ export function HowToCard() {
           Hakkında
         </a>
       </div>
-
-      {/* Klavye kısayolları BURADA: sol sütunda yalnızca ayarlar kalsın. */}
-      <div style={{ paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={CAPTION}>Klavye</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 11 }}>
-          {[
-            { key: 'Boşluk', what: 'klibi çal' },
-            { key: 'Enter', what: 'tahmini gönder' },
-            { key: '↑ ↓', what: 'önerilerde gez' },
-          ].map((k) => (
-            <div
-              key={k.key}
-              style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12 }}
-            >
-              <kbd style={KBD}>{k.key}</kbd>
-              <span style={{ color: '#7b8186' }}>{k.what}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Apple atfı footer'a taşındı — burada kartın dibinde kayboluyordu. */}
-    </section>
+    </nav>
   )
 }

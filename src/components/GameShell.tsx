@@ -16,7 +16,9 @@ import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
 import { ResultPanel } from './reveal/ResultPanel'
 import { Header, CategoryStrip, TierStrip, Footer } from './shell/Chrome'
-import { SettingsCard, HowToCard, StatsCard } from './shell/SidePanels'
+import {
+  SettingsCard, HowToCard, StatsCard, KeyboardCard, LinksCard,
+} from './shell/SidePanels'
 import { useOlcek } from './shell/useOlcek'
 
 export function GameShell() {
@@ -493,6 +495,9 @@ export function GameShell() {
 
             <div className="nk-side">
               <HowToCard />
+              <KeyboardCard />
+              {/* Bağlantılar en altta: sütunun çıkışı, girişi değil. */}
+              <LinksCard />
             </div>
             </div>
           </div>
