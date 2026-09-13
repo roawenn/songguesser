@@ -289,6 +289,7 @@ export function GameShell() {
                   Bu seçkide şarkı bulunamadı.
                 </div>
               ) : finished ? (
+                <div className="nk-sonuc">
                 <ResultPanel
                   key={state.track.id}
                   song={state.track}
@@ -301,6 +302,7 @@ export function GameShell() {
                   reduce={reduce}
                   onNext={round.next}
                 />
+                </div>
               ) : (
                 <div
                   style={{

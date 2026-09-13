@@ -143,6 +143,7 @@ export function UnluShell() {
           ) : durum.s === 'empty' ? (
             <Uyari>Bu seçkide henüz kimse yok. Başka bir kategori dene.</Uyari>
           ) : turBitti(durum) ? (
+            <div className="nk-sonuc">
             <UnluSonucPanel
               key={durum.kisi.id}
               ad={durum.kisi.ad}
@@ -152,24 +153,30 @@ export function UnluShell() {
               reduce={reduce}
               onSonraki={tur.sonraki}
             />
+            </div>
           ) : (
             <>
-              <UnluKare
-                ref={kare}
-                url={tur.gorselUrl}
-                acilan={acilan}
-                bitti={false}
-                reduce={reduce}
-              />
+              <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <UnluKare
+                  ref={kare}
+                  url={tur.gorselUrl}
+                  acilan={acilan}
+                  bitti={false}
+                  reduce={reduce}
+                />
 
               {/*
                 Havuz inceyken oyun ENGELLENMİYOR, yalnızca durum söyleniyor —
                 küratör içerik eklerken oyunu deneyebilmeli.
+
+                ⚠️ `position: absolute` (bkz. `.nk-ipucu`): normal akışta
+                sahneyi 25 px uzatıyor ve yüksekliği havuzun doluluğuna bağlı
+                hâle getiriyordu.
               */}
               {tur.azKisi && (
                 <div
+                  className="nk-ipucu"
                   style={{
-                    marginTop: 10,
                     fontFamily: 'var(--font-mono)',
                     fontSize: 10,
                     letterSpacing: '.14em',
@@ -180,6 +187,7 @@ export function UnluShell() {
                   bu seçkide {tur.suzulmus.length} kişi var · tekrar edebilir
                 </div>
               )}
+              </div>
 
               <div className="nk-kademe">
                 <TierStrip tier={kademe} onTier={setKademe} />

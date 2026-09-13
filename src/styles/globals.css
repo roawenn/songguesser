@@ -649,3 +649,55 @@ button {
 .nk-unlu .nk-eylem {
   margin-top: 16px;
 }
+
+/*
+ * Sahne yüksekliği tur bitince DEĞİŞMEZ.
+ *
+ * ⚠️ Sonuç kartı oyun sahnesinden çok daha kısa. Yükseklik serbest bırakılınca
+ * ızgara yeniden ortalanıyor ve SOL/SAĞ KARTLAR DAHİL her şey aşağı kayıyordu.
+ * Ölçüldü: ünlüde sahne 925 → 194 px, kartlar 145 px aşağı; şarkıda 851 → 590,
+ * 39 px. Oyuncunun gözünde bu, cevabı görmek için ödenen bir "sıçrama".
+ *
+ * ⚠️ Yalnızca 900 px ÜSTÜNDE. Mobilde sayfa zaten uzun ve dikey ortalama
+ * devrede değil; orada sabit yükseklik yalnızca ölü boşluk üretirdi.
+ *
+ * Değerler ölçüldü (ölçek 1, üç genişlikte aynı çıktı).
+ */
+@media (min-width: 900px) {
+  .nk-stage {
+    min-height: 851px;
+  }
+  .nk-stage.nk-unlu {
+    min-height: 900px;
+  }
+}
+
+/*
+ * Sonuç kartı ayrılan alanın ORTASINDA durur.
+ *
+ * `.nk-stage` bir flex sütun; `margin-block: auto` kalan boşluğu üste ve alta
+ * eşit dağıtıyor. Üstte kalsaydı altında kocaman bir boşlukla asılı görünürdü.
+ */
+/*
+ * İnce havuz ipucu DÜZEN DIŞINDA.
+ *
+ * ⚠️ Normal akışta olduğunda sahneyi 25 px uzatıyordu ve yükseklik havuzun
+ * doluluğuna göre DEĞİŞİYORDU: aynı sayfa, bir kategoride 1224 px, diğerinde
+ * 1199 px. Ölçek bütçesi tek bir sayı olduğu için bu, ince kategorilerde
+ * taşma demekti. Mutlak konum yüksekliği sabitliyor.
+ */
+.nk-ipucu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.nk-sonuc {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-block: auto;
+}
