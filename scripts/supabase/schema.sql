@@ -314,3 +314,75 @@ begin
   delete from public.hiz_sinir where pencere < now() - interval '1 day';
   return silinen;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Ünlü havuzu (ikinci oyun: görselden tanıma)
+-- ---------------------------------------------------------------------------
+--
+-- ⚠️ `songs` tablosuna EKLENEMEZ: orada `artwork`, `preview` ve `store_url`
+-- NOT NULL ve üçü de iTunes'a özgü. Ünlünün ne önizlemesi ne mağaza linki var.
+--
+-- Oyun: görsel beş eşit yatay şeride bölünür, başta yalnızca saç açıktır.
+-- Yanlış tahmin ya da pas bir şerit daha açar; beşinci açılınca tur biter.
+
+create table if not exists public.unluler (
+  id           text primary key
+                 default ('unlu:' || replace(gen_random_uuid()::text, '-', '')),
+  category     text        not null,      -- sarkici | oyuncu | sporcu | tarihi | dunya
+  name         text        not null,      -- gösterim adı
+  norm_name    text        not null,      -- cleanKey(name)
+  aliases      text[]      not null default '{}',
+  accept_keys  text[]      not null default '{}',
+  tier         smallint    not null check (tier between 1 and 5),
+  enabled      boolean     not null default true,
+  -- ⚠️ Görsel YOLU için kolon YOK: yol id'den TÜRETİLİR (`<id sonrası>.webp`).
+  -- İki kaynak olsaydı yeniden kırpmada biri güncellenip diğeri eski kalabilir
+  -- ve oyun var olmayan bir dosyayı isteyebilirdi.
+  -- `image_ver` yalnızca önbellek kırmak için (`?v=2`).
+  image_ver    smallint    not null default 1,
+  -- Küratör notu ("futbolcu", "1980'ler"). Oyunda GÖSTERİLMEZ, cevabı ele verir.
+  note         text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+create index if not exists unluler_category_idx on public.unluler (category) where enabled;
+create index if not exists unluler_tier_idx     on public.unluler (tier)     where enabled;
+create index if not exists unluler_admin_idx    on public.unluler (category, tier, name);
+
+-- Aynı kategoride aynı ad iki kez olmasın. `songs_norm_uidx` ile aynı desen:
+-- kurulamıyorsa (veri zaten kirliyse) migration'ı düşürmeden uyarı bırak.
+do $uidx$
+begin
+  create unique index if not exists unluler_norm_uidx
+    on public.unluler (category, norm_name);
+exception when unique_violation then
+  raise notice 'unluler_norm_uidx kurulamadi: ayni (kategori, ad) birden fazla satirda var.';
+end $uidx$;
+
+drop trigger if exists unluler_touch_updated_at on public.unluler;
+create trigger unluler_touch_updated_at
+  before update on public.unluler
+  for each row execute function public.touch_updated_at();
+
+-- RLS: `songs` ile aynı duruş — herkes yalnızca AÇIK satırları okur, kimse
+-- tarayıcıdan yazamaz.
+alter table public.unluler enable row level security;
+drop policy if exists unluler_public_read on public.unluler;
+create policy unluler_public_read on public.unluler
+  for select to anon, authenticated
+  using (enabled = true);
+
+-- --- Görsel deposu ---
+--
+-- ⚠️ Kova HERKESE AÇIK. Özel kova imzalı URL demek: her tur için ek bir sunucu
+-- gidiş-dönüşü, süresi dolan önyükleme adayları ve kenar önbelleğinin işe
+-- yaramaması. Üstelik gizlilik kazancı yok — havuz yanıtı zaten adları
+-- taşıyor, cevabı saklayan şey görselin URL'i değil.
+--
+-- ⚠️ `storage.objects` üzerine YAZMA POLİTİKASI EKLENMİYOR. Politika yokken
+-- RLS her şeyi reddeder ve yalnızca secret key (service_role) geçer — yani
+-- varsayılan zaten istediğimiz şey.
+insert into storage.buckets (id, name, public)
+values ('unluler', 'unluler', true)
+on conflict (id) do nothing;

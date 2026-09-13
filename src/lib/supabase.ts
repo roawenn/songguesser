@@ -87,16 +87,25 @@ export const PLAY_COLUMNS = 'id,preview,artwork,store_url'
  * ⚠️ `secret` yalnızca sunucuda kullanılır — RLS'i baypas eder, tarayıcıya
  * ASLA gönderilmez. Okuma yolunda anon anahtar yeter; secret sadece yönetim
  * panelinin yazma işlemlerinde devreye girer.
+ *
+ * ⚠️ Dönüş tipi `Record<string, string>` OLMALI, `Headers` değil: çağrı
+ * yerleri onu spread ediyor (`{ ...restHeaders({secret:true}), Prefer: … }`)
+ * ve `Headers` ile spread sessizce boş nesne verir.
  */
-export function restHeaders(opts: { secret?: boolean } = {}): HeadersInit {
+export function restHeaders(
+  opts: { secret?: boolean; tip?: string | null } = {},
+): Record<string, string> {
   const key = opts.secret
     ? (process.env.SUPABASE_SECRET_KEY ?? '')
     : SUPABASE_ANON
-  return {
-    apikey: key,
-    Authorization: `Bearer ${key}`,
-    'Content-Type': 'application/json',
-  }
+  const h: Record<string, string> = { apikey: key, Authorization: `Bearer ${key}` }
+  /*
+   * ⚠️ `Content-Type` artık SABİT DEĞİL. Görsel yükleme `image/webp` istiyor;
+   * `application/json` başlığıyla gönderilen bir WebP depoya bozuk yazılır.
+   * `tip: null` başlığı hiç yazmamak için (gövdesiz istekler).
+   */
+  if (opts.tip !== null) h['Content-Type'] = opts.tip ?? 'application/json'
+  return h
 }
 
 export function restUrl(path: string): string {

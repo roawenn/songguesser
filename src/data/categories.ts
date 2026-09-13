@@ -126,3 +126,60 @@ export function chipById(id: ChipId): Chip {
  * Altına düşerse komşu kademeler devreye alınır (bkz. `filterByTier`).
  */
 export const MIN_PLAYABLE = 8
+
+// --- İkinci oyun: ünlüyü görselinden tanı ---
+//
+// ⚠️ Ayrı bir uzay. Şarkının `CategoryId`/`ChipId`'si ile karışmasın diye
+// paylaşılmıyor: iki oyunun kategorileri birbirine hiç benzemiyor ve ortak bir
+// birleşim tipi her iki tarafta da imkânsız değerleri geçerli gösterirdi.
+//
+// ⚠️ DÖNEM boyutu YOK. Şarkıda "Eskiler/90'lar/2000'ler" çipleri var; ünlünün
+// dönemi oyunun sorusuyla ilgisiz (kimse "90'ların ünlüsü" diye tahmin etmiyor).
+
+export const UNLU_CATEGORY_IDS = [
+  'sarkici',
+  'oyuncu',
+  'sporcu',
+  'tarihi',
+  'dunya',
+] as const
+
+export type UnluCategoryId = (typeof UNLU_CATEGORY_IDS)[number]
+
+export type UnluChipId = 'unlu-karisik' | UnluCategoryId
+
+/** Şarkı çipleriyle aynı şekil; `CategoryStrip` ikisini de çiziyor. */
+export interface UnluChip {
+  id: UnluChipId
+  label: string
+  hue: number
+  /** `null` = bütün kategoriler (Karışık). */
+  kategori: UnluCategoryId | null
+}
+
+/**
+ * Hue'lar şarkı çiplerinden ayrı seçildi ki iki oyun renkten de ayırt edilsin;
+ * "Karışık" ikisinde de 205, çünkü o ikisinde de aynı şeyi anlatıyor.
+ */
+export const UNLU_CHIPS: UnluChip[] = [
+  { id: 'unlu-karisik', label: 'Karışık', hue: 205, kategori: null },
+  { id: 'sarkici', label: 'Şarkıcı', hue: 330, kategori: 'sarkici' },
+  { id: 'oyuncu', label: 'Oyuncu', hue: 285, kategori: 'oyuncu' },
+  { id: 'sporcu', label: 'Sporcu', hue: 150, kategori: 'sporcu' },
+  { id: 'tarihi', label: 'Tarihî', hue: 38, kategori: 'tarihi' },
+  { id: 'dunya', label: 'Dünya ünlüleri', hue: 190, kategori: 'dunya' },
+]
+
+const UNLU_CHIP_BY_ID = new Map(UNLU_CHIPS.map((c) => [c.id, c]))
+
+export function unluChipById(id: UnluChipId): UnluChip {
+  return UNLU_CHIP_BY_ID.get(id) ?? UNLU_CHIPS[0]!
+}
+
+export const UNLU_CATEGORY_LABELS: Record<UnluCategoryId, string> = {
+  sarkici: 'Şarkıcı',
+  oyuncu: 'Oyuncu',
+  sporcu: 'Sporcu',
+  tarihi: 'Tarihî',
+  dunya: 'Dünya ünlüleri',
+}

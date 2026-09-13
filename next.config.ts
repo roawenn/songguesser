@@ -27,7 +27,10 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${gelistirme ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.mzstatic.com",
+  // ⚠️ `*.supabase.co`: ünlü görselleri Supabase Storage'dan geliyor. Eksik
+  // kalırsa görseller SESSİZCE engellenir — CSP zorlayıcı ve konsola tek satır
+  // düşer. `blob:` ve `data:` admin kırpıcısının önizlemesi için zaten var.
+  "img-src 'self' data: blob: https://*.mzstatic.com https://*.supabase.co",
   "media-src 'self' blob: https://*.itunes.apple.com https://*.mzstatic.com",
   "connect-src 'self' https://*.supabase.co",
   "font-src 'self' data:",
@@ -41,7 +44,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   images: {
-    remotePatterns: [{ protocol: 'https', hostname: '*.mzstatic.com' }],
+    // Proje ham `<img>` kullanıyor, `next/image` değil; bu liste ileriye dönük.
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.mzstatic.com' },
+      { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
+    ],
   },
 
   async headers() {
