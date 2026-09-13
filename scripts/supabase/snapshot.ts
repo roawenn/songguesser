@@ -28,6 +28,44 @@ function env(name: string): string {
   return v
 }
 
+/** PostgREST'in bir sayfada döndürdüğü en fazla satır (`db-max-rows`). */
+const SAYFA = 1000
+
+/**
+ * Bir kategorinin BÜTÜN satırlarını çeker.
+ *
+ * ⚠️ `limit=5000` İŞE YARAMIYORDU. Bu projede PostgREST'in `db-max-rows`
+ * ayarı 1000 ve sorgudaki `limit` onu YÜKSELTMİYOR, yalnızca düşürebiliyor.
+ * Betik sessizce kategori başına ilk 1000 satırı yazıyordu; kategoriler
+ * 1595-3284 şarkıya çıktığı için yedek havuzun yarısından azını temsil
+ * edecekti — üstelik yalnızca Supabase çöktüğünde, yani fark edilmesi en zor
+ * anda. Tek doğru yol `Range` başlığıyla sayfalamak.
+ *
+ * `order` sayfalama için ŞART: sırasız bir sorguda planlayıcı sayfalar
+ * arasında aynı satırı iki kez verebilir ya da atlayabilir.
+ */
+async function tumSatirlar(url: string, key: string, cat: CategoryId): Promise<SongRow[]> {
+  const out: SongRow[] = []
+  for (let bas = 0; ; bas += SAYFA) {
+    const params = new URLSearchParams({
+      select: SONG_COLUMNS,
+      category: `eq.${cat}`,
+      order: 'id.asc',
+    })
+    const res = await fetch(`${url}/rest/v1/songs?${params}`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        Range: `${bas}-${bas + SAYFA - 1}`,
+      },
+    })
+    if (!res.ok) throw new Error(`${cat}: Supabase ${res.status}`)
+    const sayfa = (await res.json()) as SongRow[]
+    out.push(...sayfa)
+    if (sayfa.length < SAYFA) return out
+  }
+}
+
 async function main() {
   const url = env('NEXT_PUBLIC_SUPABASE_URL')
   const key = env('SUPABASE_SECRET_KEY')
@@ -36,23 +74,13 @@ async function main() {
   const manifest: Array<{ cat: string; count: number }> = []
 
   for (const cat of CATEGORY_IDS as readonly CategoryId[]) {
-    const params = new URLSearchParams({
-      select: SONG_COLUMNS,
-      category: `eq.${cat}`,
-      order: 'tier.asc,artist.asc',
-      limit: '5000',
-    })
-    const res = await fetch(`${url}/rest/v1/songs?${params}`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
-    })
-    if (!res.ok) throw new Error(`${cat}: Supabase ${res.status}`)
-
-    const rows = (await res.json()) as SongRow[]
+    const rows = await tumSatirlar(url, key, cat)
     const pool: Pool = {
       v: POOL_VERSION,
       cat,
       builtAt: new Date().toISOString(),
-      songs: rows.map(toSong),
+      // Sayfalama `id.asc` istiyor; dosyadaki okunur sıra burada geri veriliyor.
+      songs: rows.map(toSong).sort((x, z) => x.d - z.d || x.a.localeCompare(z.a, 'tr')),
     }
     writeFileSync(join(OUT, `${cat}.json`), JSON.stringify(pool), 'utf8')
 

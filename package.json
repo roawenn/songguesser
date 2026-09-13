@@ -13,7 +13,7 @@
     "pool:build": "tsx scripts/build-pool.ts",
     "pool:verify": "tsx scripts/verify-pool.ts",
     "pool:suggest": "tsx scripts/suggest.ts",
-    "pool:snapshot": "tsx scripts/supabase/snapshot.ts",
+    "pool:snapshot": "node --conditions=react-server --import tsx scripts/supabase/snapshot.ts",
     "db:migrate": "tsx scripts/supabase/migrate.ts",
     "admin:parola": "tsx scripts/supabase/admin-parola.ts"
   },
