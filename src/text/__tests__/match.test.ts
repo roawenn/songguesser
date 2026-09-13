@@ -193,3 +193,62 @@ describe('judgeGuess — zor mod', () => {
     expect(judgeGuess('Gülpembe', gulpembe, pool, hard).kind).toBe('correct')
   })
 })
+
+/**
+ * İkinci oyun (ünlü tanıma) `judgeGuess`'i SANATÇISIZ öğelerle kullanacak:
+ * `nA` boş dize olacak. Bu blok, o durumda davranışın bozulmadığını kilitliyor.
+ *
+ * ⚠️ En sinsi tuzak: `sameArtist` hesabındaki `guessAsArtist.length > 0`
+ * koşulu silinirse iki boş dize eşit sayılır ve HER yanlış tahmin "sanatçı
+ * doğru" rozeti gösterir. Aşağıdaki ilk test tam olarak bunu yakalar.
+ */
+describe('sanatçısız öğeler (ünlü oyunu şekli)', () => {
+  const unlu = (ad: string) => ({
+    id: `unlu:${cleanKey(ad)}`,
+    nA: '',
+    k: buildKeys({ title: ad, artist: '' }),
+  })
+
+  const tarkan = unlu('Tarkan')
+  const cem = unlu('Cem Yılmaz')
+  const havuz = [tarkan, cem]
+
+  it('boş nA yüzünden "sanatçı doğru" DEMEZ', () => {
+    const v = judgeGuess('bambaska birisi', tarkan, havuz, easy)
+    expect(v.kind).toBe('wrong')
+    if (v.kind === 'wrong') expect(v.sameArtist).toBe(false)
+  })
+
+  /**
+   * ⚠️ Bu testin girdisi ÖZENLE seçildi ve kırılarak doğrulandı.
+   *
+   * "(remix)" `normalizeLoose` altında "remix" (yani boş değil, erken `empty`
+   * dönüşü olmuyor) ama `cleanKey` altında BOŞ — parantez ve gürültü siliniyor.
+   * `sameArtist` hesabındaki `guessAsArtist.length > 0` koşulu kaldırılırsa
+   * boş tahmin anahtarı boş `nA` ile eşleşir ve rozet yanlışlıkla çıkar.
+   *
+   * "bambaska birisi" gibi sıradan bir yanlış tahmin bunu YAKALAMAZ: o zaten
+   * boş olmadığı için boş `nA` ile hiçbir koşulda eşleşmiyor.
+   */
+  it('tahmin gürültüden ibaretse de "sanatçı doğru" DEMEZ', () => {
+    const v = judgeGuess('(remix)', tarkan, havuz, easy)
+    expect(v.kind).toBe('wrong')
+    if (v.kind === 'wrong') expect(v.sameArtist).toBe(false)
+  })
+
+  it('adı doğru yazınca kabul eder', () => {
+    expect(judgeGuess('Tarkan', tarkan, havuz, easy).kind).toBe('correct')
+    expect(judgeGuess('cem yilmaz', cem, havuz, easy).kind).toBe('correct')
+  })
+
+  it('sanatçısız anahtarlar boşluk dolgulu üretilmez', () => {
+    for (const o of havuz) {
+      expect(o.k.length).toBeGreaterThan(0)
+      expect(o.k.every((x) => x === x.trim() && x.length > 0)).toBe(true)
+    }
+  })
+
+  it('Türkçe karakter olmadan da bilinir', () => {
+    expect(judgeGuess('cem yilmaz', cem, havuz, easy).kind).toBe('correct')
+  })
+})

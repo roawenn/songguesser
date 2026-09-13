@@ -1,30 +1,45 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import type { Song } from '@/data/schema'
-import { query, type SearchIndex } from '@/text/autocomplete'
+import { query, type Aranabilir, type SearchIndex } from '@/text/autocomplete'
 
-interface Props {
-  index: SearchIndex | null
+/**
+ * Bir satırın nasıl yazılacağı.
+ *
+ * `ust` aynı zamanda GÖNDERİLEN metindir: öneri tıklandığında ya da ok tuşuyla
+ * seçilip Enter'a basıldığında kutuya bu yazılır.
+ */
+export interface OneriSatiri {
+  ust: string
+  alt?: string
+}
+
+interface Props<T extends Aranabilir> {
+  index: SearchIndex<T> | null
   /** Normal seviyede açık, Zor'da kapalı. */
   suggestions: boolean
   disabled: boolean
-  ambiguous: Song[] | null
+  ambiguous: T[] | null
   onGuess: (raw: string) => void
-  onPickAmbiguous: (song: Song) => void
+  onPickAmbiguous: (oge: T) => void
+  /** ⚠️ Oyuna göre değişen TEK şey: satırın nasıl okunacağı. */
+  satir: (oge: T) => OneriSatiri
+  yerTutucu?: string
 }
 
 /** Combobox ile öneri listesini birbirine bağlayan sabit kimlik. */
 const LIST_ID = 'nk-oneriler'
 
-export function GuessInput({
+export function GuessInput<T extends Aranabilir>({
   index,
   suggestions,
   disabled,
   ambiguous,
   onGuess,
   onPickAmbiguous,
-}: Props) {
+  satir,
+  yerTutucu = 'Şarkı adını yaz…',
+}: Props<T>) {
   const [text, setText] = useState('')
   const [open, setOpen] = useState(false)
   /**
@@ -73,7 +88,7 @@ export function GuessInput({
         // Yalnızca oyuncu ok tuşuyla ya da fareyle bir satır seçtiyse öneriyi
         // gönder; aksi hâlde yazdığı metin neyse o gider.
         const picked = cursor >= 0 ? list[cursor] : undefined
-        submit(picked ? picked.song.t : text)
+        submit(picked ? satir(picked.oge).ust : text)
         return
       }
     }
@@ -97,7 +112,7 @@ export function GuessInput({
           onFocus={() => setOpen(true)}
           onBlur={() => window.setTimeout(() => setOpen(false), 120)}
           onKeyDown={onKeyDown}
-          placeholder="Şarkı adını yaz…"
+          placeholder={yerTutucu}
           aria-label="Şarkı tahmini"
           // ⚠️ `aria-expanded` tek başına yetmez: `role="combobox"` olmadan
           // ekran okuyucu bunu sıradan bir metin kutusu sanar, `aria-controls`
@@ -192,7 +207,8 @@ export function GuessInput({
                   fontSize: 13,
                 }}
               >
-                {s.t} <span style={{ color: '#757b80' }}>· {s.a}</span>
+                {satir(s).ust}
+                {satir(s).alt && <span style={{ color: '#757b80' }}> · {satir(s).alt}</span>}
               </button>
             ))}
           </div>
@@ -220,13 +236,13 @@ export function GuessInput({
         >
           {list.map((s, i) => (
             <button
-              key={s.song.id}
+              key={s.oge.id}
               id={`${LIST_ID}-${i}`}
               type="button"
               role="option"
               aria-selected={i === cursor}
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => submit(s.song.t)}
+              onClick={() => submit(satir(s.oge).ust)}
               /*
                * ⚠️ Fareyle üstüne gelmek klavye seçimini DEĞİŞTİRMEZ. Liste
                * kutunun hemen altında açıldığı için imleç orada duruyorsa
@@ -246,7 +262,10 @@ export function GuessInput({
                 fontSize: 13.5,
               }}
             >
-              {s.song.t} <span style={{ color: '#757b80' }}>— {s.song.a}</span>
+              {satir(s.oge).ust}
+              {satir(s.oge).alt && (
+                <span style={{ color: '#757b80' }}> — {satir(s.oge).alt}</span>
+              )}
             </button>
           ))}
         </div>

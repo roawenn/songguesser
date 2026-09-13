@@ -1,5 +1,6 @@
 'use client'
 
+import { sarkiSatiri } from '@/data/schema'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useDuello } from '@/hooks/useDuello'
@@ -238,7 +239,8 @@ function Sahne({
               round.clearAmbiguity()
               round.guessSong(song)
             }}
-          />
+          satir={sarkiSatiri}
+                      />
         </div>
 
         {/* Üç yanlış kuralı düelloda da geçerli; hakların nerede olduğu görünsün. */}

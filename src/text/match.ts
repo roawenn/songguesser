@@ -1,14 +1,30 @@
-import type { Song } from '@/data/schema'
 import { normalizeLoose } from './normalize'
 import { cleanKey } from './keys'
 import { damerau, maxDistanceFor } from './distance'
 
-export type Verdict =
+/**
+ * Değerlendirmenin havuzdan okuduğu alanlar.
+ *
+ * ⚠️ `Song` yerine yapısal tip: ikinci oyun (ünlü tanıma) aynı eşleştirmeyi
+ * kullanıyor. `nA` orada BOŞ dize olacak — aşağıdaki `sameArtist` hesabı bunu
+ * zaten kaldırıyor (`guessAsArtist.length > 0` koşulu boş `nA` ile asla
+ * eşleşmez), ama koşulu silmek isteyen biri için not: silinirse ünlü oyununda
+ * HER yanlış tahmin "sanatçı doğru" rozeti gösterir.
+ */
+export interface Tahminlenebilir {
+  id: string
+  /** Kabul anahtarları. */
+  k: string[]
+  /** Normalize ikincil ad (şarkıda sanatçı). Ünlüde boş. */
+  nA: string
+}
+
+export type Verdict<T extends Tahminlenebilir = Tahminlenebilir> =
   | { kind: 'empty' }
   /** Kabul. `near` ise yazım hatası affedildi — arayüz "az kalsın!" gösterebilir. */
   | { kind: 'correct'; near: boolean }
-  /** Birden fazla şarkıya benzer yazıldı. HAK TÜKETMEZ — kullanıcı seçsin. */
-  | { kind: 'ambiguous'; candidates: Song[] }
+  /** Birden fazla öğeye benzer yazıldı. HAK TÜKETMEZ — kullanıcı seçsin. */
+  | { kind: 'ambiguous'; candidates: T[] }
   | { kind: 'wrong'; sameArtist: boolean }
 
 export interface MatchMode {
@@ -56,13 +72,13 @@ function bestDistanceToKeys(guess: string, keys: string[], strict: boolean): num
  *   5. BELİRSİZLİK KORUMASI — başka şarkı da aynı yakınlıktaysa hak tüketme
  *   6. yanlış; sanatçı tutuyorsa bunu söyle
  */
-export function judgeGuess(
+export function judgeGuess<T extends Tahminlenebilir>(
   raw: string,
-  answer: Song,
-  pool: readonly Song[],
+  answer: T,
+  pool: readonly T[],
   mode: MatchMode,
   rand: () => number = Math.random,
-): Verdict {
+): Verdict<T> {
   const guess = normalizeLoose(raw)
   if (!guess) return { kind: 'empty' }
 
@@ -86,11 +102,11 @@ export function judgeGuess(
     // 5 — belirsizlik koruması: bulanık kabulden ÖNCE tüm havuzu tara.
     // Bu olmadan "bulanık kabul" sessizce "bulanık YANLIŞ kabul"e dönüşür ve
     // oyuncular hak etmedikleri turları kazanır.
-    const rivals: Song[] = []
-    for (const song of pool) {
-      if (song.id === answer.id) continue
-      const d = bestDistanceToKeys(guess, song.k, strict)
-      if (d !== Infinity && d <= answerDist + 1) rivals.push(song)
+    const rivals: T[] = []
+    for (const oge of pool) {
+      if (oge.id === answer.id) continue
+      const d = bestDistanceToKeys(guess, oge.k, strict)
+      if (d !== Infinity && d <= answerDist + 1) rivals.push(oge)
     }
     if (rivals.length > 0) {
       /**

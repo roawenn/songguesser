@@ -1,5 +1,6 @@
 'use client'
 
+import { sarkiSatiri } from '@/data/schema'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useRound } from '@/hooks/useRound'
@@ -390,7 +391,8 @@ export function GameShell() {
                         round.clearAmbiguity()
                         round.guessSong(song)
                       }}
-                    />
+                    satir={sarkiSatiri}
+                      />
                   </div>
 
                   {/* Yapılan tahminler — üç hakkın nereye gittiği görünsün. */}

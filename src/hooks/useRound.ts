@@ -11,7 +11,7 @@ import { gameReducer, canPlay, currentClipLength, type GameState } from '@/game/
 import { STEPS } from '@/game/ladder'
 import { pickNext, filterByTier } from '@/game/select'
 import { judgeGuess, type Verdict } from '@/text/match'
-import { buildIndex } from '@/text/autocomplete'
+import { buildIndex, sarkiSamanligi, type SearchIndex } from '@/text/autocomplete'
 import { useSettingsStore } from '@/store/useSettingsStore'
 
 /**
@@ -30,7 +30,7 @@ export interface RoundApi {
   filtered: Song[]
   /** Bu zorlukta oynanacak kadar şarkı yok. */
   tooNarrow: boolean
-  index: ReturnType<typeof buildIndex> | null
+  index: SearchIndex<Song> | null
   clipLength: number
   /** Çal basılabilir mi? Tur sürdüğü sürece evet — dinlemek bedava. */
   canPlay: boolean
@@ -173,7 +173,7 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
 
   // Öneri listesi ve belirsizlik koruması yalnızca oynanabilir havuzu görmeli.
   const index = useMemo(
-    () => (universe.length > 0 ? buildIndex(universe) : null),
+    () => (universe.length > 0 ? buildIndex(universe, sarkiSamanligi) : null),
     [universe],
   )
 

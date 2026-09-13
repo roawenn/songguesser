@@ -1,5 +1,17 @@
-import type { Song } from '@/data/schema'
 import { MIN_PLAYABLE, type Difficulty } from '@/data/categories'
+
+/**
+ * Bu modülün havuzdan okuduğu TEK alanlar.
+ *
+ * ⚠️ `Song` yerine yapısal tip: ikinci oyun (ünlü tanıma) aynı seçim ve
+ * süzme mantığını kullanıyor ama `Song` değil. Gövde hiç değişmedi — yalnızca
+ * tip daraltıldı, `Song` bu şekli zaten sağlıyor.
+ */
+export interface Secilebilir {
+  id: string
+  /** Zorluk kademesi. */
+  d: Difficulty
+}
 
 /**
  * Havuzu seçili zorluk kademesine göre süzer.
@@ -9,11 +21,11 @@ import { MIN_PLAYABLE, type Difficulty } from '@/data/categories'
  * beş şarkının döngüye girdiği bir seçki vermektense biraz daha geniş ama
  * oynanabilir bir havuz vermek daha iyi.
  */
-export function filterByTier(
-  pool: readonly Song[],
+export function filterByTier<T extends Secilebilir>(
+  pool: readonly T[],
   tier: Difficulty,
   min = MIN_PLAYABLE,
-): Song[] {
+): T[] {
   let lo: number = tier
   let hi: number = tier
   let out = pool.filter((s) => s.d >= lo && s.d <= hi)
@@ -37,8 +49,9 @@ export function filterByTier(
   return out
 }
 
-export interface Pick {
-  song: Song
+export interface Pick<T extends Secilebilir = Secilebilir> {
+  /** ⚠️ Alan adı `song` KALIYOR: çağrı yerleri değişmesin. */
+  song: T
   /** Havuz tükendiği için tekrar sayacı sıfırlandı mı? */
   recycled: boolean
 }
@@ -47,11 +60,11 @@ export interface Pick {
  * Havuzdan, oturumda henüz çalınmamış bir şarkı seçer.
  * Havuz tükenirse sayaç sıfırlanır ve döngü yeniden başlar.
  */
-export function pickNext(
-  pool: readonly Song[],
+export function pickNext<T extends Secilebilir>(
+  pool: readonly T[],
   played: ReadonlySet<string>,
   rand: () => number = Math.random,
-): Pick | null {
+): Pick<T> | null {
   if (pool.length === 0) return null
 
   let available = pool.filter((s) => !played.has(s.id))

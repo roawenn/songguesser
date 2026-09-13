@@ -70,3 +70,14 @@ export function artworkAt(ar: string | undefined, size: number): string {
   if (!ar) return ''
   return ar.replace(/\/\d+x\d+bb\.jpg$/, `/${size}x${size}bb.jpg`)
 }
+
+/**
+ * Öneri ve belirsizlik listelerinde bir şarkının nasıl yazılacağı.
+ *
+ * ⚠️ `ust` aynı zamanda GÖNDERİLEN metin: öneri seçilince tahmin kutusuna bu
+ * yazılır. Sanatçı yalnızca ayırt etmek için, gönderilmiyor — oyunun kuralı
+ * "şarkı adı yeterli".
+ */
+export function sarkiSatiri(s: Song): { ust: string; alt?: string } {
+  return { ust: s.t, alt: s.a }
+}
