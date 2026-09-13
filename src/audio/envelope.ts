@@ -1,3 +1,4 @@
+import { MAX_STEP } from '@/game/ladder'
 /**
  * Klip zarfı (envelope) matematiği.
  *
@@ -51,7 +52,7 @@ export const MIN_CLIP_START = PREROLL + FADE_IN + 0.02 // 0,07 sn
 export const DEFAULT_CLIP_START = 0.325
 
 /** Merdivenin çıkabileceği en uzun klip. */
-export const MAX_CLIP = 16
+export const MAX_CLIP = MAX_STEP
 
 export interface ClipWindow {
   /** Elemanın seek edileceği medya zamanı. */

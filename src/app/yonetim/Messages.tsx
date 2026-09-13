@@ -1,5 +1,6 @@
 'use client'
 
+import { govdeOku } from './govde'
 import { useCallback, useEffect, useState } from 'react'
 import type { MessageRow } from '@/app/api/yonetim/mesajlar/route'
 
@@ -11,7 +12,7 @@ export function Messages({ onCount }: { onCount: (okunmamis: number) => void }) 
   const yukle = useCallback(async () => {
     try {
       const res = await fetch('/api/yonetim/mesajlar')
-      const d = await res.json()
+      const d = await govdeOku(res)
       if (!res.ok) throw new Error(d.error ?? 'Mesajlar yüklenemedi.')
       const list = d.rows as MessageRow[]
       setRows(list)

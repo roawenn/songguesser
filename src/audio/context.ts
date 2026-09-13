@@ -61,17 +61,6 @@ export function unlock(elements: HTMLAudioElement[] = []): void {
 
   void g.ctx.resume()
 
-  // 1 örneklik sessiz buffer — bazı iOS sürümlerinde context'i gerçekten açan şey.
-  try {
-    const buf = g.ctx.createBuffer(1, 1, g.ctx.sampleRate)
-    const src = g.ctx.createBufferSource()
-    src.buffer = buf
-    src.connect(g.ctx.destination)
-    src.start(0)
-  } catch {
-    // önemli değil
-  }
-
   // Elemanların kendi gesture aktivasyonu + iOS'ta indirmeyi başlatan priming.
   //
   // ⚠️ İKİ KURAL:
@@ -84,6 +73,25 @@ export function unlock(elements: HTMLAudioElement[] = []): void {
   // 2. Yalnızca BİR KEZ yapılır. Her tıklamada tekrarlansa arabelleği
   //    boşuna yeniden kurar.
   if (!unlocked) {
+    /*
+     * 1 örneklik sessiz buffer — bazı iOS sürümlerinde context'i gerçekten
+     * açan şey.
+     *
+     * ⚠️ Bu, aşağıdaki "yalnızca bir kez" korumasının DIŞINDAYDI: her `play`,
+     * `reroll` ve `next` tıklamasında yeni bir düğüm yaratılıyordu. Sızıntı
+     * değil (biten tek atımlık kaynakları Web Audio topluyor) ama tamamen
+     * boşunaydı; kilidi zaten ilk çağrı açıyor.
+     */
+    try {
+      const buf = g.ctx.createBuffer(1, 1, g.ctx.sampleRate)
+      const src = g.ctx.createBufferSource()
+      src.buffer = buf
+      src.connect(g.ctx.destination)
+      src.start(0)
+    } catch {
+      // önemli değil
+    }
+
     for (const el of elements) {
       const p = el.play()
       el.pause()

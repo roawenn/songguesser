@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  kodUret, kodGecerli, KOD_UZUNLUK, skorla, kazanan, ilerleyebilir,
+  kodUret, kodGecerli, KOD_UZUNLUK, skorla, kazanan,
   BEKLEME_SINIRI_MS, DUELLO_SARKI, type DuelloCevap,
 } from '../duel'
 
@@ -99,30 +99,3 @@ describe('kazanan', () => {
   })
 })
 
-describe('ilerleme', () => {
-  const benim = cevap({ slot: 1, songIndex: 0 })
-  const rakibin = cevap({ slot: 2, songIndex: 0 })
-
-  it('ben cevaplamadıysam ilerlemez', () => {
-    expect(ilerleyebilir([rakibin], 0, 1, 0)).toBe(false)
-  })
-
-  it('ikimiz de cevapladıysak hemen ilerler', () => {
-    expect(ilerleyebilir([benim, rakibin], 0, 1, 0)).toBe(true)
-  })
-
-  it('rakip yoksa süre dolana kadar bekler', () => {
-    expect(ilerleyebilir([benim], 0, 1, 0)).toBe(false)
-    expect(ilerleyebilir([benim], 0, 1, BEKLEME_SINIRI_MS - 1)).toBe(false)
-  })
-
-  it('⚠️ süre dolunca tek taraflı ilerler', () => {
-    // Yoksa oyunu bırakan kişi diğerini sonsuza kadar ekranda tutar.
-    expect(ilerleyebilir([benim], 0, 1, BEKLEME_SINIRI_MS)).toBe(true)
-  })
-
-  it('başka şarkının cevabı sayılmaz', () => {
-    const baska = cevap({ slot: 2, songIndex: 1 })
-    expect(ilerleyebilir([benim, baska], 0, 1, 0)).toBe(false)
-  })
-})

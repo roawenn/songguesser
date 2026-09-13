@@ -28,13 +28,38 @@ export function generateStaticParams() {
   return CHIPS.map((c) => ({ chip: c.id }))
 }
 
+/**
+ * Diskten okunan kategoriler — süreç ömrü boyunca bir kez.
+ *
+ * ⚠️ Eskiden yedek moddaki HER istek yedi JSON dosyasını yeniden okuyup
+ * yeniden ayrıştırıyordu. Supabase kesintisi zaten kötü bir an; üstüne her
+ * istekte disk I/O eklemenin anlamı yok.
+ */
+const diskOnbellek = new Map<string, Song[]>()
+
 function fallbackFromDisk(chip: ChipId): Song[] {
   const readCat = (cat: string): Song[] => {
+    const hit = diskOnbellek.get(cat)
+    if (hit) return hit
+
     const file = join(process.cwd(), 'public/data/pool', `${cat}.json`)
-    if (!existsSync(file)) return []
-    return (JSON.parse(readFileSync(file, 'utf8')) as Pool).songs.filter(
-      (s) => s.off !== 1,
-    )
+    let out: Song[] = []
+    try {
+      /*
+       * ⚠️ `JSON.parse` BURADA try/catch içinde olmalı. Çağıran yerdeki
+       * korumanın dışındaydı: bozuk ya da yarım yazılmış bir havuz dosyası
+       * `GET`'ten dışarı fırlıyor, 500'e dönüşüyor ve oyun "Şarkı listesi
+       * yüklenemedi" ekranına düşüyordu — yedeğin tam olarak önlemesi
+       * gereken şey.
+       */
+      if (existsSync(file)) {
+        out = (JSON.parse(readFileSync(file, 'utf8')) as Pool).songs.filter((s) => s.off !== 1)
+      }
+    } catch {
+      out = []
+    }
+    diskOnbellek.set(cat, out)
+    return out
   }
 
   const source = chipById(chip).source

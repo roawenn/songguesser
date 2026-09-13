@@ -5,6 +5,7 @@ import { CATEGORY_IDS, CHIPS, TIERS, type CategoryId, type Difficulty } from '@/
 import { artworkAt } from '@/data/schema'
 import { cleanKey } from '@/text/keys'
 import type { SongRow } from '@/lib/supabase'
+import { govdeOku } from './govde'
 import { AddPanel } from './AddPanel'
 import { Messages } from './Messages'
 
@@ -33,19 +34,36 @@ export function AdminPanel({ configured }: { configured: boolean }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playingId, setPlayingId] = useState<string | null>(null)
 
+  /**
+   * ⚠️ `res.json()` ASLA `res.ok` kontrolünden önce çağrılmamalı.
+   *
+   * Öyleydi: sunucu HTML dönen bir 500/502 verdiğinde (Vercel fonksiyon zaman
+   * aşımı, kenar hatası, Next hata sayfası) `json()` fırlatıyor, `void load()`
+   * onu yakalamıyordu. `authed` ve `rows` `null` kalıyor ve panel sonsuza
+   * kadar "Yükleniyor…" gösteriyordu — ekranda tek bir hata mesajı bile yoktu.
+   */
   const load = useCallback(async () => {
-    const res = await fetch('/api/yonetim')
-    if (res.status === 401) {
-      setAuthed(false)
-      return
+    try {
+      const res = await fetch('/api/yonetim')
+      if (res.status === 401) {
+        setAuthed(false)
+        return
+      }
+      const d = await govdeOku(res)
+      if (!res.ok) {
+        setAuthed(true)
+        setErr(d.error ?? `Liste yüklenemedi (${res.status}).`)
+        setRows([])
+        return
+      }
+      setAuthed(true)
+      setRows(d.rows as SongRow[])
+    } catch (e) {
+      // Ağ tamamen düştü: yine de bir şey göster.
+      setAuthed(true)
+      setRows([])
+      setErr((e as Error).message || 'Liste yüklenemedi.')
     }
-    const d = await res.json()
-    if (!res.ok) {
-      setErr(d.error ?? 'Liste yüklenemedi.')
-      return
-    }
-    setAuthed(true)
-    setRows(d.rows as SongRow[])
   }, [])
 
   useEffect(() => {
@@ -137,7 +155,17 @@ export function AdminPanel({ configured }: { configured: boolean }) {
     markBusy(ids, true)
     setErr(null)
     const touched = new Set(ids)
-    const snapshot = rows
+    /**
+     * ⚠️ Geri alma İÇİN yalnızca DOKUNULAN satırların eski hâli saklanır.
+     *
+     * Eskiden bütün `rows` dizisi anlık görüntü olarak alınıp hata hâlinde
+     * olduğu gibi geri yazılıyordu. İki istek üst üste binerse — panelde çok
+     * olağan: 12 şarkıyı seç, kademe ver, hemen birini kapat — birincisi
+     * başarılı olup sunucu satırlarını yazıyor, ikincisi düşünce ONUN eski
+     * anlık görüntüsü birincinin başarılı düzenlemesini ekrandan siliyordu.
+     * Veri tabanında duruyordu ama panel yanlış gösteriyordu.
+     */
+    const eski = new Map((rows ?? []).filter((r) => touched.has(r.id)).map((r) => [r.id, r]))
     setRows((prev) => prev?.map((r) => (touched.has(r.id) ? { ...r, ...change } : r)) ?? prev)
     try {
       const res = await fetch('/api/yonetim', {
@@ -145,8 +173,8 @@ export function AdminPanel({ configured }: { configured: boolean }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ids.length === 1 ? { id: ids[0], ...change } : { ids, ...change }),
       })
-      const d = await res.json()
-      if (!res.ok) throw new Error(d.error ?? 'Kaydedilemedi')
+      const d = await govdeOku(res)
+      if (!res.ok) throw new Error(d.error ?? `Kaydedilemedi (${res.status})`)
       setStatus(label ?? 'Kaydedildi · oyunda anında geçerli')
       // Sunucu dönemi yeniden hesaplamış olabilir; onun satırları geçerli olsun.
       const fresh = (d.rows as SongRow[] | undefined) ?? []
@@ -156,8 +184,8 @@ export function AdminPanel({ configured }: { configured: boolean }) {
       }
     } catch (e) {
       setErr((e as Error).message)
-      // İyimser güncelleme tutmadı: sunucunun bildiğine geri dön.
-      setRows(snapshot)
+      // İyimser güncelleme tutmadı: YALNIZCA bu isteğin dokunduğu satırları geri al.
+      setRows((prev) => prev?.map((r) => eski.get(r.id) ?? r) ?? prev)
     } finally {
       markBusy(ids, false)
     }
@@ -178,7 +206,7 @@ export function AdminPanel({ configured }: { configured: boolean }) {
         method: 'DELETE',
       })
       if (!res.ok) {
-        throw new Error(((await res.json()) as { error?: string }).error ?? 'Silinemedi')
+        throw new Error((await govdeOku(res)).error ?? 'Silinemedi')
       }
       const gone = new Set(ids)
       setRows((prev) => prev?.filter((r) => !gone.has(r.id)) ?? prev)
@@ -595,7 +623,7 @@ function Login({ onDone }: { onDone: () => void }) {
         body: JSON.stringify({ password: pw }),
       })
       if (!res.ok) {
-        throw new Error(((await res.json()) as { error?: string }).error ?? 'Giriş başarısız')
+        throw new Error((await govdeOku(res)).error ?? 'Giriş başarısız')
       }
       onDone()
     } catch (e) {

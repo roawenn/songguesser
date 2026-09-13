@@ -61,9 +61,18 @@ function toRow(cat: CategoryId, item: Incoming) {
   const t = item.track
   const tierNum = Number(item.tier)
   const tier: Difficulty = tierNum >= 1 && tierNum <= 5 ? (tierNum as Difficulty) : 3
+  /**
+   * ⚠️ Yıl BİLİNMİYORSA satır KAPALI eklenir.
+   *
+   * Eskiden içinde bulunulan yıla düşülüyordu ve bu sessizce yanlış veri
+   * üretiyordu: iTunes metadatası eksik bir 70'ler arabesk parçası "2020'ler"
+   * çipine giriyor, "Eskiler"den çıkıyor ve sonuç panelinde yanlış yıl
+   * gösteriyordu. Artık küratör düzeltene kadar oyuncuya hiç ulaşmıyor.
+   */
   const yearNum = Number(item.year)
-  const year =
-    yearNum >= 1900 && yearNum <= 2100 ? yearNum : (t.year || new Date().getUTCFullYear())
+  const elleVerilen = Number.isInteger(yearNum) && yearNum >= 1900 && yearNum <= 2100
+  const yilBilinmiyor = !elleVerilen && !t.year
+  const year = elleVerilen ? yearNum : (t.year || new Date().getUTCFullYear())
 
   return {
     id: `itunes:${t.trackId}`,
@@ -78,7 +87,8 @@ function toRow(cat: CategoryId, item: Incoming) {
     year,
     era: eraForYear(year),
     tier,
-    enabled: true,
+    // Yılı bilinmeyen satır küratör onaylayana kadar oyunda çıkmaz.
+    enabled: !yilBilinmiyor,
     norm_title: cleanKey(t.title),
     norm_artist: cleanKey(t.artist),
     accept_keys: buildKeys({ title: t.title, artist: t.artist }),

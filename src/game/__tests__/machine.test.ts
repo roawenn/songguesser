@@ -274,4 +274,32 @@ describe('filterByTier — zorluk süzgeci', () => {
   it('boş havuzda boş döner', () => {
     expect(filterByTier([], 3)).toEqual([])
   })
+
+  /**
+   * ⚠️ Genişletme KADEMELİ olmalı.
+   *
+   * Döngüde fazladan bir `hi++` vardı ve koşulu bayat `out`u okuduğu için
+   * `[1,2]` penceresi hiç denenmeden `[1,3]`e atlanıyordu: "Kolay" seçen
+   * oyuncuya, yeterli kolay+orta şarkı olmasına rağmen "Zor" karışıyordu.
+   */
+  it('bir kademe genişletmek yetiyorsa orada durur', () => {
+    const ince = [
+      ...Array.from({ length: 5 }, (_, i) => song({ id: 'k' + i, d: 1 })),
+      ...Array.from({ length: 50 }, (_, i) => song({ id: 'o' + i, d: 2 })),
+      ...Array.from({ length: 50 }, (_, i) => song({ id: 'z' + i, d: 3 })),
+    ]
+    const out = filterByTier(ince, 1)
+    expect(out.length).toBe(55)
+    expect(out.some((s) => s.d === 3)).toBe(false)
+  })
+
+  it('aşağı genişletme de tek adım', () => {
+    const ince = [
+      ...Array.from({ length: 50 }, (_, i) => song({ id: 'a' + i, d: 2 })),
+      ...Array.from({ length: 3 }, (_, i) => song({ id: 'b' + i, d: 3 })),
+    ]
+    const out = filterByTier(ince, 3)
+    expect(out.length).toBe(53)
+    expect(out.some((s) => s.d === 1)).toBe(false)
+  })
 })

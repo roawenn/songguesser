@@ -1,4 +1,3 @@
-import { ATTEMPTS } from './ladder'
 
 /**
  * Düello — iki kişi, aynı 5 şarkı, kolaydan zora.
@@ -98,26 +97,9 @@ export function kazanan(benim: DuelloSkor, rakip: DuelloSkor): DuelloSonuc {
 }
 
 /**
- * Sıradaki şarkıya geçilebilir mi?
- *
- * İki oyuncu da cevapladıysa geçilir. Rakip cevap vermiyorsa
- * {@link BEKLEME_SINIRI} sonrasında tek taraflı ilerlenir — yoksa oyunu
+ * Rakip cevap vermiyorsa bu süre sonunda tek taraflı ilerlenir — yoksa oyunu
  * bırakan kişi diğerini sonsuza kadar ekranda tutar.
  */
 export const BEKLEME_SINIRI_MS = 90_000
 
-export function ilerleyebilir(
-  cevaplar: DuelloCevap[],
-  songIndex: number,
-  benimSlot: 1 | 2,
-  bekleyenSure: number,
-): boolean {
-  const bu = cevaplar.filter((c) => c.songIndex === songIndex)
-  const ben = bu.some((c) => c.slot === benimSlot)
-  if (!ben) return false
-  const rakip = bu.some((c) => c.slot !== benimSlot)
-  return rakip || bekleyenSure >= BEKLEME_SINIRI_MS
-}
 
-/** Merdivenin en uzun kademesi kadar duyan biri aslında "hiç bilememiş" gibidir. */
-export const EN_UZUN_ADIM = ATTEMPTS - 1

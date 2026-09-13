@@ -18,10 +18,19 @@ export function filterByTier(
   let hi: number = tier
   let out = pool.filter((s) => s.d >= lo && s.d <= hi)
 
+  /**
+   * ⚠️ Her adımda TEK kademe genişletilir ve sonuç hemen yeniden hesaplanır.
+   *
+   * Burada fazladan bir `hi++` daha vardı ve koşulu BAYAT `out`u okuyordu —
+   * yani genişletmenin etkisi ölçülmeden ikinci kez genişletiliyordu. Sonuç:
+   * `[1,2]` penceresi hiç denenmeden `[1,3]`e atlanıyordu. "Kolay" seçen
+   * oyuncuya, yeterli sayıda kolay+orta şarkı olmasına rağmen "Zor" şarkılar
+   * karışıyordu. İnce seçkilerde (sanat 33, fantezi 34, halk 41) her turda
+   * yaşanıyordu.
+   */
   while (out.length < min && (lo > 1 || hi < 5)) {
     if (lo > 1) lo--
-    else if (hi < 5) hi++
-    if (out.length < min && hi < 5 && lo === 1) hi++
+    else hi++
     out = pool.filter((s) => s.d >= lo && s.d <= hi)
   }
 

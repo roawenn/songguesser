@@ -93,12 +93,18 @@ export async function PATCH(req: Request) {
   const ids = readIds(body)
   if (ids.length === 0) return NextResponse.json({ error: 'id gerekli.' }, { status: 400 })
 
-  // Yalnızca beklenen alanlar, beklenen aralıkta.
+  /*
+   * Yalnızca beklenen alanlar, beklenen aralıkta.
+   *
+   * ⚠️ `Number.isInteger` ŞART. Yoktu ve `{"tier": 3.7}` doğrulamayı geçip
+   * `int` sütuna gidiyordu: Postgres reddediyor, küratör ham Supabase hata
+   * metniyle bir 502 görüyor ve iyimser arayüz `3.7`yi zaten göstermiş oluyordu.
+   */
   const patch: Record<string, unknown> = {}
   const tier = Number(body.tier)
-  if (tier >= 1 && tier <= 5) patch.tier = tier as Difficulty
+  if (Number.isInteger(tier) && tier >= 1 && tier <= 5) patch.tier = tier as Difficulty
   const year = Number(body.year)
-  if (year >= 1900 && year <= 2100) {
+  if (Number.isInteger(year) && year >= 1900 && year <= 2100) {
     patch.year = year
     // ⚠️ Dönem yıldan TÜRETİLİR; ikisi elle ayrı ayrı verilirse tutarsızlaşır.
     patch.era = eraForYear(year)

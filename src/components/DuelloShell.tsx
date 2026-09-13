@@ -148,6 +148,7 @@ function Sahne({
   reduce: boolean
   d: Duello
 }) {
+  const easySearch = useSettingsStore((x) => x.easySearch)
   const { state } = round
   const playing = state.s === 'playing'
   const arming = state.s === 'arming' || state.s === 'booting'
@@ -200,7 +201,12 @@ function Sahne({
         <div style={{ marginTop: 40, width: '100%' }}>
           <GuessInput
             index={round.index}
-            suggestions={useSettingsStore.getState().easySearch}
+            /*
+             * ⚠️ `getState()` render sırasında ABONELİKSİZ okunuyordu: değer
+             * ilk render'da doğru geliyor ama sonra hiç güncellenmiyordu, yani
+             * "Kolay arama" anahtarının düello ekranında hiçbir etkisi yoktu.
+             */
+            suggestions={easySearch}
             disabled={!live}
             ambiguous={round.ambiguous}
             onGuess={round.guess}

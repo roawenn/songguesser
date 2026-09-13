@@ -55,11 +55,6 @@ export type Action =
   | { type: 'SKIP' }
   | { type: 'EMPTY_POOL' }
 
-/** Oyuncunun kaç hakkı var? Merdivenin kademe sayısı kadar. */
-export function attemptsFor(ladder: number[]): number {
-  return ladder.length
-}
-
 /** Tur içinde miyiz? */
 export function inRound(state: GameState): state is Extract<GameState, { s: 'ready' | 'playing' }> {
   return state.s === 'ready' || state.s === 'playing'

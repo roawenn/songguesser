@@ -1,5 +1,6 @@
 'use client'
 
+import { govdeOku } from './govde'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TIERS, type CategoryId, type Difficulty } from '@/data/categories'
 import { seedsFor } from '@/data/seeds'
@@ -74,6 +75,8 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
   const [queue, setQueue] = useState<string[]>([])
   const [scanning, setScanning] = useState<string | null>(null)
   const cancelScan = useRef(false)
+  /** Kuyruktaki bir sonraki sanatçıya geçiş zamanlayıcısı. */
+  const taramaTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const seeds = useMemo(() => seedsFor(cat), [cat])
 
@@ -127,11 +130,21 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
     const artist = queue[0]!
     setScanning(artist)
 
-    let timer: ReturnType<typeof setTimeout> | undefined
+    /**
+     * ⚠️ Zamanlayıcı REF'te tutulur, yerel değişkende değil.
+     *
+     * `timer` aşağıdaki `finally` içinde atanıyordu ama temizleme işlevi aynı
+     * yerel değişkeni yakalıyor ve istek HAVADAYKEN çalışıyordu — yani atama
+     * temizlemeden SONRA oluyor ve zamanlayıcı iptalden sağ çıkıyordu.
+     * Sonuç: "Durdur"a basıp yeni bir sanatçı kuyruğa alındığında, iptal
+     * edilmiş taramanın öksüz zamanlayıcısı ~2,6 sn sonra `setScanning(null)`
+     * yapıyor, efekt yeniden çalışıyor ve YENİ sanatçı İKİNCİ kez isteniyordu.
+     * iTunes buna 403 ile cevap veriyor ve kalan kuyruk siliniyordu.
+     */
     void (async () => {
       try {
         const res = await fetch(`/api/yonetim/oner?sanatci=${encodeURIComponent(artist)}`)
-        const d = (await res.json()) as { results?: FoundTrack[]; error?: string }
+        const d = (await govdeOku(res)) as { results?: FoundTrack[]; error?: string }
         if (cancelScan.current) return
         if (!res.ok) {
           onError(d.error ?? 'Tarama başarısız.')
@@ -152,12 +165,20 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
         }
       } finally {
         // Sınıra takılmamak için sonraki sanatçıyı hemen çekme.
-        timer = setTimeout(() => setScanning(null), SCAN_GAP_MS)
+        if (!cancelScan.current) {
+          taramaTimer.current = setTimeout(() => {
+            taramaTimer.current = null
+            setScanning(null)
+          }, SCAN_GAP_MS)
+        }
       }
     })()
 
     return () => {
-      if (timer) clearTimeout(timer)
+      if (taramaTimer.current) {
+        clearTimeout(taramaTimer.current)
+        taramaTimer.current = null
+      }
     }
   }, [queue, scanning, mode, onError])
 
@@ -167,6 +188,12 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
 
   function stopScan() {
     cancelScan.current = true
+    // Havadaki geçiş zamanlayıcısı da iptal edilmeli; yoksa durdurulan tarama
+    // saniyeler sonra kuyruğu yeniden uyandırıyor.
+    if (taramaTimer.current) {
+      clearTimeout(taramaTimer.current)
+      taramaTimer.current = null
+    }
     setQueue([])
     setScanning(null)
   }

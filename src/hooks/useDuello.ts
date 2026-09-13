@@ -95,6 +95,10 @@ export function useDuello(kod: string): DuelloApi {
    * negatif çıkıyor ve geri sayım "603" gibi bir sayıda dakikalarca donuyordu.
    */
   const sapma = useRef(0)
+  /** Terminal hata (404/410) alındı mı — yoklama durur. */
+  const terminal = useRef(false)
+  /** Oyuncu beş turu bitirdi mi — lobi süresi dolsa da sonuç ekranı korunur. */
+  const bitmis = useRef(false)
   /** Katılma isteği havada mı — iki yoklama aynı anda katılmaya kalkmasın. */
   const katiliyor = useRef(false)
   /** Rakibi beklemeye ne zaman başladık (süre aşımı için). */
@@ -121,6 +125,23 @@ export function useDuello(kod: string): DuelloApi {
       })
       const d = await res.json()
       if (!res.ok) {
+        /**
+         * ⚠️ BİTMİŞ bir düelloda 404/410 YOK SAYILIR.
+         *
+         * Lobi 2 saatte geçersizleşiyor. Oyuncu turunu bitirip sonuç ekranında
+         * kalmışsa (çok olağan: rakibini bekliyor ya da listeye bakıyor),
+         * süre dolduğu anda 410 geliyor, `hata` yalnızca BAŞARILI bir yoklamayla
+         * temizlenebildiği için de asla temizlenemiyordu: kazanan, skorlar ve
+         * beş şarkılık liste "Bu lobinin süresi dolmuş." yazısıyla siliniyordu.
+         *
+         * ⚠️ Ayrıca yoklama DURUR. Terminal bir hatada 1,5 saniyede bir aynı
+         * 410'u dövmenin anlamı yok.
+         */
+        if (res.status === 404 || res.status === 410) {
+          terminal.current = true
+          if (!bitmis.current) setHata(d.error ?? 'Bu düello artık yok.')
+          return
+        }
         setHata(d.error ?? 'Düello okunamadı.')
         return
       }
@@ -198,6 +219,7 @@ export function useDuello(kod: string): DuelloApi {
   useEffect(() => {
     void yokla()
     const id = setInterval(() => {
+      if (terminal.current) return
       setSimdi(Date.now())
       void yokla()
       // Ulaşamamış cevap varsa her turda yeniden denenir.
@@ -235,6 +257,8 @@ export function useDuello(kod: string): DuelloApi {
   const benimCevap = cevaplar.filter((c) => c.slot === benimSlot)
   const rakipIlerleme = cevaplar.filter((c) => c.slot === rakipSlot).length
   const aktif = benimCevap.length
+  // Beş tur bitince lobi süresi dolsa da sonuç ekranı korunur (bkz. `yokla`).
+  if (aktif >= DUELLO_SARKI) bitmis.current = true
 
   // `cevapGonder` çağrıldığı anda hangi sıradaydık — render'dan bağımsız tut.
   const gonderilenSira = useRef<number | null>(null)
@@ -308,7 +332,17 @@ export function useDuello(kod: string): DuelloApi {
 
   return {
     faz,
-    hata: hata ?? (doluHata ? 'Bu düello dolu — iki oyuncu çoktan başlamış.' : null),
+    /*
+     * ⚠️ Metin İKİ durumu birden kapsıyor. Eskiden yalnızca "iki oyuncu çoktan
+     * başlamış" yazıyordu ve bu, tarayıcı verisini kaybeden ya da bağlantıyı
+     * ikinci bir cihazda açan OYUNCUNUN KENDİSİNE de gösteriliyordu — oysa o,
+     * iki oyuncudan biri. Sunucu ikisini ayırt edemiyor; metin ayırt ediyor.
+     */
+    hata:
+      hata ??
+      (doluHata
+        ? 'Bu düello dolu. Oyunculardan biri sensen, düelloyu başlattığın tarayıcıda devam etmelisin.'
+        : null),
     kod,
     slot,
     songs,

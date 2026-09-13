@@ -13,7 +13,8 @@
  */
 import { getGraph, isUnlocked, unlock } from './context'
 import { getLanes, loadSource, type Lane } from './deck'
-import { FADE_IN, FADE_OUT, TAIL, planClip, MAX_CLIP } from './envelope'
+import { FADE_IN, FADE_OUT, TAIL, planClip, MAX_CLIP, previewIsLongEnough } from './envelope'
+import { MAX_STEP } from '@/game/ladder'
 
 export type ArmResult = 'ready' | 'stalled' | 'dead-url' | 'unsupported'
 export type ClipResult = 'completed' | 'stalled' | 'aborted'
@@ -151,9 +152,21 @@ class ClipPlayer {
       loadSource(lane, track.url)
       await waitForEvent(lane.el, 'loadedmetadata', ARM_TIMEOUT_MS, signal)
 
-      // Gerçek süreyi öğrendik; merdiveni taşıyamıyorsa reddet.
+      /**
+       * Gerçek süreyi öğrendik; merdiveni taşıyamıyorsa reddet.
+       *
+       * ⚠️ Eşik MERDİVENİN TAVANINA göre. Buradaki sabit `+ 1`, yalnızca
+       * 1 saniyelik klibi garanti ediyordu; oysa merdiven `MAX_STEP` (10 sn)
+       * kadar uzuyor. Kısa önizlemeli bir parça ilk kulvarları sorunsuz
+       * çalıp 5. kulvarda medyanın sonuna koşuyor, gözcü bunu takılma sanıp
+       * oyuncuya "Bağlantı takıldı" yazıyordu — yani kendi ağını suçluyordu
+       * ve son hakkını hiç kullanamıyordu.
+       *
+       * `previewIsLongEnough` tam bu iş için yazılmış ama hiç çağrılmıyordu;
+       * yalnızca testlerde duruyordu.
+       */
       const duration = Number.isFinite(lane.el.duration) ? lane.el.duration : track.duration
-      if (duration < plan.clipStart + 1 + FADE_OUT + TAIL) {
+      if (!previewIsLongEnough(duration, plan.clipStart, MAX_STEP)) {
         return 'dead-url'
       }
 

@@ -92,10 +92,3 @@ export function normalizeLoose(s: string): string {
   return collapse(prepare(s))
 }
 
-/**
- * Parantezleri koruyarak ("full") ya da silerek ("base") normalize eder.
- */
-export function normalize(s: string, opts: { keepParens?: boolean } = {}): string {
-  const base = opts.keepParens ? s : stripParens(s)
-  return normalizeLoose(base)
-}
