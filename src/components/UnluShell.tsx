@@ -131,7 +131,7 @@ export function UnluShell() {
       }
       orta={
         <main
-          className="nk-stage"
+          className="nk-stage nk-unlu"
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}
         >
           {durum.s === 'error' ? (

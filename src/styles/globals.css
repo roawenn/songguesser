@@ -627,3 +627,25 @@ button {
 .nk-sars {
   animation: nk-sars 0.36s ease-out;
 }
+
+/*
+ * Ünlü sahnesinin dikey ritmi.
+ *
+ * ⚠️ Şarkı sahnesinden DAHA SIKI, çünkü burada `Transport` (çal düğmesi +
+ * saat) yok — aradaki boşluklar orada iki farklı işlevi ayırıyordu, burada
+ * ayıracak bir şey yok.
+ *
+ * Bu bir estetik tercih değil, ÖLÇÜM sonucu: "Arkadaşınla oyna" düğmesi
+ * eklenince sahne 1242 px'e çıktı ve 1366x768'de (maximize) 25 px taşıyordu.
+ * Seçenek ya görseli küçültmekti ya aralıkları — görsel oyunun kendisi,
+ * aralıklar değil.
+ */
+.nk-unlu .nk-cubuk {
+  margin-top: 34px;
+}
+.nk-unlu .nk-giris {
+  margin-top: 26px;
+}
+.nk-unlu .nk-eylem {
+  margin-top: 16px;
+}

@@ -64,8 +64,12 @@ const TASARIM_Y = 1160
  *
  * Tek bir değere çıkmak şarkı oyununu gereksiz yere küçültürdü (1920x940'ta
  * ölçek 0,81 yerine 0,74). Bu yüzden her kabuk kendi ihtiyacını bildiriyor.
+ *
+ * ⚠️ Bu değer SAHNEYE BİR ŞEY EKLENDİĞİNDE yeniden ölçülmeli. "Arkadaşınla
+ * oyna" düğmesi eklendiğinde 1180 → 1242 oldu ve ara ölçüm yapılmasaydı
+ * BÜTÜN masaüstü boyutlarında 37-51 px taşıyacaktı.
  */
-export const TASARIM_Y_UNLU = 1185
+export const TASARIM_Y_UNLU = 1205
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**
