@@ -77,6 +77,55 @@ export function restUrl(path: string): string {
 }
 
 /**
+ * PostgREST'in tek yanıtta döndürdüğü en fazla satır.
+ *
+ * ⚠️ Bu, sorgudaki `limit` ile DEĞİŞMEZ. Supabase projesinde sunucu tarafında
+ * `db-max-rows` tanımlı ve bizim projede 1000. Ölçüldü:
+ * `?limit=50000` → `206 content-range: 0-999/5089`.
+ */
+export const REST_SAYFA = 1000
+
+/**
+ * Bütün satırları sayfalayarak çeker.
+ *
+ * ⚠️ Bu ZORUNLU, süs değil. Havuz 5089 satıra çıktığında sorgudaki `limit`
+ * yükseltilmişti ama işe yaramadı: PostgREST kendi tavanında kesiyor ve
+ * `200` yerine sessizce `206` dönüyordu. Tarayıcı aylarca havuzun yalnızca
+ * ilk 1000 satırını gördü — geri kalan %80'i oyunda hiç çıkmadı, panelde hiç
+ * görünmedi, tekrar kontrolüne hiç girmedi.
+ *
+ * Toplam satır sayısı `content-range`'in paydasından okunuyor, o yüzden kaç
+ * sayfa gerektiğini tahmin etmeye gerek yok.
+ */
+export async function restTumSatirlar<T>(
+  path: string,
+  init: RequestInit & { headers?: Record<string, string> },
+): Promise<T[]> {
+  const hepsi: T[] = []
+
+  for (let bas = 0; ; bas += REST_SAYFA) {
+    const res = await fetch(restUrl(path), {
+      ...init,
+      headers: {
+        ...init.headers,
+        Range: `${bas}-${bas + REST_SAYFA - 1}`,
+        'Range-Unit': 'items',
+        Prefer: 'count=exact',
+      },
+    })
+    if (!res.ok && res.status !== 206) throw new Error(`Supabase ${res.status}`)
+
+    const sayfa = (await res.json()) as T[]
+    hepsi.push(...sayfa)
+
+    const toplam = Number(res.headers.get('content-range')?.split('/')[1])
+    if (!Number.isFinite(toplam) || hepsi.length >= toplam || sayfa.length === 0) break
+  }
+
+  return hepsi
+}
+
+/**
  * Yönetim panelinin okuduğu kolonlar.
  *
  * ⚠️ `SONG_COLUMNS`'tan ayrı: `created_at` yalnızca panelde ("son eklenenler")

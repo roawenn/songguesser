@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { guvenliDepo } from './guvenliDepo'
 import { CHIPS, TIERS, type ChipId, type Difficulty } from '@/data/categories'
 
 export interface Settings {
@@ -57,6 +58,7 @@ export const useSettingsStore = create<Settings>()(
     {
       // v3: seviye (giriş biçimi) yerine zorluk kademesi + kolay arama.
       name: 'tahmin:ayarlar:v3',
+      storage: guvenliDepo,
       partialize: (s) => ({
         category: s.category,
         tier: s.tier,

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { chipById, CHIPS, CATEGORY_IDS, type ChipId } from '@/data/categories'
 import type { Pool, Song } from '@/data/schema'
 import {
-  SONG_COLUMNS, restUrl, restHeaders, toSong, supabaseReady, type SongRow,
+  SONG_COLUMNS, restHeaders, restTumSatirlar, toSong, supabaseReady, type SongRow,
 } from '@/lib/supabase'
 
 /**
@@ -51,20 +51,19 @@ async function fromSupabase(chip: ChipId): Promise<Song[]> {
   const params = new URLSearchParams({
     select: SONG_COLUMNS,
     enabled: 'eq.true',
-    limit: '5000',
+    // Sıralama sayfalamanın tutarlı olması için ŞART: sırasız bir sorguda
+    // planlayıcı sayfalar arasında aynı satırı iki kez verebilir ya da atlayabilir.
+    order: 'id.asc',
   })
 
   if (source.kind === 'genre') params.set('category', `eq.${source.genre}`)
   else if (source.kind === 'eras') params.set('era', `in.(${source.eras.join(',')})`)
 
-  const res = await fetch(restUrl(`songs?${params}`), {
-    headers: restHeaders(),
+  const rows = await restTumSatirlar<SongRow>(`songs?${params}`, {
+    headers: restHeaders() as Record<string, string>,
     // Next'in veri önbelleği: etiketle geçersizleştirilebilir.
     next: { revalidate: REVALIDATE_SECONDS, tags: ['havuz'] },
   })
-  if (!res.ok) throw new Error(`Supabase ${res.status}`)
-
-  const rows = (await res.json()) as SongRow[]
   return rows.map(toSong)
 }
 
@@ -99,7 +98,12 @@ export async function GET(
     {
       headers: {
         // Tarayıcı ve CDN de bir süre tutsun.
-        'Cache-Control': `public, s-maxage=${REVALIDATE_SECONDS}, stale-while-revalidate=600`,
+        /*
+         * ⚠️ `max-age` ŞART. `s-maxage` yalnızca paylaşımlı önbellekleri
+         * bağlar; onsuz tarayıcı için tazelik ömrü tanımsız kalıyor ve her
+         * sayfa yüklemesi en az bir koşullu gidiş-dönüş ödüyordu.
+         */
+        'Cache-Control': `public, max-age=${REVALIDATE_SECONDS}, s-maxage=${REVALIDATE_SECONDS}, stale-while-revalidate=600`,
       },
     },
   )

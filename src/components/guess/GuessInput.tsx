@@ -27,14 +27,23 @@ export function GuessInput({
 }: Props) {
   const [text, setText] = useState('')
   const [open, setOpen] = useState(false)
-  const [cursor, setCursor] = useState(0)
+  /**
+   * Öneri listesinde seçili satır. **-1 = hiçbiri seçili değil.**
+   *
+   * ⚠️ Burası 0'la başlıyordu ve her tuş vuruşunda 0'a dönüyordu, yani liste
+   * açıkken Enter oyuncunun YAZDIĞINI değil her zaman listenin ilk maddesini
+   * gönderiyordu. Doğru adı tam yazan oyuncu, bulanık arama başka bir şarkıyı
+   * üste koyduysa hakkını kaybediyordu. Havuz 321'den 5089'a çıkınca bu sık
+   * yaşanır hâle geldi.
+   */
+  const [cursor, setCursor] = useState(-1)
 
   const list = useMemo(() => {
     if (!suggestions || !index || text.trim().length < 2) return []
     return query(index, text, 5)
   }, [index, text, suggestions])
 
-  useEffect(() => setCursor(0), [text])
+  useEffect(() => setCursor(-1), [text])
 
   function submit(value: string) {
     const v = value.trim()
@@ -48,17 +57,22 @@ export function GuessInput({
     if (open && list.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault()
+        // Seçili yokken (-1) ilk satıra, sondan başa dön.
         setCursor((c) => (c + 1) % list.length)
         return
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault()
-        setCursor((c) => (c - 1 + list.length) % list.length)
+        // ⚠️ Modülo DEĞİL: -1'den geriye gitmek listenin sonundan bir öncekine
+        // düşerdi. Seçili yokken ve baştayken son satıra sar.
+        setCursor((c) => (c <= 0 ? list.length - 1 : c - 1))
         return
       }
       if (e.key === 'Enter') {
         e.preventDefault()
-        const picked = list[cursor]
+        // Yalnızca oyuncu ok tuşuyla ya da fareyle bir satır seçtiyse öneriyi
+        // gönder; aksi hâlde yazdığı metin neyse o gider.
+        const picked = cursor >= 0 ? list[cursor] : undefined
         submit(picked ? picked.song.t : text)
         return
       }
@@ -213,7 +227,13 @@ export function GuessInput({
               aria-selected={i === cursor}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => submit(s.song.t)}
-              onMouseEnter={() => setCursor(i)}
+              /*
+               * ⚠️ Fareyle üstüne gelmek klavye seçimini DEĞİŞTİRMEZ. Liste
+               * kutunun hemen altında açıldığı için imleç orada duruyorsa
+               * yazarken istemeden bir satır "seçili" oluyor ve Enter yazılan
+               * metin yerine onu gönderiyordu. Vurgu artık salt görsel, CSS'te.
+               */
+              className="nk-oneri"
               style={{
                 display: 'block',
                 width: '100%',
@@ -235,6 +255,7 @@ export function GuessInput({
       <style>{`
         .nk-input:focus { border-color: var(--acc) !important; }
         .nk-submit:hover:not(:disabled) { background: oklch(0.81 0.12 var(--hue) / 0.18) !important; }
+        .nk-oneri:hover { background: rgba(255,255,255,0.05) !important; }
       `}</style>
     </div>
   )

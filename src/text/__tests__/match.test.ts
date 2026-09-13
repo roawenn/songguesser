@@ -122,12 +122,56 @@ describe('judgeGuess — belirsizlik koruması', () => {
     const v = judgeGuess('yalnizlik paylasilmaz', a, ikiz, easy)
     if (v.kind === 'ambiguous') {
       expect(v.candidates.length).toBeGreaterThanOrEqual(2)
-      // Doğru cevap listede İLK sırada olmalı.
-      expect(v.candidates[0]!.id).toBe(a.id)
+      // Doğru cevap listede OLMALI — ama belirli bir sırada değil, bkz. altı.
+      expect(v.candidates.some((s) => s.id === a.id)).toBe(true)
       expect(v.candidates.length).toBeLessThanOrEqual(5)
     } else {
       // Eşikler değişmiş olabilir; en azından yanlış kabul etmemeli.
       expect(v.kind).toBe('correct')
+    }
+  })
+
+  /**
+   * ⚠️ Cevap SABİT BİR YERDE DURMAMALI.
+   *
+   * Eskiden `[answer, ...rivals]` döndürülüyordu ve arayüz diziyi olduğu gibi
+   * çizdiği için en soldaki çip her zaman doğru cevaptı: oyuncuyu kayırmak
+   * için var olan koruma, bedava kazanca dönüşmüştü.
+   */
+  /*
+   * ⚠️ Tahmin BULANIK olmalı: anahtarla tam eşleşen bir yazım 2. adımda
+   * doğrudan "doğru" dönüyor ve belirsizlik yoluna hiç girilmiyor. Aşağıdaki
+   * tahmin cevaptan bir harf eksik (mesafe 1), rakipten iki (mesafe 2).
+   */
+  const bulanik = 'yalnizlik paylasilmz'
+
+  it('doğru cevap listede sabit bir konumda değil', () => {
+    // Hep 0 döndüren rand, Fisher-Yates'te son elemanı başa taşır.
+    const bas = judgeGuess(bulanik, a, ikiz, easy, () => 0)
+    expect(bas.kind).toBe('ambiguous')
+    if (bas.kind !== 'ambiguous') return
+    expect(bas.candidates[0]!.id).not.toBe(a.id)
+    expect(bas.candidates.some((s) => s.id === a.id)).toBe(true)
+  })
+
+  /**
+   * ⚠️ Karıştırmayı kırpmadan SONRA yapmak, beşten fazla rakip varken cevabı
+   * listeden tamamen düşürür ve turu kazanılamaz hâle getirirdi.
+   */
+  it('rakip sayısı tavanı aşsa da cevap listede kalır', () => {
+    const cevap = song('Sanatçı 0', 'Yalnızlık Paylaşılmaz')
+    // Her rakip son harfte farklı: tahmine mesafeleri eşit (2), yani hepsi aday.
+    const rakipler = 'bcdefghjklmn'
+      .split('')
+      .map((ch, i) => song(`Sanatçı ${i + 1}`, `Yalnızlık Paylaşılma${ch}`))
+    const genisHavuz = [cevap, ...rakipler]
+
+    for (const r of [() => 0, () => 0.5, () => 0.999, Math.random]) {
+      const v = judgeGuess(bulanik, cevap, genisHavuz, easy, r)
+      expect(v.kind).toBe('ambiguous')
+      if (v.kind !== 'ambiguous') continue
+      expect(v.candidates.length).toBeLessThanOrEqual(5)
+      expect(v.candidates.some((s) => s.id === cevap.id)).toBe(true)
     }
   })
 

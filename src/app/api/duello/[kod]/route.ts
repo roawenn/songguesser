@@ -50,6 +50,13 @@ export async function GET(req: Request, ctx: { params: Promise<{ kod: string }> 
     chip: duel.chip,
     status: duel.status,
     startedAt: duel.started_at,
+    /*
+     * ⚠️ Geri sayım ve bekleme süresi sunucunun yazdığı damgalara bakıyor.
+     * İstemci kendi `Date.now()`'uyla karşılaştırdığında saati kaymış bir
+     * cihazda sonuç anlamsız çıkıyordu; kaymayı ölçebilsin diye sunucu kendi
+     * saatini de bildiriyor.
+     */
+    sunucuZamani: new Date().toISOString(),
     oyuncuSayisi: kisiler.length,
     slot,
     // Şarkılar yalnızca doğrulanmış oyuncuya.

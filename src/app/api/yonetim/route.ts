@@ -4,7 +4,7 @@ import {
   CATEGORY_IDS, eraForYear, type CategoryId, type Difficulty,
 } from '@/data/categories'
 import { isAuthed, adminConfigured } from '@/lib/adminAuth'
-import { ADMIN_COLUMNS, restUrl, restHeaders, type SongRow } from '@/lib/supabase'
+import { ADMIN_COLUMNS, restUrl, restHeaders, type SongRow, restTumSatirlar } from '@/lib/supabase'
 
 /**
  * Yönetim paneli veri uç noktası — Supabase üzerinde CRUD.
@@ -56,27 +56,32 @@ export async function GET(req: Request) {
   if (blocked) return blocked
 
   const cat = new URL(req.url).searchParams.get('kategori')
+  /**
+   * ⚠️ Sayfalama ŞART, `limit` yükseltmek YETMEZ.
+   *
+   * PostgREST bu projede 1000 satırda kesiyor (`db-max-rows`) ve sorgudaki
+   * `limit` bunu değiştirmiyor. Havuz 5089 satırken panel yalnızca ilk 1000'i
+   * görüyordu: kalan satırlar düzenlenemiyor, silinemiyor, `existing` tekrar
+   * kümesine girmediği için `AddPanel` onları "yeni" diye öneriyor ve ekleme
+   * `songs_norm_uidx`'e çarpıyordu.
+   */
   const params = new URLSearchParams({
     select: ADMIN_COLUMNS,
-    order: 'tier.asc,artist.asc,title.asc',
-    limit: '5000',
+    order: 'tier.asc,artist.asc,title.asc,id.asc',
   })
   if (cat && CATEGORY_IDS.includes(cat as CategoryId)) {
     params.set('category', `eq.${cat}`)
   }
 
-  const res = await fetch(restUrl(`songs?${params}`), {
-    headers: restHeaders({ secret: true }),
-    cache: 'no-store',
-  })
-  if (!res.ok) {
-    return NextResponse.json(
-      { error: `Supabase ${res.status}: ${await res.text()}` },
-      { status: 502 },
-    )
+  try {
+    const rows = await restTumSatirlar<SongRow>(`songs?${params}`, {
+      headers: restHeaders({ secret: true }) as Record<string, string>,
+      cache: 'no-store',
+    })
+    return NextResponse.json({ rows })
+  } catch (e) {
+    return NextResponse.json({ error: String((e as Error).message) }, { status: 502 })
   }
-
-  return NextResponse.json({ rows: (await res.json()) as SongRow[] })
 }
 
 /** Şarkı(ları) günceller: zorluk, yıl, kategori, açık/kapalı. */

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Song } from '@/data/schema'
 import type { ChipId } from '@/data/categories'
+import { anahtarOku, anahtarYaz } from '@/lib/duelloAnahtar'
 import {
   BEKLEME_SINIRI_MS, DUELLO_SARKI, kazanan, skorla,
   type DuelloCevap, type DuelloSkor, type DuelloSonuc,
@@ -34,6 +35,8 @@ interface Durum {
   chip: ChipId
   status: 'bekliyor' | 'oynaniyor' | 'bitti'
   startedAt: string | null
+  /** Sunucunun o anki saati — istemci saatindeki kaymayı ölçmek için. */
+  sunucuZamani: string
   oyuncuSayisi: number
   slot: 1 | 2 | null
   songs: Song[] | null
@@ -60,31 +63,54 @@ export interface DuelloApi {
   cevapGonder: (r: { won: boolean; heardSeconds: number; listens: number }) => void
 }
 
-/** localStorage anahtarı — her lobi için ayrı gizli anahtar. */
-const anahtar = (kod: string) => `tahmin:duello:${kod}`
-
 export function useDuello(kod: string): DuelloApi {
   const [durum, setDurum] = useState<Durum | null>(null)
   const [hata, setHata] = useState<string | null>(null)
   const [simdi, setSimdi] = useState(() => Date.now())
 
   const gizli = useRef<string | null>(null)
-  /** Bu sıradaki cevap gönderildi mi — çift gönderimi engeller. */
+  /** Anahtarı hangi lobi için okuduk — kod değişirse yeniden okunur. */
+  const okunanKod = useRef<string | null>(null)
+  /** Sunucunun onayladığı sıralar — çift gönderimi engeller. */
   const gonderilen = useRef(new Set<number>())
+  /**
+   * Sunucuya henüz ULAŞMAMIŞ cevap.
+   *
+   * ⚠️ Eskiden sıra, istek atılmadan önce "gönderildi" işaretleniyordu ve
+   * `.catch` yoktu. Tek bir ağ hıçkırığında indeks sonsuza kadar işaretli
+   * kalıyor, `aktif` sunucu satırlarından türediği için hiç ilerlemiyor ve
+   * oyuncu kilitli bir turda kalıyordu. Artık işaretleme sunucu onayından
+   * sonra; onaya kadar yoklama döngüsü yeniden dener.
+   */
+  const bekleyenCevap = useRef<{
+    songIndex: number
+    r: { won: boolean; heardSeconds: number; listens: number }
+  } | null>(null)
+  const gonderiliyor = useRef(false)
+  /**
+   * Sunucu saati − istemci saati.
+   *
+   * ⚠️ Geri sayım ve bekleme süresi, sunucunun yazdığı damgalarla istemcinin
+   * `Date.now()`'unu karşılaştırıyor. Saati geri kalmış bir telefonda fark
+   * negatif çıkıyor ve geri sayım "603" gibi bir sayıda dakikalarca donuyordu.
+   */
+  const sapma = useRef(0)
   /** Katılma isteği havada mı — iki yoklama aynı anda katılmaya kalkmasın. */
   const katiliyor = useRef(false)
   /** Rakibi beklemeye ne zaman başladık (süre aşımı için). */
   const beklemeBasi = useRef<number | null>(null)
 
-  // Tarayıcıdaki gizli anahtar: kuran kişi zaten sahiptir.
-  useEffect(() => {
-    try {
-      gizli.current = window.localStorage.getItem(anahtar(kod))
-    } catch {
-      // Gizli pencerede localStorage kapalı olabilir; katılma yolu yine çalışır.
-      gizli.current = null
-    }
-  }, [kod])
+  /*
+   * Tarayıcıdaki gizli anahtar: kuran kişi zaten sahiptir.
+   *
+   * ⚠️ Okuma `useEffect`'te DEĞİL, render sırasında yapılıyor. Efekt ilk
+   * yoklamadan sonra çalışabiliyordu; o aralıkta anahtar `null` görünüyor ve
+   * lobiyi kuran kişi kendi lobisine 2. oyuncu olarak katılabiliyordu.
+   */
+  if (okunanKod.current !== kod) {
+    okunanKod.current = kod
+    gizli.current = anahtarOku(kod)
+  }
 
   const yokla = useCallback(async () => {
     try {
@@ -114,11 +140,7 @@ export function useDuello(kod: string): DuelloApi {
           const kd = await k.json()
           if (k.ok && kd.gizli) {
             gizli.current = kd.gizli
-            try {
-              window.localStorage.setItem(anahtar(kod), kd.gizli)
-            } catch {
-              /* kalıcı olmasa da oturum boyunca ref'te duruyor */
-            }
+            anahtarYaz(kod, kd.gizli)
             return // sıradaki yoklama şarkılarla gelsin
           }
           if (k.status === 409) setHata('Bu düello dolu.')
@@ -128,21 +150,58 @@ export function useDuello(kod: string): DuelloApi {
         }
       }
 
-      setDurum(d as Durum)
+      const gelen = d as Durum
+      if (gelen.sunucuZamani) {
+        const t = Date.parse(gelen.sunucuZamani)
+        if (Number.isFinite(t)) sapma.current = t - Date.now()
+      }
+      setDurum(gelen)
       setHata(null)
     } catch {
       // Ağ hıçkırığı yoklamayı durdurmamalı; bir sonraki tur yeniden dener.
     }
   }, [kod])
 
+  /** Bekleyen cevabı sunucuya ulaştırmayı dener. Başarısızlıkta sessizce bırakır. */
+  const cevapYolla = useCallback(async () => {
+    const b = bekleyenCevap.current
+    if (!b || gonderiliyor.current || !gizli.current) return
+    gonderiliyor.current = true
+    try {
+      const res = await fetch(`/api/duello/${kod}/cevap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gizli: gizli.current, songIndex: b.songIndex, ...b.r }),
+      })
+      if (res.ok) {
+        gonderilen.current.add(b.songIndex)
+        bekleyenCevap.current = null
+        await yokla()
+      } else if (res.status !== 502 && res.status < 500) {
+        /*
+         * ⚠️ 4xx KALICI bir rettir (geçersiz sıra, bu düelloda değilsin).
+         * Yeniden denemek her yoklamada aynı isteği atan sonsuz bir döngü
+         * olurdu; bekleyen düşürülüp oyuncunun ilerlemesine izin veriliyor.
+         */
+        bekleyenCevap.current = null
+      }
+    } catch {
+      // Ağ hatası: bekleyen duruyor, bir sonraki yoklama yeniden dener.
+    } finally {
+      gonderiliyor.current = false
+    }
+  }, [kod, yokla])
+
   useEffect(() => {
     void yokla()
     const id = setInterval(() => {
       setSimdi(Date.now())
       void yokla()
+      // Ulaşamamış cevap varsa her turda yeniden denenir.
+      void cevapYolla()
     }, YOKLAMA_MS)
     return () => clearInterval(id)
-  }, [yokla])
+  }, [yokla, cevapYolla])
 
   /**
    * ⚠️ Şarkı dizisinin KİMLİĞİ sabit kalmalı.
@@ -182,14 +241,12 @@ export function useDuello(kod: string): DuelloApi {
     (r: { won: boolean; heardSeconds: number; listens: number }) => {
       const i = gonderilenSira.current
       if (i === null || gonderilen.current.has(i) || !gizli.current) return
-      gonderilen.current.add(i)
-      void fetch(`/api/duello/${kod}/cevap`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gizli: gizli.current, songIndex: i, ...r }),
-      }).then(() => void yokla())
+      // Aynı sıra için zaten bir gönderim bekliyorsa üstüne yazma.
+      if (bekleyenCevap.current?.songIndex === i) return
+      bekleyenCevap.current = { songIndex: i, r }
+      void cevapYolla()
     },
-    [kod, yokla],
+    [cevapYolla],
   )
 
   // Rakip geride kaldıysa bekleme süresini ölç.
@@ -200,8 +257,22 @@ export function useDuello(kod: string): DuelloApi {
   }, [bekliyor])
   const beklemeSuresi = beklemeBasi.current ? simdi - beklemeBasi.current : 0
 
+  /** Sunucu saatiyle hizalanmış şimdi. */
+  const sunucuSimdi = simdi + sapma.current
+
+  /**
+   * ⚠️ İki katmanlı koruma.
+   *
+   * Kayma telafisi doğru sonucu verir; kelepçe ise telafi bir şekilde yanlış
+   * olsa bile (ilk yoklama gelmeden, sunucu damgası bozuksa) geri sayımın
+   * 3 saniyeden uzun sürmesini imkânsız kılar. Eskiden saati 10 dakika geri
+   * olan bir telefon 96 punto "603" yazan bir ekranda donuyordu.
+   */
   const geriSayimKalan = durum?.startedAt
-    ? GERI_SAYIM_MS - (simdi - new Date(durum.startedAt).getTime())
+    ? Math.min(
+        GERI_SAYIM_MS,
+        Math.max(0, GERI_SAYIM_MS - (sunucuSimdi - new Date(durum.startedAt).getTime())),
+      )
     : GERI_SAYIM_MS
 
   const faz: DuelloFaz = (() => {

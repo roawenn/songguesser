@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { guvenliDepo } from './guvenliDepo'
 import { BOS, sanitize, uygula, type Istatistik, type TurSonucu } from '@/game/stats'
 
 /**
@@ -45,6 +46,7 @@ export const useStatsStore = create<StatsStore>()(
     }),
     {
       name: 'tahmin:istatistik:v1',
+      storage: guvenliDepo,
       partialize: (s) => ({
         oynanan: s.oynanan,
         kazanilan: s.kazanilan,

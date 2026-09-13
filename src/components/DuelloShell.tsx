@@ -125,6 +125,8 @@ export function DuelloShell({ kod }: { kod: string }) {
               <Bitis d={d} />
             ) : d.faz === 'bekleme' ? (
               <Bekleme d={d} />
+            ) : round.state.s === 'error' ? (
+              <CalinamadiKutusu d={d} />
             ) : (
               <Sahne round={round} cassette={cassette} reduce={reduce} d={d} />
             )}
@@ -231,6 +233,43 @@ function Sahne({
         </button>
       </div>
     </main>
+  )
+}
+
+/**
+ * Şarkı hiç kurulamadıysa çıkış kapısı.
+ *
+ * ⚠️ Bu ekran OLMADAN oyuncu kalıcı olarak donuyordu. Ölü bir Apple önizleme
+ * URL'i `useRound`'u `error` durumuna düşürüyor; o durumda çal, tahmin ve
+ * **Geç** düğmelerinin üçü birden kapalı oluyor, tur asla bitmediği için cevap
+ * hiç gönderilmiyor ve sıra hiç ilerlemiyordu. Ekranda bir açıklama bile yoktu.
+ *
+ * ⚠️ Şarkı yalnızca BU oyuncu için atlanıyor, rakip için değil. Sunucuya bir
+ * "iki taraf için de atla" uç noktası eklemek, rakibinin bileceği şarkıyı iptal
+ * etme — her şarkıda çağırıp beraberliği garantileme — yolunu açardı. Küratörlü
+ * bir havuzda ölü önizleme nadir; sonsuza kadar kilitlenmek ise kesindi.
+ */
+function CalinamadiKutusu({ d }: { d: Duello }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+      <Kutu tone="bad">
+        Bu şarkı çalınamadı. Senin için atlanacak — rakibin oynamaya devam ediyor.
+      </Kutu>
+      <button
+        type="button"
+        onClick={() => d.cevapGonder({ won: false, heardSeconds: 0, listens: 0 })}
+        style={{
+          ...M,
+          padding: '12px 20px',
+          borderRadius: 5,
+          border: '1px solid var(--acc)',
+          background: 'oklch(0.81 0.12 var(--hue) / 0.12)',
+          color: 'var(--acc)',
+        }}
+      >
+        Bu şarkıyı geç
+      </button>
+    </div>
   )
 }
 

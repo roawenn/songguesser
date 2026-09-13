@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useStatsStore } from '@/store/useStatsStore'
+import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { chipById, TIER_LABELS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { heardLength } from '@/game/machine'
@@ -36,6 +38,7 @@ export function GameShell() {
     else root.removeAttribute('data-motion')
   }, [reduce])
 
+  const router = useRouter()
   const cassette = useRef<CassetteHandle>(null)
   const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
   const [duelloHata, setDuelloHata] = useState<string | null>(null)
@@ -45,6 +48,10 @@ export function GameShell() {
    *
    * ⚠️ Gizli anahtar navigasyondan ÖNCE yazılır. Sonra yazılsaydı düello
    * sayfası kendi kurduğu lobiye "yabancı" olarak girip ikinci slotu kapardı.
+   *
+   * ⚠️ `router.push`, `window.location.href` DEĞİL. `localStorage` engelliyse
+   * anahtar yalnızca `duelloAnahtar`'ın bellek yedeğinde duruyor; tam sayfa
+   * yüklemesi o yedeği siler ve yukarıdaki hata aynen geri gelirdi.
    */
   async function duelloBaslat() {
     setDuelloKuruluyor(true)
@@ -57,12 +64,8 @@ export function GameShell() {
       })
       const d = (await res.json()) as { kod?: string; gizli?: string; error?: string }
       if (!res.ok || !d.kod || !d.gizli) throw new Error(d.error ?? 'Lobi kurulamadı.')
-      try {
-        window.localStorage.setItem(`tahmin:duello:${d.kod}`, d.gizli)
-      } catch {
-        /* gizli pencerede kalıcı olmayabilir; sayfa yine de katılma yolunu bulur */
-      }
-      window.location.href = `/duello/${d.kod}`
+      anahtarYaz(d.kod, d.gizli)
+      router.push(`/duello/${d.kod}`)
     } catch (e) {
       setDuelloHata((e as Error).message)
       setDuelloKuruluyor(false)

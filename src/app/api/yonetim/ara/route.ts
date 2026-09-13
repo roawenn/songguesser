@@ -5,7 +5,7 @@ import {
 } from '@/data/categories'
 import { cleanKey, buildKeys } from '@/text/keys'
 import { isAuthed, adminConfigured } from '@/lib/adminAuth'
-import { restUrl, restHeaders } from '@/lib/supabase'
+import { restUrl, restHeaders, restTumSatirlar } from '@/lib/supabase'
 import {
   searchTracks, ITunesError, DEFAULT_CLIP_START, PREVIEW_DURATION, type FoundTrack,
 } from '@/lib/itunesSearch'
@@ -128,13 +128,15 @@ export async function POST(req: Request) {
    * yüklemeden ÖNCE ayıklanıp "atlandı" olarak raporlanıyor; `id` çakışması ise
    * `merge-duplicates` ile güncellemeye dönüşüyor.
    */
-  const catRes = await fetch(
-    restUrl(`songs?select=id,norm_artist,norm_title&category=eq.${cat}`),
-    { headers: restHeaders({ secret: true }), cache: 'no-store' },
-  )
-  const known = catRes.ok
-    ? ((await catRes.json()) as { id: string; norm_artist: string; norm_title: string }[])
-    : []
+  /*
+   * ⚠️ SAYFALAMA ŞART. PostgREST 1000 satırda kesiyor; `pop` kategorisi 3000'i
+   * aştığında tekrar kümesi eksik kalıyor, norm ön-elemesi çakışmayı kaçırıyor
+   * ve tek bir kopya yukarıda anlatılan 23505 ile bütün partiyi düşürüyordu.
+   */
+  const known = await restTumSatirlar<{ id: string; norm_artist: string; norm_title: string }>(
+    `songs?select=id,norm_artist,norm_title&category=eq.${cat}&order=id.asc`,
+    { headers: restHeaders({ secret: true }) as Record<string, string>, cache: 'no-store' },
+  ).catch(() => [])
   const normOwner = new Map(known.map((r) => [`${r.norm_artist}|${r.norm_title}`, r.id]))
   const knownIds = new Set(known.map((r) => r.id))
 
