@@ -122,34 +122,75 @@ export const REST_SAYFA = 1000
  * görünmedi, tekrar kontrolüne hiç girmedi.
  *
  * Toplam satır sayısı `content-range`'in paydasından okunuyor, o yüzden kaç
- * sayfa gerektiğini tahmin etmeye gerek yok.
+ * sayfa gerektiğini tahmin etmeye gerek yok — ilk sayfadan sonra kalanlar
+ * PARALEL çekilebiliyor.
  */
+/** Aynı anda açık sayfa isteği sayısı. */
+const ES_ZAMANLI = 6
+
+async function sayfaCek<T>(
+  path: string,
+  init: RequestInit & { headers?: Record<string, string> },
+  bas: number,
+): Promise<{ satirlar: T[]; toplam: number }> {
+  const res = await fetch(restUrl(path), {
+    ...init,
+    headers: {
+      ...init.headers,
+      Range: `${bas}-${bas + REST_SAYFA - 1}`,
+      'Range-Unit': 'items',
+      Prefer: 'count=exact',
+    },
+  })
+  if (!res.ok && res.status !== 206) throw new Error(`Supabase ${res.status}`)
+  const satirlar = (await res.json()) as T[]
+  const toplam = Number(res.headers.get('content-range')?.split('/')[1])
+  return { satirlar, toplam: Number.isFinite(toplam) ? toplam : NaN }
+}
+
 export async function restTumSatirlar<T>(
   path: string,
   init: RequestInit & { headers?: Record<string, string> },
 ): Promise<T[]> {
-  const hepsi: T[] = []
+  const ilk = await sayfaCek<T>(path, init, 0)
+  if (ilk.satirlar.length < REST_SAYFA) return ilk.satirlar
 
-  for (let bas = 0; ; bas += REST_SAYFA) {
-    const res = await fetch(restUrl(path), {
-      ...init,
-      headers: {
-        ...init.headers,
-        Range: `${bas}-${bas + REST_SAYFA - 1}`,
-        'Range-Unit': 'items',
-        Prefer: 'count=exact',
-      },
-    })
-    if (!res.ok && res.status !== 206) throw new Error(`Supabase ${res.status}`)
-
-    const sayfa = (await res.json()) as T[]
-    hepsi.push(...sayfa)
-
-    const toplam = Number(res.headers.get('content-range')?.split('/')[1])
-    if (!Number.isFinite(toplam) || hepsi.length >= toplam || sayfa.length === 0) break
+  /*
+   * Toplam okunamadıysa (ör. `count` kapalıysa) eski ardışık davranışa dön:
+   * kaç sayfa gerektiğini bilmeden paralel istek atmak ya eksik okur ya da
+   * boşuna istek yakar.
+   */
+  if (!Number.isFinite(ilk.toplam)) {
+    const hepsi = [...ilk.satirlar]
+    for (let b = REST_SAYFA; ; b += REST_SAYFA) {
+      const { satirlar } = await sayfaCek<T>(path, init, b)
+      hepsi.push(...satirlar)
+      if (satirlar.length < REST_SAYFA) return hepsi
+    }
   }
 
-  return hepsi
+  const baslangiclar: number[] = []
+  for (let b = REST_SAYFA; b < ilk.toplam; b += REST_SAYFA) baslangiclar.push(b)
+
+  /*
+   * Sayfalar SIRAYLA birleştiriliyor ama ARDIŞIK çekilmiyor. Havuz 15358
+   * satıra çıkınca bu 16 sayfa demek; sayfa başına 180-400 ms ile yönetim
+   * paneli her açılışta ~4 saniye, derleme ve her yeniden doğrulama da o
+   * kadar bekliyordu. Sıra `order` sayesinde sunucuda belirli, dolayısıyla
+   * indeksle yerine koymak güvenli.
+   */
+  const parcalar: T[][] = new Array(baslangiclar.length)
+  let sonraki = 0
+  const isci = async () => {
+    for (;;) {
+      const i = sonraki++
+      if (i >= baslangiclar.length) return
+      parcalar[i] = (await sayfaCek<T>(path, init, baslangiclar[i])).satirlar
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(ES_ZAMANLI, baslangiclar.length) }, isci))
+
+  return [ilk.satirlar, ...parcalar].flat()
 }
 
 /**

@@ -22,6 +22,26 @@ import {
  *    durdurmaz.
  */
 
+/**
+ * Supabase'den havuzun yeniden OKUNMA aralığı.
+ *
+ * ⚠️ Bu, tazelikle ilgili DEĞİL. Panelden kaydedince `revalidateTag('havuz')`
+ * çalışıyor ve yayın anında oluyor; zamanlayıcı yalnızca "hiç kimse bir şey
+ * değiştirmediyse yine de tazele" demek.
+ *
+ * 60 saniyeydi. Havuz 15358 satıra çıkınca bunun bedeli ölçüldü: trafik olan
+ * bir sitede dakikada bir tam okuma, günde ~1440 kez ~4 MB = 5+ GB — Supabase
+ * ücretsiz planın AYLIK 5 GB kotası bir günde biterdi. Rotanın kendi açıklaması
+ * zaten "oyuncular veritabanına değil CDN'e vursun, kota tükenmesin" diyor;
+ * 60 saniyelik zamanlayıcı tam da onu deliyordu.
+ */
+const SUPABASE_TAZELE = 3600
+
+/**
+ * Tarayıcı ve CDN tazelik ömrü — küratör düzenlemesinin oyunculara ulaşma
+ * gecikmesinin üst sınırı. Supabase okuma aralığından AYRI tutuluyor: biri
+ * yayın hızını, diğeri veritabanı maliyetini belirliyor.
+ */
 const REVALIDATE_SECONDS = 60
 
 export function generateStaticParams() {
@@ -87,7 +107,7 @@ async function fromSupabase(chip: ChipId): Promise<Song[]> {
   const rows = await restTumSatirlar<SongRow>(`songs?${params}`, {
     headers: restHeaders() as Record<string, string>,
     // Next'in veri önbelleği: etiketle geçersizleştirilebilir.
-    next: { revalidate: REVALIDATE_SECONDS, tags: ['havuz'] },
+    next: { revalidate: SUPABASE_TAZELE, tags: ['havuz'] },
   })
   return rows.map(toSong)
 }

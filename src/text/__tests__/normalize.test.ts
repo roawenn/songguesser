@@ -84,6 +84,21 @@ describe('buildKeys', () => {
     expect(keys).toContain('ceza suspus')
   })
 
+  it('normalize edilince boşalan başlıkta boşluk dolgulu anahtar ÜRETMEZ', () => {
+    // Gerçek havuzdan: "[.]" — Replikas. Başlık yalnızca noktalama.
+    const keys = buildKeys({ title: '[.]', artist: 'Replikas' })
+    expect(keys.every((k) => k === k.trim())).toBe(true)
+    expect(keys).not.toContain(' replikas')
+    expect(keys).not.toContain('replikas ')
+  })
+
+  it('başlığın bir kısmı sağ kalıyorsa birleşik anahtarlar durur', () => {
+    // "? (Aşk Olunca)" — Kargo: parantez içi normalize edilince "ask olunca".
+    const keys = buildKeys({ title: '? (Aşk Olunca)', artist: 'Kargo' })
+    expect(keys).toContain('ask olunca')
+    expect(keys.every((k) => k === k.trim())).toBe(true)
+  })
+
   it('takma adları dahil eder', () => {
     const keys = buildKeys({ title: 'Şımarık', artist: 'Tarkan', aliases: ['Kiss Kiss'] })
     expect(keys).toContain('kiss kiss')

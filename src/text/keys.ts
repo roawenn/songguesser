@@ -36,7 +36,15 @@ export function buildKeys({ title, artist, aliases = [] }: KeyInput): string[] {
 
   const keys = [tFull, tBase, tClean]
 
-  if (aClean) {
+  /*
+   * ⚠️ `tClean` BOŞ olabilir: noktalama dışında harf içermeyen başlıklar
+   * ("[.]", "?") normalize edilince hiçbir şey bırakmıyor. Koşulsuz birleştirme
+   * `" replikas"` ve `"replikas "` gibi boşluk dolgulu anahtarlar üretiyordu —
+   * `k.length > 0` süzgecini geçiyorlar ama oyuncunun yazdığı metin daima
+   * kırpılmış geldiği için hiçbiriyle TAM eşleşemiyor. Sonuç: şarkı yalnızca
+   * bulanık eşleşmenin insafına kalıyor, başlığı ise hiç yazılamıyor.
+   */
+  if (aClean && tClean) {
     keys.push(`${tClean} ${aClean}`, `${aClean} ${tClean}`)
   }
 
