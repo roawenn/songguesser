@@ -21,6 +21,20 @@ import { useEffect } from 'react'
 
 /** Tasarımın referans genişliği. */
 const TASARIM_G = 1920
+
+/**
+ * Oyun alanının (üst bant + sahne) 1:1 ölçekte istediği YÜKSEKLİK.
+ *
+ * ⚠️ Ölçek eskiden yalnızca GENİŞLİĞE bakıyordu. 1920 genişlikte çarpan 1
+ * çıkıyor, ama 1920×1080 bir monitörde tarayıcı çerçevesinden sonra ~940 px
+ * kalıyor: sahne 1035 px istediği için "Geç" ve "Şarkıyı değiştir" ekranın
+ * altında kalıyor, her şey yukarıya yapışmış görünüyordu. 2560×1440'ta sorun
+ * yok, çünkü orada yükseklik zaten yetiyor — bu yüzden yalnızca ikinci
+ * monitörde ortaya çıkıyordu.
+ *
+ * Değer ölçüldü: üst bant 178 px + sahne 851 px = 1029, üstüne biraz nefes.
+ */
+const TASARIM_Y = 1050
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**
@@ -43,7 +57,11 @@ export function useOlcek(): void {
         kok.removeAttribute('data-olcek')
         return
       }
-      const ham = Math.min(1, g / TASARIM_G)
+      /*
+       * İki kısıt da geçerli: sahne hem yatayda hem dikeyde sığmalı.
+       * Hangisi daha darsa ölçeği o belirler.
+       */
+      const ham = Math.min(1, g / TASARIM_G, window.innerHeight / TASARIM_Y)
       const olcek = Math.max(EN_KUCUK, ham)
       kok.style.setProperty('--nk-olcek', String(Math.round(olcek * 1000) / 1000))
       kok.setAttribute('data-olcek', olcek < 1 ? 'kucuk' : 'tam')

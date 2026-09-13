@@ -506,6 +506,13 @@ button {
   margin-top: 14px;
 }
 /*
+ * Tahmin listesinin yeri BAŞTAN ayrılır: sahnenin toplam yüksekliği sabit
+ * kalsın, dikey ortalama yeniden hesaplanıp her şeyi yukarı çekmesin.
+ */
+.nk-tahminler ul {
+  min-height: var(--nk-liste-y, 0px);
+}
+/*
  * ⚠️ 44px DEĞİL 20px. Tahmin listesi artık üç satırlık yeri baştan ayırıyor
  * (bkz. GuessLog); eski 44px'lik aralık onun üstüne binince giriş kutusuyla
  * düğmeler arası bir deliğe dönüşüyordu. Ayrılan yer zaten ayırıcı işi görüyor.
@@ -562,6 +569,19 @@ button {
   }
   .nk-eylem {
     margin-top: 14px;
+  }
+  .nk-tahminler {
+    margin-top: 10px;
+  }
+  /*
+   * ⚠️ Mobilde yer AYRILMAZ. Masaüstünde ayırmanın sebebi dikey ortalamanın
+   * yeniden hesaplanmasıydı; mobilde yan kartlar sahnenin altına indiği için
+   * sayfa zaten kaydırılabilir ve o kayma oluşmuyor (kaydırma çıpalaması da
+   * kapalı). Buna karşılık ayrılan 62 px, "oyun alanı tek ekranda" hedefini
+   * bozuyordu: 390x844'te sahne 844'ü 20 px aşıyordu.
+   */
+  .nk-tahminler ul {
+    min-height: 0;
   }
   /* Kaset sahnenin kimliği; küçülüyor ama kaybolmuyor. */
   .nk-stage-grid > .nk-stage > :first-child {

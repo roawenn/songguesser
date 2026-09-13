@@ -28,7 +28,20 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
      * başlığı kutunun soluyla, "N hak kaldı" da Tahmin düğmesinin sağıyla
      * hizalanmıyordu — aynı bloğun parçası olduğu okunmuyordu.
      */
-    <div className="nk-tahminler" style={{ width: '100%' }} aria-label="Yanlış tahminlerin">
+    <div
+      className="nk-tahminler"
+      /*
+       * Ayrılan yükseklik CSS'e değişkenle veriliyor: mobil düzen onu
+       * sıfırlıyor (bkz. globals.css). Orada sayfa zaten kaydırılabilir,
+       * dolayısıyla ortalama kaynaklı kayma yok — ama ilk ekranda 62 px
+       * altın değerinde.
+       */
+      style={{
+        width: '100%',
+        ['--nk-liste-y' as string]: `${MAX_WRONG * SATIR + (MAX_WRONG - 1) * SATIR_ARA}px`,
+      }}
+      aria-label="Yanlış tahminlerin"
+    >
       <div
         style={{
           display: 'flex',
@@ -68,7 +81,6 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
           display: 'flex',
           flexDirection: 'column',
           gap: SATIR_ARA,
-          minHeight: MAX_WRONG * SATIR + (MAX_WRONG - 1) * SATIR_ARA,
         }}
       >
         {yanlislar.map((s, i) => (
