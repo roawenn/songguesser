@@ -31,17 +31,21 @@ const sans = IBM_Plex_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  /*
+   * ⚠️ Kök metadata artık İKİ oyunu birden kapsıyor. Her oyun kendi
+   * `metadata`'sını export ediyor; buradaki yalnızca site geneli.
+   */
   title: {
-    default: 'tahmin.net — Türkçe Şarkı Tahmin Oyunu',
+    default: 'tahmin.net — Türkçe Tahmin Oyunları',
     template: '%s · tahmin.net',
   },
   description:
-    'Yarım saniyeden şarkıyı bil. Türkçe pop, rap, arabesk, rock, halk ve sanat müziğinden yüzlerce parça. Kayıt yok, reklam yok, anında oyna.',
+    'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı. Kayıt yok, reklam yok, anında oyna.',
   keywords: [
     'şarkı tahmin oyunu',
     'türkçe müzik oyunu',
     'şarkıyı bil',
-    'müzik bilgi yarışması',
+    'ünlü tahmin oyunu',
     'türkçe heardle',
     'tahmin.net',
   ],
@@ -49,13 +53,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'tr_TR',
     siteName: 'tahmin.net',
-    title: 'tahmin.net — Türkçe Şarkı Tahmin Oyunu',
-    description: 'Yarım saniyeden şarkıyı bilebilir misin?',
+    title: 'tahmin.net — Türkçe Tahmin Oyunları',
+    description: 'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'tahmin.net — Türkçe Şarkı Tahmin Oyunu',
-    description: 'Yarım saniyeden şarkıyı bilebilir misin?',
+    title: 'tahmin.net — Türkçe Tahmin Oyunları',
+    description: 'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı.',
   },
   robots: { index: true, follow: true },
 }
@@ -78,6 +82,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Ses ve kapak görselleri doğrudan Apple'dan gelir — el sıkışmayı öne al. */}
         <link rel="preconnect" href="https://audio-ssl.itunes.apple.com" crossOrigin="" />
         <link rel="preconnect" href="https://is1-ssl.mzstatic.com" crossOrigin="" />
+        {/*
+          Ünlü görselleri Supabase Storage'dan geliyor.
+
+          ⚠️ `@/lib/supabase` BURADAN import edilmiyor: o dosya `server-only`
+          ve layout'un modül grafiğini gereksiz kirletirdi. Değer zaten
+          herkese açık bir ortam değişkeni.
+        */}
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="" />
+        )}
       </head>
       <body>{children}</body>
     </html>

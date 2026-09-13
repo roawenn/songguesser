@@ -11,6 +11,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: SITE_URL, lastModified: now, changeFrequency: 'daily', priority: 1 },
+    {
+      url: `${SITE_URL}/unlu`,
+      lastModified: now,
+      changeFrequency: 'daily' as const,
+      priority: 0.9,
+    },
     ...CHIPS.map((c) => ({
       url: `${SITE_URL}/seckiler/${c.id}`,
       lastModified: now,

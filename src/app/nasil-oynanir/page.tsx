@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { STEPS, ATTEMPTS, tr } from '@/game/ladder'
 import { MAX_WRONG } from '@/game/machine'
+import { SERIT } from '@/data/unlu'
 
 export const metadata: Metadata = {
   title: 'Nasıl Oynanır',
@@ -65,6 +66,14 @@ const faq = [
     a: 'Bunlar tür değil dönem seçkileri: Eskiler 70, 80 ve 90\'lı yılları, diğerleri kendi on yılını kapsar. Şeritte tek seçim yapılır — yani "Pop" ile "90\'lar" aynı anda seçilemez, birini seçersin.',
   },
   {
+    q: 'Ünlü tanıma oyunu nasıl işliyor?',
+    a: `Bir ünlünün görseli beş eşit yatay şeride bölünür ve başta yalnızca en üstteki — saç — açıktır. Yanlış tahmin ya da pas geçmek bir şerit daha açar. Beşinci şerit açılınca tur biter, yani ${SERIT - 1} tahmin hakkın var. Alt şeritten iki oyun arasında geçebilirsin.`,
+  },
+  {
+    q: 'İki oyunun zorluğu ve istatistiği ortak mı?',
+    a: 'Hayır, ayrı. Şarkıda "Uzman" seviyesindeysen ünlü oyununa "Kolay"dan başlarsın; isabet yüzden, serin ve kademe dağılımın da her oyun için ayrı tutulur. "Kolay arama" ve "azaltılmış animasyon" ise ortak tercihlerdir.',
+  },
+  {
     q: 'Klavyeden oynayabilir miyim?',
     a: 'Boşluk tuşu klibi çalar. Tahmin kutusuna yazarken ya da bir düğmeye odaklanmışken boşluk normal işini görür.',
   },
@@ -79,11 +88,15 @@ export default function NasilOynanirPage() {
 
       <h1 className="mt-6 font-serif text-4xl text-ink-0">Nasıl oynanır?</h1>
       <p className="mt-3 text-ink-2">
-        tahmin.net, Türkçe şarkıları yarım saniyeden tanımaya çalıştığın bir tahmin oyunudur.
-        Pop, rap, arabesk, rock, halk, sanat ve fantezi seçkileriyle oynanır.
+        tahmin.net&apos;te iki oyun var. <strong className="text-ink-0">Şarkı</strong>:
+        Türkçe bir parçayı yarım saniyeden tanımaya çalışırsın; pop, rap, arabesk, rock,
+        halk, sanat ve fantezi seçkileriyle oynanır.{' '}
+        <strong className="text-ink-0">Ünlü</strong>: bir ünlünün görseli beş şeride
+        bölünür, önce yalnızca saçı açıktır.
       </p>
 
-      <ol className="mt-8 flex flex-col gap-3 border-l border-white/10 pl-5 text-ink-2">
+      <h2 className="mt-9 font-serif text-2xl text-ink-0">Şarkı</h2>
+      <ol className="mt-4 flex flex-col gap-3 border-l border-white/10 pl-5 text-ink-2">
         <li>
           <strong className="text-ink-0">Çal</strong> — {tr(STEPS[0]!)} saniye duyarsın.
         </li>
@@ -93,6 +106,21 @@ export default function NasilOynanirPage() {
         <li>
           <strong className="text-ink-0">Uzat</strong> — her tükenen adımda klip uzar:{' '}
           {ladder}.
+        </li>
+      </ol>
+
+      <h2 className="mt-9 font-serif text-2xl text-ink-0">Ünlü</h2>
+      <ol className="mt-4 flex flex-col gap-3 border-l border-white/10 pl-5 text-ink-2">
+        <li>
+          <strong className="text-ink-0">Bak</strong> — önce yalnızca saç açıktır.
+        </li>
+        <li>
+          <strong className="text-ink-0">Yaz</strong> — adı yeterli; {SERIT - 1} yanlış
+          hakkın var.
+        </li>
+        <li>
+          <strong className="text-ink-0">Aç</strong> — her adımda bir şerit daha açılır:
+          saç → alın → gözler → ağız → tamamı.
         </li>
       </ol>
 
