@@ -29,6 +29,28 @@ interface Props {
  * bekler — yani sesin gerçekten duyulmaya başladığı anı. Tıklama anında
  * başlatılsaydı çubuk sesten önde giderdi.
  */
+/** Segment kutuları arasındaki boşluk (px). */
+const BOSLUK = 4
+
+/**
+ * `tierIndex` numaralı segmentin SAĞ kenarı, CSS genişliği olarak.
+ *
+ * ⚠️ Dolgu eskiden çubuğun TAMAMININ yüzdesiydi: `(i+1)/5 × %100`.
+ * Ama segment kutuları aralarında `BOSLUK` bırakıyor, dolayısıyla i. kutunun
+ * sağ kenarı çubuğun (i+1)/5'inde DEĞİL — dört boşluk kadar solunda. Dolgu her
+ * kademede kutusunun dışına taşıyordu; ilk kademede taşma 16/5 ≈ 3,2 px.
+ *
+ * Doğrusu boşlukları düşüp sonra geri eklemek:
+ *   (genişlik − toplam boşluk) × (i+1)/n  +  i × boşluk
+ * Son kademede bu tam olarak %100 veriyor, yani çubuk tastamam doluyor.
+ */
+function hedefGenislik(tierIndex: number): string {
+  const i = Math.min(Math.max(tierIndex, 0), ATTEMPTS - 1)
+  const toplam = (ATTEMPTS - 1) * BOSLUK
+  const oran = ((i + 1) / ATTEMPTS).toFixed(4)
+  return `calc((100% - ${toplam}px) * ${oran} + ${i * BOSLUK}px)`
+}
+
 export function StepIndicator({
   attempt,
   steps,
@@ -39,17 +61,14 @@ export function StepIndicator({
 }: Props) {
   const sweepRef = useRef<HTMLDivElement>(null)
 
-  const pctFor = (tierIndex: number) =>
-    (Math.min(tierIndex + 1, ATTEMPTS) / ATTEMPTS) * 100
-
   /**
-   * ⚠️ Dolgu `width` ile DEĞİL `transform: scaleX` ile sürülüyor.
+   * ⚠️ Dolgu `width` ile DEĞİL `transform: scaleX` ile SÜRÜLÜYOR.
    *
    * `width` bir DÜZEN özelliği: klip boyunca saniyede 60 kez düzen → boya →
    * birleştirme zinciri çalışıyordu. `scaleX` yalnızca birleştirme adımına
-   * dokunur. Eleman tam genişlikte duruyor, ölçek 0..1 arasında sürülüyor.
+   * dokunur. Genişlik kademe başına BİR kez yazılıyor, her karede değil.
    */
-  const olcek = (yuzde: number) => `scaleX(${(yuzde / 100).toFixed(4)})`
+  const hedefOlcek = (oran: number) => `scaleX(${oran.toFixed(4)})`
 
   // Yeni şarkı: dolgu sıfırlanır. (Duyulan kademe artık oyun durumunda tutulur.)
   useEffect(() => {
@@ -61,11 +80,17 @@ export function StepIndicator({
     if (!el) return
 
     if (!playing) {
-      el.style.transform = heardIndex >= 0 ? olcek(pctFor(heardIndex)) : 'scaleX(0)'
+      if (heardIndex >= 0) {
+        el.style.width = hedefGenislik(heardIndex)
+        el.style.transform = 'scaleX(1)'
+      } else {
+        el.style.transform = 'scaleX(0)'
+      }
       return
     }
 
-    const target = pctFor(attempt)
+    // Genişlik kademenin sağ kenarına sabitlenir; ölçek 0→1 arası süpürür.
+    el.style.width = hedefGenislik(attempt)
     el.style.transform = 'scaleX(0)'
     const total = clipLength * 1000
     let raf = 0
@@ -75,7 +100,7 @@ export function StepIndicator({
       const start = clipPlayer.plateauStart
       if (start != null) {
         const p = Math.max(0, Math.min(1, (performance.now() - start) / total))
-        el.style.transform = olcek(p * target)
+        el.style.transform = hedefOlcek(p)
         if (p >= 1) return
       }
       raf = requestAnimationFrame(tick)
@@ -120,7 +145,7 @@ export function StepIndicator({
         />
 
         {/* Segment kutuları — dolgunun ÜSTÜNDE, işaretler görünür kalsın. */}
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', gap: 4 }}>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', gap: BOSLUK }}>
           {STEPS.map((len, i) => {
             const step = steps[i]
             return (
