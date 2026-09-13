@@ -8,6 +8,7 @@ import type { SongRow } from '@/lib/supabase'
 import { govdeOku } from './govde'
 import { AddPanel } from './AddPanel'
 import { Messages } from './Messages'
+import { UnluPanel } from './UnluPanel'
 
 const labelOf = (cat: CategoryId) => CHIPS.find((c) => c.id === cat)?.label ?? cat
 
@@ -15,7 +16,7 @@ const PAGE = 60
 
 type Filter = 'hepsi' | 'kapali' | 'yeni'
 /** Panelin üst düzey görünümü. */
-type View = 'sarkilar' | 'mesajlar'
+type View = 'sarkilar' | 'unluler' | 'mesajlar'
 
 export function AdminPanel({ configured }: { configured: boolean }) {
   const [authed, setAuthed] = useState<boolean | null>(null)
@@ -266,14 +267,20 @@ export function AdminPanel({ configured }: { configured: boolean }) {
     <main style={S.page}>
       <header style={S.head}>
         <div>
-          <h1 style={S.h1}>{view === 'sarkilar' ? 'Şarkı havuzu' : 'Mesajlar'}</h1>
+          <h1 style={S.h1}>
+            {view === 'sarkilar' ? 'Şarkı havuzu' : view === 'unluler' ? 'Ünlü havuzu' : 'Mesajlar'}
+          </h1>
           <p style={S.sub}>
-            {view === 'sarkilar' ? (
+            {view === 'mesajlar' ? (
+              <>Hakkında sayfasındaki formdan gelen mesajlar.</>
+            ) : view === 'unluler' ? (
+              <>
+                Görsel beş şeride bölünür; saç en üstte kalacak şekilde hizala.
+              </>
+            ) : (
               <>
                 Kaynak: Supabase · Her değişiklik <strong>anında</strong> oyuna yansır.
               </>
-            ) : (
-              <>Hakkında sayfasındaki formdan gelen mesajlar.</>
             )}
           </p>
         </div>
@@ -281,6 +288,9 @@ export function AdminPanel({ configured }: { configured: boolean }) {
         <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
           <button type="button" onClick={() => setView('sarkilar')} style={S.tab(view === 'sarkilar')}>
             Şarkılar
+          </button>
+          <button type="button" onClick={() => setView('unluler')} style={S.tab(view === 'unluler')}>
+            Ünlüler
           </button>
           <button type="button" onClick={() => setView('mesajlar')} style={S.tab(view === 'mesajlar')}>
             Mesajlar {unread > 0 && <span style={S.count}>{unread}</span>}
@@ -305,6 +315,8 @@ export function AdminPanel({ configured }: { configured: boolean }) {
 
       {view === 'mesajlar' ? (
         <Messages onCount={setUnread} />
+      ) : view === 'unluler' ? (
+        <UnluPanel onAdded={setStatus} onError={setErr} />
       ) : (
       <>
       <div style={S.tabs}>

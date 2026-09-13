@@ -1,5 +1,6 @@
 import 'server-only'
 import { SUPABASE_URL, restHeaders } from './supabase'
+import { UNLU_KOVA_ADI } from '@/data/unluKova'
 
 /**
  * Supabase Storage — ünlü görselleri.
@@ -13,7 +14,7 @@ import { SUPABASE_URL, restHeaders } from './supabase'
  * asla inmemeli.
  */
 
-export const UNLU_KOVA = 'unluler'
+export const UNLU_KOVA = UNLU_KOVA_ADI
 
 /** Tarayıcının göreceği herkese açık adres. */
 export function storagePublicUrl(kova: string, yol: string): string {
