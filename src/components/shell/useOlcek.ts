@@ -32,10 +32,15 @@ const TASARIM_G = 1920
  * yok, çünkü orada yükseklik zaten yetiyor — bu yüzden yalnızca ikinci
  * monitörde ortaya çıkıyordu.
  *
- * Değer ölçüldü: üst bant 178 + ayraç altı boşluk 34 + sahne 851 = 1063,
- * üstüne biraz nefes.
+ * ⚠️ FOOTER de bu bütçenin içinde. Değilken sayfa, içerik sığsa bile footer
+ * kadar kayıyor ve kaydırma çubuğu çıkıyordu.
+ *
+ * ⚠️ Değer TAHMİN EDİLMEDİ, ölçüldü. Parçaları toplamak (178 + 34 + 851 + 42
+ * = 1105) eksik kalıyor; aradaki farkı kartların iç dolguları ve satır
+ * yükseklikleri doğuruyor. Beş ayrı görünüm boyutunda `footer altı / ölçek`
+ * hesaplandı ve hepsi 1142-1148 arasında çıktı.
  */
-const TASARIM_Y = 1085
+const TASARIM_Y = 1155
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**

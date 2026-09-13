@@ -218,7 +218,19 @@ export function GameShell() {
           <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
         </div>
 
-        <div style={{ flex: 1, display: 'flex', width: '100%', paddingBottom: 176 }}>
+        {/*
+          ⚠️ `paddingBottom` YOK.
+
+          Burada `flex: 1` ile birlikte 176px'lik bir alt dolgu duruyordu.
+          `flex: 1` kalan alanı zaten dolduruyor; dolgu onun ÜSTÜNE biniyor ve
+          footer'ı ekranın dışına itiyordu. Sonuç: sayfa her zaman tam olarak o
+          kadar kayıyordu — içerik sığsa bile kaydırma çubuğu çıkıyordu.
+
+          Kaldırılınca sahne, üst bant ile footer arasında `.nk-center`'ın
+          `margin: auto`'suyla ortalanıyor ve footer ilk ekranın dibine
+          oturuyor.
+        */}
+        <div style={{ flex: 1, display: 'flex', width: '100%' }}>
           <div className="nk-center">
             {/* Üç sütun: ayarlar · sahne · kurallar. */}
             <div className="nk-stage-grid">
