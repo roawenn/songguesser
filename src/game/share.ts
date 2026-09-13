@@ -33,7 +33,22 @@ export interface ShareResult {
   /** Gerçekten duyulan en uzun klip (sn). 0 = hiç dinlemeden bildi. */
   heardSeconds: number
   listens: number
+  /**
+   * Turdaki şarkının kimliği — `itunes:1834674002`.
+   *
+   * ⚠️ İSTEĞE BAĞLI ve kodun BEŞİNCİ parçası. Story görseli "hangi şarkıydı"
+   * kartını gösterebilsin diye eklendi; dört parçalı eski kodlar hâlâ
+   * çözülüyor, yalnızca kart olmadan.
+   *
+   * ⚠️ Cevabı ifşa etmek burada sorun DEĞİL: paylaşan kişi o turu zaten
+   * bitirmiş ve görseli kendisi paylaşıyor. URL tabanlı meydan okuma
+   * kaldırıldığı için kimseye oynamadan cevap sızdırmıyor.
+   */
+  songId?: string
 }
+
+/** `itunes:123` → `123`. Başka biçimdeki kimlikler kodlanmaz. */
+const ITUNES = /^itunes:(\d+)$/
 
 /** Turu beş kutuya çevirir: kademeyi tüketen her eylem bir kutu. */
 export function marksOf(steps: Step[], won: boolean): Mark[] {
@@ -47,13 +62,23 @@ export function marksOf(steps: Step[], won: boolean): Mark[] {
 export function encodeShare(r: ShareResult): string {
   const letters = r.marks.map((m) => TO_LETTER[m]).join('')
   // Saniye ondalıklı olabilir (0,5); onda birlik tamsayı olarak taşınır.
-  return `${r.chip}_${letters}_${Math.round(r.heardSeconds * 10)}_${r.listens}`
+  const taban = `${r.chip}_${letters}_${Math.round(r.heardSeconds * 10)}_${r.listens}`
+  const sayi = r.songId?.match(ITUNES)?.[1]
+  return sayi ? `${taban}_${sayi}` : taban
 }
 
 export function decodeShare(kod: string): ShareResult | null {
   const parts = kod.split('_')
-  if (parts.length !== 4) return null
-  const [chip, letters, dec, listens] = parts as [string, string, string, string]
+  // ⚠️ 4 parça ESKİ kodlar, 5. parça şarkı kimliği. Dördü de zorunlu.
+  if (parts.length !== 4 && parts.length !== 5) return null
+  const [chip, letters, dec, listens, sarki] = parts as [
+    string,
+    string,
+    string,
+    string,
+    string | undefined,
+  ]
+  if (sarki !== undefined && !/^\d+$/.test(sarki)) return null
 
   if (!CHIPS.some((c) => c.id === chip)) return null
   if (letters.length !== ATTEMPTS) return null
@@ -76,6 +101,7 @@ export function decodeShare(kod: string): ShareResult | null {
     won: marks.includes('dogru'),
     heardSeconds: tenths / 10,
     listens: Math.round(n),
+    ...(sarki ? { songId: `itunes:${sarki}` } : {}),
   }
 }
 

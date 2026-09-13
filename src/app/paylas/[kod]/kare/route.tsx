@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { accentHex, chipLabel, decodeShare, verdictLine, type Mark } from '@/game/share'
+import { restHeaders, restUrl, supabaseReady } from '@/lib/supabase'
 
 /**
  * Instagram Story görseli — 1080×1920.
@@ -41,6 +42,44 @@ function boxStyle(mark: Mark, acc: string) {
   return { ...base, background: '#14181c', border: '3px solid #23282e' }
 }
 
+
+interface SarkiKarti {
+  baslik: string
+  sanatci: string
+  yil: number
+  kapak: string
+}
+
+/**
+ * Paylaşım kodundaki şarkıyı çeker.
+ *
+ * ⚠️ Bulunamazsa `null` döner ve görsel kartsız basılır — eski 4 parçalı
+ * bağlantılar ve silinmiş şarkılar bu yüzden kırılmaz.
+ */
+async function sarkiyiAl(id: string | undefined): Promise<SarkiKarti | null> {
+  if (!id || !supabaseReady) return null
+  try {
+    const res = await fetch(
+      restUrl(`songs?id=eq.${encodeURIComponent(id)}&select=title,artist,year,artwork&limit=1`),
+      { headers: restHeaders(), next: { revalidate: 86400, tags: ['havuz'] } },
+    )
+    if (!res.ok) return null
+    const rows = (await res.json()) as
+      { title: string; artist: string; year: number; artwork: string }[]
+    const r = rows[0]
+    if (!r) return null
+    return {
+      baslik: r.title,
+      sanatci: r.artist,
+      yil: r.year,
+      // Story'de büyük basılıyor; 100px'lik varsayılan kapak bulanık kalırdı.
+      kapak: (r.artwork ?? '').replace(/\/\d+x\d+bb\.jpg$/, '/300x300bb.jpg'),
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function GET(_req: Request, ctx: { params: Promise<{ kod: string }> }) {
   const { kod } = await ctx.params
   const r = decodeShare(decodeURIComponent(kod))
@@ -48,6 +87,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ kod: string }>
   const acc = r ? accentHex(r.chip) : '#7dd3fc'
   const marks: Mark[] = r?.marks ?? ['bos', 'bos', 'bos', 'bos', 'bos']
   const headline = r ? verdictLine(r) : 'Yarım saniyeden şarkıyı bil'
+  const kart = await sarkiyiAl(r?.songId)
   const label = r ? chipLabel(r.chip) : 'Türkçe şarkı tahmin oyunu'
 
   const [serif, mono] = await Promise.all([
@@ -142,26 +182,80 @@ export async function GET(_req: Request, ctx: { params: Promise<{ kod: string }>
             {headline}
           </div>
 
-          <div style={{ display: 'flex', marginTop: 86, marginLeft: -18 }}>
+          <div style={{ display: 'flex', marginTop: 76, marginLeft: -18 }}>
             {marks.map((m, i) => (
               <div key={i} style={boxStyle(m, acc)} />
             ))}
           </div>
 
-          <div style={{ display: 'flex', marginTop: 60, fontSize: 32, color: DIM }}>
+          {/*
+            Şarkı kartı.
+
+            ⚠️ Görselde HANGİ ŞARKI olduğu yazmıyordu; "1 saniyede bildim"
+            tek başına havada kalıyor ve gören kişi neyi bildiğini
+            anlamıyordu. Kart, paylaşım kodunun 5. parçasından geliyor;
+            eski kodlarda ve şarkı silinmişse hiç basılmaz.
+          */}
+          {kart && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginTop: 72,
+                padding: '26px 34px 26px 26px',
+                borderRadius: 20,
+                background: 'rgba(255,255,255,0.045)',
+                border: '2px solid rgba(255,255,255,0.09)',
+                maxWidth: 820,
+              }}
+            >
+              {kart.kapak && (
+                <img
+                  src={kart.kapak}
+                  width={132}
+                  height={132}
+                  style={{ borderRadius: 12, display: 'flex' }}
+                />
+              )}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  marginLeft: 30,
+                  maxWidth: 600,
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    fontFamily: 'serif',
+                    fontSize: 54,
+                    lineHeight: 1.15,
+                    color: INK,
+                  }}
+                >
+                  {kart.baslik}
+                </div>
+                <div style={{ display: 'flex', marginTop: 12, fontSize: 30, color: DIM }}>
+                  {kart.sanatci} · {kart.yil}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', marginTop: 56, fontSize: 32, color: DIM }}>
             {r ? `${r.listens} kez dinledim` : '0,5 saniyeden başlar'}
           </div>
         </div>
 
-        {/* Alt: merdiven ve adres. */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ display: 'flex', fontSize: 30, color: DIM }}>
-            0,5 → 1 → 2 → 5 → 10 saniye
-          </div>
-          <div style={{ display: 'flex', marginTop: 34, fontSize: 38, color: INK }}>
-            tahmin.net
-          </div>
-        </div>
+        {/*
+          Alt: yalnızca adres.
+
+          ⚠️ Merdiven satırı ("0,5 → 1 → 2 → 5 → 10 saniye") kaldırıldı: oyunu
+          bilmeyene hiçbir şey anlatmıyor, bilene de gereksiz. Görseli gören
+          kişinin ihtiyacı olan tek şey adres.
+        */}
+        <div style={{ display: 'flex', fontSize: 40, color: INK }}>tahmin.net</div>
       </div>
     ),
     {

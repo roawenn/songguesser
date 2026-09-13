@@ -24,30 +24,6 @@ interface Props {
   onNext: () => void
 }
 
-/**
- * Ne kadar dinleyerek bildiğine göre kutlama metni.
- *
- * Ölçü adım sayısı değil, DUYULAN SÜRE: iki yanlış tahminden sonra yarım
- * saniyeyle bilmek hâlâ yarım saniyelik bir iştir. Hiç dinlemeden bilmek ise
- * en tepede.
- */
-function praise(heard: number): { headline: string; rank: string } {
-  switch (heard) {
-    case 0:
-      return { headline: 'Dinlemeden bildin', rank: 'telepati' }
-    case 0.5:
-      return { headline: 'Yarım saniyede bildin', rank: 'efsane kulak' }
-    case 1:
-      return { headline: 'Bir saniyede bildin', rank: 'keskin kulak' }
-    case 2:
-      return { headline: 'İki saniyede bildin', rank: 'iyi iş' }
-    case 5:
-      return { headline: 'Beş saniyede bildin', rank: 'tamamdır' }
-    default:
-      return { headline: 'Son anda yakaladın', rank: 'kıl payı' }
-  }
-}
-
 /** Beş kutuluk sonuç şeridi. */
 function MarkRow({ marks, reduce }: { marks: Mark[]; reduce: boolean }) {
   return (
@@ -81,6 +57,66 @@ function MarkRow({ marks, reduce }: { marks: Mark[]; reduce: boolean }) {
   )
 }
 
+
+/**
+ * Yalnızca simge taşıyan dinleme bağlantısı.
+ *
+ * ⚠️ Metin yerine simge: "APPLE MUSIC'TE DİNLE" ve "SPOTIFY'DA ARA"
+ * yan yana durunca birincil eylemle ("Sıradaki şarkı") aynı görsel ağırlığa
+ * sahip oluyor ve göz hangisine basacağını seçemiyordu. Erişilebilirlik
+ * `aria-label` ve `title` ile korunuyor.
+ */
+function SimgeBaglanti({
+  href,
+  label,
+  simge,
+}: {
+  href: string
+  label: string
+  simge: React.ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      title={label}
+      className="nk-simge"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 44,
+        height: 44,
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 5,
+        color: '#b9bec2',
+        flex: 'none',
+      }}
+    >
+      {simge}
+    </a>
+  )
+}
+
+/** Apple Music — elma silueti. */
+function AppleSimge() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M16.3 12.9c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.6 2.1-1.5 2.7-.4 6.6 1.1 8.8.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4-.1 0-2.2-.9-2.2-3.5zM14.2 6.3c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2z" />
+    </svg>
+  )
+}
+
+/** Spotify — üç dalga. */
+function SpotifySimge() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.6.6 0 0 1-.9.2c-2.4-1.5-5.4-1.8-9-1a.6.6 0 1 1-.3-1.2c3.9-.9 7.3-.5 10 1.1.3.2.4.6.2.9zm1.2-2.8a.8.8 0 0 1-1 .3c-2.7-1.7-6.9-2.2-10.1-1.2a.8.8 0 1 1-.4-1.5c3.7-1.1 8.3-.6 11.4 1.4.4.2.5.7.1 1zm.1-2.9C14.6 8.8 9.4 8.6 6.3 9.6a.9.9 0 1 1-.5-1.8c3.6-1.1 9.3-.9 13 1.3a.9.9 0 1 1-.9 1.6z" />
+    </svg>
+  )
+}
 export function ResultPanel({
   song,
   won,
@@ -95,7 +131,6 @@ export function ResultPanel({
   const cardRef = useRef<HTMLDivElement>(null)
   const grid = marksOf(steps, won)
   const heardSeconds = heardLength(heardIndex, ladder)
-  const { headline, rank } = praise(heardSeconds)
 
   // Yalnızca gösterilen üç sayaca abone: tur biterken depoya yazılan diğer
   // alanlar (ör. çift kayıt koruması) bu kartı yeniden çizdirmesin.
@@ -106,7 +141,7 @@ export function ResultPanel({
    * Görsel adresi turun kendisinden türüyor; sunucuya hiçbir şey yazılmıyor.
    * Aynı kod hem yatay OG kartını hem bu dikey Story görselini besliyor.
    */
-  const kare = `/paylas/${encodeShare({ chip, marks: grid, won, heardSeconds, listens })}/kare`
+  const kare = `/paylas/${encodeShare({ chip, marks: grid, won, heardSeconds, listens, songId: song.id })}/kare`
 
   // Ne kadar az hak harcadıysa konfeti o kadar coşkulu.
   const intensity = won ? 1 - Math.min(steps.length, ATTEMPTS) / ATTEMPTS : 0
@@ -205,45 +240,14 @@ export function ResultPanel({
         />
 
         <div style={{ minWidth: 0, flex: 1 }}>
-          {won ? (
-            <>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  gap: 11,
-                  flexWrap: 'wrap',
-                  animation: reduce
-                    ? undefined
-                    : 'nk-pop .5s cubic-bezier(.34,1.56,.64,1) both',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 16.5,
-                    letterSpacing: '.01em',
-                    color: 'var(--acc)',
-                    textShadow: '0 0 22px var(--accSoft)',
-                  }}
-                >
-                  {headline}
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 9.5,
-                    letterSpacing: '.2em',
-                    textTransform: 'uppercase',
-                    color: '#6a7075',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {rank}
-                </span>
-              </div>
-            </>
-          ) : (
+          {/*
+            ⚠️ "Bir saniyede bildin" ve "keskin kulak" KALDIRILDI.
+            İlki yanıltıcıydı — duyulan kulvarı anlatıyordu ama oyuncu onu
+            geçen süre sanıyordu; ikincisi hiçbir bilgi taşımıyordu. Kaybedince
+            gösterilen "bilemedin" duruyor: kazanma/kaybetme ayrımını başka
+            hiçbir metin taşımıyor (kenarlık ve konfeti yalnızca destekliyor).
+          */}
+          {!won && (
             <div
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -262,30 +266,33 @@ export function ResultPanel({
               fontFamily: 'var(--font-serif)',
               fontSize: 27,
               lineHeight: 1.15,
-              marginTop: 7,
+              marginTop: won ? 0 : 7,
               color: '#f1f3f4',
               animation: anim(0.08),
             }}
           >
             {song.t}
           </div>
+          {/* Sanatçı BİLEREK duruyor: bir şarkı tahmin oyununda gerçek bilgi. */}
           <div
             style={{ fontSize: 14, color: '#8c9297', marginTop: 3, animation: anim(0.14) }}
           >
             {song.a} · {song.y}
           </div>
+        </div>
 
-          {/* Hangi kulvarda ve kaçıncı denemede — sayılar burada. */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              marginTop: 10,
-              flexWrap: 'wrap',
-              animation: anim(0.2),
-            }}
-          >
-            {won && heardSeconds > 0 && (
+        {/* Sayılar sağ üstte: duyulan kulvar ve kaç kez dinlendiği. */}
+        <div
+          style={{
+            alignSelf: 'flex-start',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            flex: 'none',
+            animation: anim(0.2),
+          }}
+        >
+          {won && heardSeconds > 0 && (
               <span
                 style={{
                   fontFamily: 'var(--font-mono)',
@@ -295,36 +302,37 @@ export function ResultPanel({
                   border: '1px solid var(--acc)',
                   background: 'oklch(0.81 0.12 var(--hue) / 0.1)',
                   color: 'var(--acc)',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {tr(heardSeconds)} sn kulvarı
+                {tr(heardSeconds)} sn
               </span>
             )}
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10.5,
-                padding: '4px 9px',
-                borderRadius: 4,
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: '#8c9297',
-              }}
-            >
-              {listens === 0 ? 'hiç dinlemedin' : `${listens} kez dinledin`}
-            </span>
-          </div>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10.5,
+              padding: '4px 9px',
+              borderRadius: 4,
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#8c9297',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {listens === 0 ? 'hiç dinlemedin' : `${listens} kez dinledin`}
+          </span>
         </div>
       </div>
 
       {/*
-        Sonuç şeridi. Paylaşım düğmeleri kaldırıldı — Twitter kutusu sahnenin
-        diline oturmuyordu ve URL tabanlı meydan okuma yerini gerçek düello
-        moduna bırakıyor.
+        ⚠️ Şerit ve sayaçlar ORTALI. Sola dayalıyken kartın altında sağa
+        doğru dağılıyor ve hangi sayının neye ait olduğu belirsizleşiyordu.
       */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
           gap: 16,
           flexWrap: 'wrap',
           animation: anim(0.26),
@@ -359,75 +367,57 @@ export function ResultPanel({
         )}
       </div>
 
+      {/*
+        ⚠️ Tek bir düğme sırası yerine HİYERARŞİ.
+
+        Dört düğme aynı satırda eşit ağırlıktaydı ve oyuncunun neredeyse her
+        zaman istediği tek şey "Sıradaki şarkı"ydı; o da diğer üçünün arasında
+        kayboluyordu. Artık birincil eylem ortada, dinleme bağlantıları
+        yanında yalnızca simge, paylaşım ise altında.
+      */}
       <div
         style={{
           display: 'flex',
-          gap: 10,
-          flexWrap: 'wrap',
+          flexDirection: 'column',
           alignItems: 'center',
+          gap: 12,
           animation: anim(0.32),
         }}
       >
-        <button
-          type="button"
-          onClick={onNext}
-          autoFocus
-          className="nk-next"
-          style={{
-            padding: '14px 26px',
-            border: '1px solid var(--acc)',
-            borderRadius: 5,
-            background: 'var(--acc)',
-            color: '#0a0c0e',
-            fontWeight: 600,
-            fontSize: 14,
-          }}
-        >
-          Sıradaki şarkı
-        </button>
-        {/* Apple ToS: parçaya doğrudan mağaza bağlantısı. */}
-        <a
-          href={song.u}
-          target="_blank"
-          rel="noreferrer"
-          className="nk-ghost"
-          style={{
-            padding: '14px 18px',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 5,
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11.5,
-            letterSpacing: '.08em',
-            color: '#b9bec2',
-          }}
-        >
-          {/* textTransform yok: lang="tr" "MUSIC"i "MUSİC" yapardı. */}
-          APPLE MUSIC&apos;TE DİNLE
-        </a>
-        <a
-          href={`https://open.spotify.com/search/${encodeURIComponent(`${song.a} ${song.t}`)}`}
-          target="_blank"
-          rel="noreferrer"
-          className="nk-ghost"
-          style={{
-            padding: '14px 18px',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 5,
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11.5,
-            letterSpacing: '.08em',
-            color: '#b9bec2',
-          }}
-        >
-          SPOTIFY&apos;DA ARA
-        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            onClick={onNext}
+            autoFocus
+            className="nk-next"
+            style={{
+              padding: '14px 30px',
+              border: '1px solid var(--acc)',
+              borderRadius: 5,
+              background: 'var(--acc)',
+              color: '#0a0c0e',
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
+            Sıradaki şarkı
+          </button>
+
+          {/* Apple ToS: parçaya doğrudan mağaza bağlantısı ZORUNLU. */}
+          <SimgeBaglanti
+            href={song.u ?? '#'}
+            label="Apple Music'te dinle"
+            simge={<AppleSimge />}
+          />
+          <SimgeBaglanti
+            href={`https://open.spotify.com/search/${encodeURIComponent(`${song.a} ${song.t}`)}`}
+            label="Spotify'da ara"
+            simge={<SpotifySimge />}
+          />
+        </div>
 
         {/*
           Instagram Story görseli — 1080×1920.
-
-          ⚠️ Kaldırılan Twitter kutusunun yerine bir paylaşım KUTUSU değil,
-          sıradan bir bağlantı kondu; kullanıcı o kutuyu "çok kötü görünüyor"
-          diye eledi. Burası görseli indirir, hiçbir yere göndermez.
 
           ⚠️ `download` özniteliği iOS Safari'de yok sayılır ve PNG sekmede
           açılır; oradan basılı tutup kaydetmek zaten Story'ye koymanın olağan
@@ -440,21 +430,22 @@ export function ResultPanel({
           rel="noreferrer"
           className="nk-ghost"
           style={{
-            padding: '14px 18px',
+            padding: '11px 18px',
             border: '1px solid rgba(255,255,255,0.12)',
             borderRadius: 5,
             fontFamily: 'var(--font-mono)',
-            fontSize: 11.5,
+            fontSize: 11,
             letterSpacing: '.08em',
             color: '#b9bec2',
           }}
         >
-          GÖRSELİ İNDİR
+          STORY GÖRSELİNİ İNDİR
         </a>
       </div>
 
       <style>{`
         .nk-ghost:hover { border-color: var(--acc) !important; color: var(--acc) !important; }
+        .nk-simge:hover { border-color: var(--acc) !important; color: var(--acc) !important; }
         .nk-next:hover { filter: brightness(1.1); }
       `}</style>
     </div>

@@ -40,9 +40,49 @@ describe('paylaşım kodu', () => {
   })
 
   it('bozuk kod null döner, patlamaz', () => {
-    for (const bad of ['', 'pop', 'pop_zzzzz_20_3', 'yok_ddddd_20_3', 'pop_dd_20_3', 'pop_ddddd_x_3']) {
+    for (const bad of [
+      '',
+      'pop',
+      'pop_zzzzz_20_3',
+      'yok_ddddd_20_3',
+      'pop_dd_20_3',
+      'pop_ddddd_x_3',
+      // 5. parça yalnızca rakam olabilir.
+      'pop_ddddd_20_3_abc',
+      'pop_ddddd_20_3_12_9',
+    ]) {
       expect(decodeShare(bad)).toBeNull()
     }
+  })
+
+  /**
+   * ⚠️ Şarkı kimliği 5. parça ve İSTEĞE BAĞLI. Story görseli "hangi şarkıydı"
+   * kartını bundan üretiyor; eski 4 parçalı bağlantılar çözülmeye devam etmeli,
+   * yoksa daha önce paylaşılmış her görsel kırılır.
+   */
+  describe('şarkı kimliği', () => {
+    it('gidiş-dönüş', () => {
+      const r = { ...base, songId: 'itunes:1834674002' }
+      const kod = encodeShare(r)
+      expect(kod.split('_')).toHaveLength(5)
+      expect(decodeShare(kod)?.songId).toBe('itunes:1834674002')
+    })
+
+    it('kimliksiz kod 4 parça kalır', () => {
+      expect(encodeShare(base).split('_')).toHaveLength(4)
+      expect(decodeShare(encodeShare(base))?.songId).toBeUndefined()
+    })
+
+    it('eski 4 parçalı kod hâlâ çözülür', () => {
+      const eski = decodeShare('pop_dbbbb_10_3')
+      expect(eski).not.toBeNull()
+      expect(eski?.songId).toBeUndefined()
+      expect(eski?.heardSeconds).toBe(1)
+    })
+
+    it('itunes olmayan kimlik koda girmez', () => {
+      expect(encodeShare({ ...base, songId: 'baska:5' }).split('_')).toHaveLength(4)
+    })
   })
 })
 
