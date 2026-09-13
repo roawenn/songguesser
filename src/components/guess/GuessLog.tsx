@@ -13,10 +13,12 @@ import { MAX_WRONG, wrongCount, type Step } from '@/game/machine'
  * değil. "Gulpembe" yazdıysa "gülpembe" değil "Gulpembe" görür; aksi hâlde
  * kendi yazdığını tanıyamaz ve aynı şarkıyı tekrar denemesi kolaylaşır.
  */
+/** Bir tahmin satırının yüksekliği (px) — ayrılan yer bununla hesaplanıyor. */
+const SATIR = 18
+const SATIR_ARA = 4
+
 export function GuessLog({ steps }: { steps: readonly Step[] }) {
   const yanlislar = steps.filter((s) => s.kind === 'wrong')
-  if (yanlislar.length === 0) return null
-
   const kalan = MAX_WRONG - wrongCount(steps)
 
   return (
@@ -41,10 +43,23 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
       >
         <span>Tahminlerin</span>
         <span style={{ color: kalan === 0 ? '#c08a8a' : '#5c6267' }}>
-          {kalan} hak kaldı
+          {yanlislar.length === 0 ? `${MAX_WRONG} yanlış hakkın var` : `${kalan} hak kaldı`}
         </span>
       </div>
 
+      {/*
+        ⚠️ Yükseklik SABİT: `MAX_WRONG` satırlık yer baştan ayrılıyor.
+
+        Liste büyüdükçe sahne de büyüyordu. Sayfa kaydırılabilir değilken
+        (uzun pencere) `.nk-center`'ın dikey ortalaması yeniden hesaplanıyor
+        ve blok, büyümenin YARISI kadar yukarı kaçıyordu: her tahminden sonra
+        kaset, kademe çubuğu ve çal düğmesi yerinden oynuyordu. Ölçüldü:
+        2508x1276'da iki tahminde −34 px. Sayfa kaydırılabilirken hiç
+        görünmüyordu, bu yüzden ilk turda fark edilmedi.
+
+        Yer baştan ayrılınca sahnenin toplam yüksekliği hiç değişmiyor —
+        ne yukarısı ne aşağısı oynuyor.
+      */}
       <ul
         style={{
           listStyle: 'none',
@@ -52,7 +67,8 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
           padding: 0,
           display: 'flex',
           flexDirection: 'column',
-          gap: 4,
+          gap: SATIR_ARA,
+          minHeight: MAX_WRONG * SATIR + (MAX_WRONG - 1) * SATIR_ARA,
         }}
       >
         {yanlislar.map((s, i) => (
@@ -63,6 +79,8 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
               alignItems: 'center',
               gap: 8,
               fontSize: 12.5,
+              // Satır yüksekliği ayrılan yerle BİREBİR aynı olmalı.
+              height: SATIR,
               color: '#8d9398',
             }}
           >

@@ -505,8 +505,13 @@ button {
 .nk-tahminler {
   margin-top: 14px;
 }
+/*
+ * ⚠️ 44px DEĞİL 20px. Tahmin listesi artık üç satırlık yeri baştan ayırıyor
+ * (bkz. GuessLog); eski 44px'lik aralık onun üstüne binince giriş kutusuyla
+ * düğmeler arası bir deliğe dönüşüyordu. Ayrılan yer zaten ayırıcı işi görüyor.
+ */
 .nk-eylem {
-  margin-top: 44px;
+  margin-top: 20px;
 }
 
 /*
