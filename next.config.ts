@@ -1,23 +1,31 @@
 import type { NextConfig } from 'next'
 
+const gelistirme = process.env.NODE_ENV !== 'production'
+
 /**
  * Güvenlik başlıkları.
  *
- * ⚠️ CSP `Report-Only` olarak başlıyor, BİLEREK. Next'in gömülü bootstrap
- * betikleri `'unsafe-inline'` gerektiriyor, ses önizlemeleri ve kapaklar Apple
- * alan adlarından geliyor ve `ssr: false` ile tembel yüklenen parçalar var —
- * doğrulamadan zorlayıcı moda geçmek siteyi sessizce kırar. Bir tur oynanıp
- * konsolda ihlal olmadığı görüldükten sonra başlık adı
- * `Content-Security-Policy` yapılmalı.
+ * CSP artık ZORLAYICI. Report-Only olarak bir tur bekletildi ve yedi sayfada
+ * (ana sayfa, nasıl oynanır, hakkında, seçki, paylaş, yönetim, düello) tam bir
+ * tur oynanarak, ses/kapak/API çağrıları dahil, tek bir ihlal üretmediği
+ * ölçüldü.
+ *
+ * ⚠️ `'unsafe-eval'` YALNIZCA geliştirmede. Next'in Fast Refresh altyapısı onu
+ * istiyor; üretim paketinde gerek yok ve orada açık bırakmak CSP'nin en değerli
+ * kısmını bedavaya vermek olurdu.
  *
  * ⚠️ `style-src 'unsafe-inline'` kaçınılmaz: sahnenin tamamı satır içi
  * `style={{}}` ile yazılmış. Bu, CSP'nin XSS değerini zayıflatıyor; buna
  * karşılık `script-src` dış kaynakları, `frame-ancestors` çerçevelemeyi ve
  * `object-src` eklentileri yine de kapatıyor.
+ *
+ * ⚠️ `media-src`'de Apple'ın İKİ alan adı da olmalı: önizleme sesi
+ * `audio-ssl.itunes.apple.com`'dan, kapak `is1-ssl.mzstatic.com`'dan geliyor.
+ * Biri eksik kalırsa oyun sessizce çalmaz hâle gelir.
  */
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  `script-src 'self' 'unsafe-inline'${gelistirme ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.mzstatic.com",
   "media-src 'self' blob: https://*.itunes.apple.com https://*.mzstatic.com",
@@ -49,7 +57,7 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
           },
-          { key: 'Content-Security-Policy-Report-Only', value: csp },
+          { key: 'Content-Security-Policy', value: csp },
         ],
       },
     ]
