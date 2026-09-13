@@ -260,6 +260,16 @@ button {
  */
 .nk-center {
   margin: auto;
+  /*
+   * ⚠️ Ayracın ALTINDA nefes. Çizgi `.nk-top::after` ile bandın tam alt
+   * kenarında duruyor ve ızgara hemen ardından başlıyordu: kartlar çizgiye
+   * yapışıyordu. Ölçüldü, aradaki boşluk 0 px'ti — üstelik bloğun ALTINDA
+   * 130-175 px boşluk dururken.
+   *
+   * Boşluk `.nk-top`'ın kendisine verilemez: çizgi onun alt kenarına bağlı,
+   * dolayısıyla dolgu çizgiyi de aşağı taşırdı.
+   */
+  padding-top: 34px;
   width: 100%;
   min-width: 0;
   display: flex;
@@ -554,6 +564,10 @@ button {
   .nk-top {
     gap: 8px;
     padding: 14px 16px 12px;
+  }
+  /* Mobilde ilk ekran zaten dar; nefes var ama ölçülü. */
+  .nk-center {
+    padding-top: 14px;
   }
   .nk-kademe {
     margin-top: 12px;

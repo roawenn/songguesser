@@ -32,9 +32,10 @@ const TASARIM_G = 1920
  * yok, çünkü orada yükseklik zaten yetiyor — bu yüzden yalnızca ikinci
  * monitörde ortaya çıkıyordu.
  *
- * Değer ölçüldü: üst bant 178 px + sahne 851 px = 1029, üstüne biraz nefes.
+ * Değer ölçüldü: üst bant 178 + ayraç altı boşluk 34 + sahne 851 = 1063,
+ * üstüne biraz nefes.
  */
-const TASARIM_Y = 1050
+const TASARIM_Y = 1085
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**
@@ -43,8 +44,13 @@ const MOBIL_ESIK = 900
  * ⚠️ Alt sınır ŞART. 900px'te 0,47'ye inen bir ölçek 13px'lik metni 6px yapar;
  * "aynı görünsün" isteği okunamayan bir sahneye dönüşür. Alt sınırın altında
  * kalan genişlikler mobil düzene düşüyor.
+ *
+ * ⚠️ Bu bir GÜVENLİK EŞİĞİ, tasarım değeri değil. 0,62'yken 1366x768'lik bir
+ * pencerede sahne 6 px taşıyordu (gereken 0,608): son düğme ekranın altında
+ * kalıyordu. Sınıra dayanınca sayfa yine kaydırılabilir kalıyor, yani en
+ * kötü durumda içerik erişilemez olmuyor.
  */
-const EN_KUCUK = 0.62
+const EN_KUCUK = 0.6
 
 export function useOlcek(): void {
   useEffect(() => {
