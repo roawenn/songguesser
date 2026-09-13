@@ -7,9 +7,9 @@ import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useStatsStore } from '@/store/useStatsStore'
 import { anahtarYaz } from '@/lib/duelloAnahtar'
-import { chipById } from '@/data/categories'
+import { chipById, CHIPS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
-import { heardLength, MAX_WRONG, wrongCount } from '@/game/machine'
+import { heardLength, MAX_WRONG, wrongCount  } from '@/game/machine'
 import { Backdrop } from './stage/Backdrop'
 import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
@@ -216,7 +216,11 @@ export function GameShell() {
          */}
         <div className="nk-top">
           <Header />
-          <CategoryStrip category={settings.category} onCategory={settings.setCategory} />
+          <CategoryStrip
+            chips={CHIPS}
+            category={settings.category}
+            onCategory={settings.setCategory}
+          />
         </div>
 
         {/*
@@ -396,7 +400,12 @@ export function GameShell() {
                   </div>
 
                   {/* Yapılan tahminler — üç hakkın nereye gittiği görünsün. */}
-                  <GuessLog steps={steps} />
+                  <GuessLog
+                    steps={steps}
+                    hakToplam={MAX_WRONG}
+                    hakKalan={MAX_WRONG - wrongCount(steps)}
+                    yakinlikEtiketi="sanatçı doğru"
+                  />
 
                   <div
                     style={{

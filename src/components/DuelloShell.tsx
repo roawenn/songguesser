@@ -9,7 +9,7 @@ import { useSettingsStore } from '@/store/useSettingsStore'
 import { useStatsStore } from '@/store/useStatsStore'
 import { chipById } from '@/data/categories'
 import { DUELLO_SARKI } from '@/game/duel'
-import { heardLength } from '@/game/machine'
+import { heardLength, MAX_WRONG, wrongCount } from '@/game/machine'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { Backdrop } from './stage/Backdrop'
 import { Cassette, type CassetteHandle } from './stage/Cassette'
@@ -245,7 +245,12 @@ function Sahne({
 
         {/* Üç yanlış kuralı düelloda da geçerli; hakların nerede olduğu görünsün. */}
         <div style={{ marginTop: 14, width: '100%' }}>
-          <GuessLog steps={steps} />
+          <GuessLog
+                    steps={steps}
+                    hakToplam={MAX_WRONG}
+                    hakKalan={MAX_WRONG - wrongCount(steps)}
+                    yakinlikEtiketi="sanatçı doğru"
+                  />
         </div>
 
         <button

@@ -1,13 +1,17 @@
 'use client'
 
-import { MAX_WRONG, wrongCount, type Step } from '@/game/machine'
+import type { Step } from '@/game/machine'
 
 /**
  * Turda yapılmış yanlış tahminler ve kalan hak.
  *
- * ⚠️ Yalnızca YANLIŞ TAHMİNLER listelenir, paslar değil. Sayaç üç tahmin
- * hakkını gösteriyor; pas geçmek bu haktan yemiyor (merdiveni ilerletiyor),
- * dolayısıyla pasları aynı listeye koymak sayacı yalan söyler hâle getirirdi.
+ * ⚠️ Yalnızca YANLIŞ TAHMİNLER listelenir, paslar değil. Sayaç tahmin hakkını
+ * gösteriyor; pas geçmek bu haktan yemiyor (merdiveni ilerletiyor), dolayısıyla
+ * pasları aynı listeye koymak sayacı yalan söyler hâle getirirdi.
+ *
+ * ⚠️ Hak sayısı DIŞARIDAN geliyor, `MAX_WRONG`'tan değil. İki oyunun sayısı
+ * farklı: şarkıda 3 yanlış hakkı var, ünlüde 4 (beşinci şerit açılınca tur
+ * biter). Bileşen kuralı bilmez, yalnızca çizer.
  *
  * ⚠️ Liste, oyuncunun YAZDIĞI ham metni gösterir — normalize edilmiş hâlini
  * değil. "Gulpembe" yazdıysa "gülpembe" değil "Gulpembe" görür; aksi hâlde
@@ -17,9 +21,23 @@ import { MAX_WRONG, wrongCount, type Step } from '@/game/machine'
 const SATIR = 18
 const SATIR_ARA = 4
 
-export function GuessLog({ steps }: { steps: readonly Step[] }) {
+interface Props {
+  steps: readonly Step[]
+  /** Turdaki toplam tahmin hakkı. */
+  hakToplam: number
+  /** Şu an kalan hak. */
+  hakKalan: number
+  /**
+   * Yakınlık rozetinin metni; `null` ise rozet hiç basılmaz.
+   *
+   * ⚠️ Ünlü oyununda `null` olmalı: orada `Step.sameArtist` hep `false` ama
+   * alan paylaşıldığı için duruyor.
+   */
+  yakinlikEtiketi?: string | null
+}
+
+export function GuessLog({ steps, hakToplam, hakKalan, yakinlikEtiketi = null }: Props) {
   const yanlislar = steps.filter((s) => s.kind === 'wrong')
-  const kalan = MAX_WRONG - wrongCount(steps)
 
   return (
     /*
@@ -38,7 +56,7 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
        */
       style={{
         width: '100%',
-        ['--nk-liste-y' as string]: `${MAX_WRONG * SATIR + (MAX_WRONG - 1) * SATIR_ARA}px`,
+        ['--nk-liste-y' as string]: `${hakToplam * SATIR + (hakToplam - 1) * SATIR_ARA}px`,
       }}
       aria-label="Yanlış tahminlerin"
     >
@@ -55,13 +73,13 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
         }}
       >
         <span>Tahminlerin</span>
-        <span style={{ color: kalan === 0 ? '#c08a8a' : '#5c6267' }}>
-          {yanlislar.length === 0 ? `${MAX_WRONG} yanlış hakkın var` : `${kalan} hak kaldı`}
+        <span style={{ color: hakKalan === 0 ? '#c08a8a' : '#5c6267' }}>
+          {yanlislar.length === 0 ? `${hakToplam} yanlış hakkın var` : `${hakKalan} hak kaldı`}
         </span>
       </div>
 
       {/*
-        ⚠️ Yükseklik SABİT: `MAX_WRONG` satırlık yer baştan ayrılıyor.
+        ⚠️ Yükseklik SABİT: `hakToplam` satırlık yer baştan ayrılıyor.
 
         Liste büyüdükçe sahne de büyüyordu. Sayfa kaydırılabilir değilken
         (uzun pencere) `.nk-center`'ın dikey ortalaması yeniden hesaplanıyor
@@ -110,7 +128,7 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
               {s.text}
             </span>
             {/* Sanatçıyı tutturmak yakınlığı gösterir; oyuncuya ipucu olsun. */}
-            {s.sameArtist && (
+            {s.sameArtist && yakinlikEtiketi !== null && (
               <span
                 style={{
                   flex: 'none',
@@ -121,7 +139,7 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
                   color: '#6a7075',
                 }}
               >
-                sanatçı doğru
+                {yakinlikEtiketi}
               </span>
             )}
           </li>

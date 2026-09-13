@@ -70,9 +70,39 @@ function StripCaption({ children }: { children: React.ReactNode }) {
   )
 }
 
-interface CategoryProps {
-  category: ChipId
-  onCategory: (c: ChipId) => void
+/**
+ * Kenar soluklaşması YALNIZCA gerçekten kaydırılabilirken görünmeli.
+ * Koşulsuz uygulandığında, şerit tam sığdığı hâlde sondaki çip kırpılmış
+ * gibi duruyordu.
+ *
+ * ⚠️ Ayrı kanca: alt oyun şeridi de aynı davranışı kullanacak.
+ */
+export function useKaydirilabilir(ref: React.RefObject<HTMLElement | null>): void {
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const update = () => {
+      el.dataset.scrollable = el.scrollWidth > el.clientWidth + 1 ? 'true' : 'false'
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ref])
+}
+
+/**
+ * ⚠️ Çipler DIŞARIDAN geliyor, `CHIPS` doğrudan import edilmiyor: ikinci
+ * oyunun (ünlü tanıma) kendi seçkileri var ve şerit ikisinde de aynı.
+ *
+ * Kimlik tipi jenerik: şarkı `ChipId`, ünlü `UnluChipId` geçirir ve
+ * `onCategory` her ikisinde de doğru tiple gelir.
+ */
+interface CategoryProps<Id extends string> {
+  category: Id
+  onCategory: (c: Id) => void
+  chips: ReadonlyArray<{ id: Id; label: string; hue: number }>
+  baslik?: string
 }
 
 /**
@@ -86,23 +116,14 @@ interface CategoryProps {
  * aynı satırda kalsalar sondaki üçü sessizce kırpılıyordu — bu yüzden kendi
  * satırında ve dar ekranda yatay kayıyor.
  */
-export function CategoryStrip({ category, onCategory }: CategoryProps) {
+export function CategoryStrip<Id extends string>({
+  category,
+  onCategory,
+  chips,
+  baslik = 'Kategoriler',
+}: CategoryProps<Id>) {
   const stripRef = useRef<HTMLElement>(null)
-
-  // Kenar soluklaşması YALNIZCA gerçekten kaydırılabilirken görünmeli.
-  // Koşulsuz uygulandığında, şerit tam sığdığı hâlde sondaki çip kırpılmış
-  // gibi duruyordu.
-  useEffect(() => {
-    const el = stripRef.current
-    if (!el) return
-    const update = () => {
-      el.dataset.scrollable = el.scrollWidth > el.clientWidth + 1 ? 'true' : 'false'
-    }
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
+  useKaydirilabilir(stripRef)
 
   return (
     <div
@@ -115,7 +136,7 @@ export function CategoryStrip({ category, onCategory }: CategoryProps) {
         gap: 13,
       }}
     >
-      <StripCaption>Kategoriler</StripCaption>
+      <StripCaption>{baslik}</StripCaption>
 
       <nav
         ref={stripRef}
@@ -132,7 +153,7 @@ export function CategoryStrip({ category, onCategory }: CategoryProps) {
             justifyContent: 'center',
           }}
         >
-          {CHIPS.map((c) => {
+          {chips.map((c) => {
             const on = c.id === category
             return (
               <button
