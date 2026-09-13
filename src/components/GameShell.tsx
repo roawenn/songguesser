@@ -269,13 +269,19 @@ export function GameShell() {
                     </button>
                   )}
                 </Notice>
-              ) : round.tooNarrow ? (
+              ) : round.pool.length > 0 && round.filtered.length === 0 ? (
+                /*
+                 * ⚠️ Ölçüt "8'den az" DEĞİL, "hiç yok". Eskisi imkânsız bir
+                 * çözüm öneriyordu: `filterByTier` kademeleri zaten sonuna
+                 * kadar genişlettiği için kademe değiştirmek sonucu
+                 * değiştirmiyor. Ayrıntı `useRound.tooNarrow`'da.
+                 */
                 <Notice tone="warn">
                   <p style={{ margin: 0, color: '#c9a25e', fontWeight: 500 }}>
-                    Bu zorlukta yeterli şarkı yok.
+                    Bu seçkide oynanacak şarkı yok.
                   </p>
                   <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#8c9297' }}>
-                    Başka bir seçki ya da zorluk dene.
+                    Başka bir seçki dene.
                   </p>
                 </Notice>
               ) : state.s === 'empty' ? (

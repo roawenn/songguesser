@@ -50,8 +50,12 @@ export interface UnluTurApi {
   havuz: Unlu[]
   /** Zorluk süzgecinden geçmiş, oynanan havuz. */
   suzulmus: Unlu[]
-  /** Bu zorlukta oynanacak kadar kişi yok. */
-  cokDar: boolean
+  /**
+   * Havuz ince: kişiler kısa sürede tekrar edecek.
+   *
+   * ⚠️ Bu bir UYARI, ENGEL DEĞİL. Önce engeldi ve yanlıştı — aşağıya bak.
+   */
+  azKisi: boolean
   index: SearchIndex<Unlu> | null
   yukleniyor: boolean
   /** Son tahmin belirsizse adaylar burada — hak tüketilmedi. */
@@ -139,7 +143,22 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
   const dizilimIndex = opts?.index ?? 0
 
   const suzulmus = useMemo(() => filterByTier(havuz, kademe), [havuz, kademe])
-  const cokDar = havuz.length > 0 && suzulmus.length < MIN_PLAYABLE
+  /*
+   * ⚠️ Bu ENGEL DEĞİL, yalnızca uyarı — ve bir zamanlar engeldi:
+   * `suzulmus.length < MIN_PLAYABLE` ise oyun "Bu zorlukta oynanacak kadar
+   * kişi yok, başka bir kademe dene" diyip kilitleniyordu.
+   *
+   * İki yönden de yanlıştı:
+   *   1. `filterByTier` kademeleri ZATEN sonuna kadar genişletiyor. Havuzda
+   *      5 kişi varsa hangi kademe seçilirse seçilsin beşi birden dönüyor,
+   *      yani sonuç her kademede `< 8` — oyun HİÇBİR kademede açılmıyordu.
+   *   2. Mesaj yapılması imkânsız bir şey öneriyordu: kademe değiştirmek
+   *      sonucu değiştirmiyor.
+   *
+   * `MIN_PLAYABLE` `filterByTier`'in genişleme eşiği; "oynanabilirlik"
+   * ölçütü değil. Beş kişiyle oyun gayet oynanır, sadece tekrar eder.
+   */
+  const azKisi = havuz.length > 0 && suzulmus.length < MIN_PLAYABLE
 
   /**
    * Otomatik tamamlama evreni.
@@ -311,7 +330,7 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
     durum,
     havuz,
     suzulmus,
-    cokDar,
+    azKisi,
     index,
     yukleniyor,
     belirsiz,

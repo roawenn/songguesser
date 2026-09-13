@@ -178,8 +178,20 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
   )
 
   /**
-   * ⚠️ Düelloda bastırılır. `GameShell` bu ekranı sonuç panelinden ÖNCE
-   * kontrol ediyor; ince bir kademe düelloyu hiç başlatmadan kilitlerdi.
+   * Havuz ince: şarkılar kısa sürede tekrar edecek.
+   *
+   * ⚠️ Bu bir UYARI, ENGEL DEĞİL — ve eskiden engeldi.
+   *
+   * `filterByTier` kademeleri ZATEN sonuna kadar genişletiyor. Bir kategoride
+   * 5 şarkı varsa hangi kademe seçilirse seçilsin beşi birden dönüyor, yani
+   * sonuç her kademede `< MIN_PLAYABLE` — oyun HİÇBİR kademede açılmıyordu ve
+   * ekrandaki "başka bir zorluk dene" tavsiyesi imkânsız bir şey öneriyordu.
+   *
+   * Bugün şarkı tarafında tetiklenmiyor (en küçük kategori 1595 şarkı) ama
+   * ünlü oyununda tam olarak bu yaşandı: 5 kişilik havuzda oyun kilitlendi.
+   * `MIN_PLAYABLE` genişleme eşiği; oynanabilirlik ölçütü değil.
+   *
+   * ⚠️ Düelloda bastırılır — dizilim zaten sabit.
    */
   const tooNarrow =
     !sequence && !loading && pool.length > 0 && filtered.length < MIN_PLAYABLE

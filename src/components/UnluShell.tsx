@@ -142,8 +142,6 @@ export function UnluShell() {
             </Uyari>
           ) : durum.s === 'empty' ? (
             <Uyari>Bu seçkide henüz kimse yok. Başka bir kategori dene.</Uyari>
-          ) : tur.cokDar ? (
-            <Uyari>Bu zorlukta oynanacak kadar kişi yok. Başka bir kademe dene.</Uyari>
           ) : turBitti(durum) ? (
             <UnluSonucPanel
               key={durum.kisi.id}
@@ -163,6 +161,25 @@ export function UnluShell() {
                 bitti={false}
                 reduce={reduce}
               />
+
+              {/*
+                Havuz inceyken oyun ENGELLENMİYOR, yalnızca durum söyleniyor —
+                küratör içerik eklerken oyunu deneyebilmeli.
+              */}
+              {tur.azKisi && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    letterSpacing: '.14em',
+                    textTransform: 'uppercase',
+                    color: '#6a7075',
+                  }}
+                >
+                  bu seçkide {tur.suzulmus.length} kişi var · tekrar edebilir
+                </div>
+              )}
 
               <div className="nk-kademe">
                 <TierStrip tier={kademe} onTier={setKademe} />
