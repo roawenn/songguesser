@@ -151,12 +151,32 @@ export async function POST(req: Request) {
   const knownIds = new Set(known.map((r) => r.id))
 
   const skipped: string[] = []
+  /**
+   * ⚠️ PARTİ İÇİ norm kopyaları da elenmeli.
+   *
+   * Eleme yalnızca VERİTABANINA karşı yapılıyordu. Bir sanatçı taramasında aynı
+   * şarkının albüm / single / remaster / canlı sürümleri yan yana geliyor ve
+   * hepsi farklı `trackId` taşıyor; ikisi de bu süzgeci geçip aynı `INSERT`e
+   * giriyordu. `songs_norm_uidx` ihlali tüm deyimi düşürdüğü için TEK bir
+   * kopya 1000 şarkılık partinin tamamını kaybettiriyordu.
+   *
+   * Ölçüldü: 1000 benzersiz parça → 1000'i de yazılıyor; içinde tek bir norm
+   * kopyası olan 100'lük parti → 23505, sıfır satır.
+   */
+  const normGorulen = new Set<string>()
   const fresh = rows.filter((r) => {
-    const owner = normOwner.get(`${r.norm_artist}|${r.norm_title}`)
+    const anahtar = `${r.norm_artist}|${r.norm_title}`
+
+    const owner = normOwner.get(anahtar)
     if (owner && owner !== r.id) {
       skipped.push(`${r.artist} — ${r.title}`)
       return false
     }
+    if (normGorulen.has(anahtar)) {
+      skipped.push(`${r.artist} — ${r.title}`)
+      return false
+    }
+    normGorulen.add(anahtar)
     return true
   })
 
@@ -164,29 +184,80 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, songs: [], eklenen: 0, guncellenen: 0, atlanan: skipped })
   }
 
-  const res = await fetch(restUrl('songs?on_conflict=id'), {
-    method: 'POST',
-    headers: {
-      ...restHeaders({ secret: true }),
-      Prefer: 'return=representation,resolution=merge-duplicates',
-    },
-    body: JSON.stringify(fresh),
-  })
-  if (!res.ok) {
+  /**
+   * ⚠️ Parti PARÇALARA bölünerek yazılıyor.
+   *
+   * Tek bir `INSERT` deyimi atomiktir: beklenmedik bir kısıt ihlali bütün
+   * satırları düşürür. Yukarıdaki eleme bilinen sebebi kapatıyor ama tek
+   * savunma olarak kalmamalı — 1000 şarkılık bir taramanın tek bir sürpriz
+   * satır yüzünden tamamen kaybolması, küratörün dakikalarca süren işini
+   * çöpe atmak demek. Parçalara bölününce en kötü ihtimalle o parça kaybolur
+   * ve hangisi olduğu raporlanır.
+   */
+  /**
+   * ⚠️ HAVUZDA OLAN ŞARKIYA DOKUNULMAZ.
+   *
+   * Eskiden `resolution=merge-duplicates` kullanılıyordu ve bu, aynı sanatçıyı
+   * ikinci kez tarayınca mevcut satırların ÜSTÜNE yazıyordu: küratörün elle
+   * verdiği kademe aracın önerisine, düzeltilmiş yıl iTunes'un yıllığına
+   * dönüyordu — hiçbir uyarı olmadan. Tarama artık yalnızca YENİ şarkı ekler;
+   * var olanlar "zaten havuzda" diye raporlanır.
+   */
+  const zatenVar = fresh.filter((r) => knownIds.has(r.id)).map((r) => `${r.artist} — ${r.title}`)
+  const eklenecek = fresh.filter((r) => !knownIds.has(r.id))
+
+  if (eklenecek.length === 0) {
+    return NextResponse.json({
+      ok: true,
+      songs: [],
+      eklenen: 0,
+      guncellenen: 0,
+      atlanan: skipped,
+      zatenVar,
+    })
+  }
+
+  const PARCA = 200
+  const saved: unknown[] = []
+  const basarisiz: string[] = []
+  let sonHata = ''
+
+  for (let i = 0; i < eklenecek.length; i += PARCA) {
+    const dilim = eklenecek.slice(i, i + PARCA)
+    const res = await fetch(restUrl('songs?on_conflict=id'), {
+      method: 'POST',
+      headers: {
+        ...restHeaders({ secret: true }),
+        // ⚠️ `ignore-duplicates`: yarış hâlinde aynı id ikinci kez gelirse
+        // sessizce atlanır, var olan satır bozulmaz.
+        Prefer: 'return=representation,resolution=ignore-duplicates',
+      },
+      body: JSON.stringify(dilim),
+    })
+
+    if (res.ok) {
+      saved.push(...((await res.json()) as unknown[]))
+      continue
+    }
+    sonHata = await res.text()
+    for (const r of dilim) basarisiz.push(`${r.artist} — ${r.title}`)
+  }
+
+  if (saved.length === 0) {
     return NextResponse.json(
-      { error: `Supabase ${res.status}: ${await res.text()}` },
+      { error: `Hiçbir şarkı eklenemedi. Supabase: ${sonHata.slice(0, 300)}` },
       { status: 502 },
     )
   }
 
-  const saved = (await res.json()) as unknown[]
-  const updated = fresh.filter((r) => knownIds.has(r.id)).length
   revalidateTag('havuz')
   return NextResponse.json({
     ok: true,
     songs: saved,
-    eklenen: fresh.length - updated,
-    guncellenen: updated,
+    eklenen: saved.length,
+    guncellenen: 0,
     atlanan: skipped,
+    zatenVar,
+    basarisiz,
   })
 }

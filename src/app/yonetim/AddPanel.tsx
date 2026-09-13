@@ -252,12 +252,16 @@ export function AddPanel({ cat, existing, onAdded, onError }: Props) {
         eklenen?: number
         guncellenen?: number
         atlanan?: string[]
+        zatenVar?: string[]
+        basarisiz?: string[]
       }
       if (!res.ok) throw new Error(d.error ?? 'Eklenemedi')
 
       const parts = [`${d.eklenen ?? 0} şarkı eklendi`]
-      if (d.guncellenen) parts.push(`${d.guncellenen} güncellendi`)
+      if (d.zatenVar?.length) parts.push(`${d.zatenVar.length} zaten havuzda`)
       if (d.atlanan?.length) parts.push(`${d.atlanan.length} kopya atlandı`)
+      // Bir parça yazılamadıysa sessiz kalma: küratör hangisini kaybettiğini bilmeli.
+      if (d.basarisiz?.length) parts.push(`${d.basarisiz.length} şarkı YAZILAMADI`)
       onAdded(`${parts.join(' · ')} · oyunda anında geçerli`)
 
       const added = new Set(chosen.map(uid))
