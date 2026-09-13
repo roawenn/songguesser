@@ -502,8 +502,28 @@ button {
 .nk-giris {
   margin-top: 44px;
 }
+.nk-tahminler {
+  margin-top: 14px;
+}
 .nk-eylem {
   margin-top: 44px;
+}
+
+/*
+ * ⚠️ KAYDIRMA ÇIPALAMASI KAPALI.
+ *
+ * Tahmin listesi büyüdüğünde tarayıcı, mutasyonun ALTINDAKİ bir düğümü çıpa
+ * seçip `scrollY`'yi kaydırarak onu yerinde tutuyordu. Sonuç tersine dönüyordu:
+ * düğmeler yerinde kalıyor, kademe çubuğu ve çal düğmesi 64 px YUKARI kayıyordu
+ * — yani "sayfanın tamamı" oynuyordu. 900 px altında yan kartlar sahnenin
+ * altına indiği için sayfa uzun oluyor ve çıpa hep aşağıdan seçiliyordu;
+ * 1000 px'te sorun hiç görünmüyordu, bu yüzden fark edilmesi zordu.
+ *
+ * Kapatınca içerik doğal yönde davranıyor: üsttekiler sabit kalıyor, eklenen
+ * satır kendisinden SONRAKİ düğmeleri aşağı itiyor.
+ */
+.nk-stage-grid {
+  overflow-anchor: none;
 }
 
 /*

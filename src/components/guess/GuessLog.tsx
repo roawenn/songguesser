@@ -20,10 +20,13 @@ export function GuessLog({ steps }: { steps: readonly Step[] }) {
   const kalan = MAX_WRONG - wrongCount(steps)
 
   return (
-    <div
-      style={{ width: '100%', maxWidth: 430, margin: '0 auto' }}
-      aria-label="Yanlış tahminlerin"
-    >
+    /*
+     * ⚠️ Genişlik TAHMİN SATIRIYLA aynı olmalı, kendi `maxWidth`'i değil.
+     * 430px sabitiyle liste giriş kutusundan dar kalıyor, "Tahminlerin"
+     * başlığı kutunun soluyla, "N hak kaldı" da Tahmin düğmesinin sağıyla
+     * hizalanmıyordu — aynı bloğun parçası olduğu okunmuyordu.
+     */
+    <div className="nk-tahminler" style={{ width: '100%' }} aria-label="Yanlış tahminlerin">
       <div
         style={{
           display: 'flex',
