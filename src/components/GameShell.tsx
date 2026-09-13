@@ -10,18 +10,17 @@ import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { chipById, CHIPS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { heardLength, MAX_WRONG, wrongCount  } from '@/game/machine'
-import { Backdrop } from './stage/Backdrop'
 import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
 import { GuessLog } from './guess/GuessLog'
 import { ResultPanel } from './reveal/ResultPanel'
-import { Header, CategoryStrip, TierStrip, Footer } from './shell/Chrome'
+import { TierStrip } from './shell/Chrome'
+import { SahneCercevesi } from './shell/SahneCercevesi'
 import {
   SettingsCard, HowToCard, StatsCard, KeyboardCard, LinksCard,
 } from './shell/SidePanels'
-import { useOlcek } from './shell/useOlcek'
 
 export function GameShell() {
   const round = useRound()
@@ -36,15 +35,8 @@ export function GameShell() {
    */
   const reduce = settings.reduce
 
-  // CSS keyframe'lerini kesen kural artık bu özniteliğe bağlı (globals.css).
-  useEffect(() => {
-    const root = document.documentElement
-    if (reduce) root.setAttribute('data-motion', 'reduced')
-    else root.removeAttribute('data-motion')
-  }, [reduce])
-
-  // Sahneyi 1920 tasarımına göre orantılı küçültür.
-  useOlcek()
+  // ⚠️ `data-motion` ve `useOlcek` artık `SahneCercevesi`'nde — iki oyunda da
+  // aynı olduğu için tek yerde durmalı.
   const router = useRouter()
   const cassette = useRef<CassetteHandle>(null)
   const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
@@ -159,99 +151,37 @@ export function GameShell() {
   })()
 
   return (
-    <div
-      className="themed"
-      style={{
-        // Sahnenin tek değişkeni: kategori tonu.
-        ['--hue' as string]: String(chip.hue),
-        position: 'relative',
-        minHeight: '100vh',
-        overflow: 'hidden',
-        background:
-          'radial-gradient(120% 80% at 50% -10%, #14171b 0%, #0a0b0d 55%, #07080a 100%)',
-        color: '#e6e8ea',
-      }}
-    >
-      <Backdrop reduce={reduce} />
-
-      {/* Görünmez ama duyulur: turun gidişatını ekran okuyucuya bildirir. */}
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        style={{
-          position: 'absolute',
-          width: 1,
-          height: 1,
-          margin: -1,
-          padding: 0,
-          overflow: 'hidden',
-          clipPath: 'inset(50%)',
-          whiteSpace: 'nowrap',
-          border: 0,
-        }}
-      >
-        {announcement}
-      </div>
-
-      {/*
-        ⚠️ Ölçek YALNIZCA içeriğe uygulanır, arka plana değil.
-        `Backdrop` tam ekran kalmalı; ölçeklenseydi kenarlarda boş bant
-        kalırdı. Detay için `useOlcek.ts`.
-      */}
-      <div
-        className="nk-scale"
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {/*
-         * Üst bant: marka ve kategoriler.
-         *
-         * Sayfanın kimliği ve ana seçimi burada; oyunla aynı blokta değil,
-         * kendi bandında duruyor. Altındaki ince çizgi ikisini ayırır ama
-         * kesmez — kenarlarda sönerek bitiyor.
-         */}
-        <div className="nk-top">
-          <Header />
-          <CategoryStrip
-            chips={CHIPS}
-            category={settings.category}
-            onCategory={settings.setCategory}
+    <SahneCercevesi
+      hue={chip.hue}
+      reduce={reduce}
+      anons={announcement}
+      cipler={CHIPS}
+      secili={settings.category}
+      onSecki={(c) => settings.setCategory(c as typeof settings.category)}
+      aktifOyun="sarki"
+      sol={
+        <>
+          <SettingsCard
+            volume={settings.volume}
+            reduce={settings.reduce}
+            easySearch={settings.easySearch}
+            onVolume={settings.setVolume}
+            onReduce={settings.setReduce}
+            onEasySearch={settings.setEasySearch}
           />
-        </div>
-
-        {/*
-          ⚠️ `paddingBottom` YOK.
-
-          Burada `flex: 1` ile birlikte 176px'lik bir alt dolgu duruyordu.
-          `flex: 1` kalan alanı zaten dolduruyor; dolgu onun ÜSTÜNE biniyor ve
-          footer'ı ekranın dışına itiyordu. Sonuç: sayfa her zaman tam olarak o
-          kadar kayıyordu — içerik sığsa bile kaydırma çubuğu çıkıyordu.
-
-          Kaldırılınca sahne, üst bant ile footer arasında `.nk-center`'ın
-          `margin: auto`'suyla ortalanıyor ve footer ilk ekranın dibine
-          oturuyor.
-        */}
-        <div style={{ flex: 1, display: 'flex', width: '100%' }}>
-          <div className="nk-center">
-            {/* Üç sütun: ayarlar · sahne · kurallar. */}
-            <div className="nk-stage-grid">
-            {/* Sol sütun: yalnızca ayarlar, altında istatistik kartı. */}
-            <div className="nk-side">
-              <SettingsCard
-                volume={settings.volume}
-                reduce={settings.reduce}
-                easySearch={settings.easySearch}
-                onVolume={settings.setVolume}
-                onReduce={settings.setReduce}
-                onEasySearch={settings.setEasySearch}
-              />
-              <StatsCard />
-            </div>
-
+          <StatsCard />
+        </>
+      }
+      sag={
+        <>
+          <HowToCard />
+          <KeyboardCard />
+          {/* Bağlantılar en altta: sütunun çıkışı, girişi değil. */}
+          <LinksCard />
+        </>
+      }
+      orta={
+        <>
             {/*
              * Sahne dizilimi, aşağı indikçe açılan boşluklarla kuruluyor:
              * kaset ve kademe sıkı bir ikili (aynı şeyi anlatıyorlar), sonra
@@ -521,37 +451,26 @@ export function GameShell() {
               </div>
             </main>
 
-            <div className="nk-side">
-              <HowToCard />
-              <KeyboardCard />
-              {/* Bağlantılar en altta: sütunun çıkışı, girişi değil. */}
-              <LinksCard />
-            </div>
-            </div>
-          </div>
-        </div>
-
-        <Footer />
-      </div>
-
-      <style>{`
-        .nk-skip:hover:not(:disabled) {
-          border-color: var(--acc) !important;
-          color: var(--acc) !important;
-          background: rgba(255,255,255,0.07) !important;
-        }
-        .nk-degistir:hover:not(:disabled) {
-          border-color: rgba(126,164,190,0.7) !important;
-          color: #c3dcec !important;
-          background: rgba(126,164,190,0.14) !important;
-        }
-        .nk-pass:hover:not(:disabled) {
-          border-color: rgba(201,162,94,0.7) !important;
-          color: #e8c98c !important;
-          background: rgba(201,162,94,0.14) !important;
-        }
-      `}</style>
-    </div>
+            <style>{`
+              .nk-skip:hover:not(:disabled) {
+                border-color: var(--acc) !important;
+                color: var(--acc) !important;
+                background: rgba(255,255,255,0.07) !important;
+              }
+              .nk-degistir:hover:not(:disabled) {
+                border-color: rgba(126,164,190,0.7) !important;
+                color: #c3dcec !important;
+                background: rgba(126,164,190,0.14) !important;
+              }
+              .nk-pass:hover:not(:disabled) {
+                border-color: rgba(201,162,94,0.7) !important;
+                color: #e8c98c !important;
+                background: rgba(201,162,94,0.14) !important;
+              }
+            `}</style>
+        </>
+      }
+    />
   )
 }
 

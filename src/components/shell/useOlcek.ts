@@ -35,12 +35,28 @@ const TASARIM_G = 1920
  * ⚠️ FOOTER de bu bütçenin içinde. Değilken sayfa, içerik sığsa bile footer
  * kadar kayıyor ve kaydırma çubuğu çıkıyordu.
  *
- * ⚠️ Değer TAHMİN EDİLMEDİ, ölçüldü. Parçaları toplamak (178 + 34 + 851 + 42
- * = 1105) eksik kalıyor; aradaki farkı kartların iç dolguları ve satır
- * yükseklikleri doğuruyor. Beş ayrı görünüm boyutunda `footer altı / ölçek`
- * hesaplandı ve hepsi 1142-1148 arasında çıktı.
+ * ⚠️ Değer TAHMİN EDİLMEDİ, ölçüldü — ve ölçmek göründüğünden zor.
+ *
+ * İlk iki deneme yanlış sonuç verdi: `.nk-scale`'in `min-height: 100vh/ölçek`
+ * kuralı ve ortadaki `flex: 1` bloğu footer'ı her hâlükârda pencerenin dibine
+ * itiyor, dolayısıyla "footer altı" ölçümü içeriğin doğal yüksekliğini değil
+ * PENCERE yüksekliğini veriyor. Doğrusu, ölçek 1'e sabitlenip dört parçanın
+ * doğal yüksekliğini toplamak:
+ *
+ *   üst bant 178 + orta 921 + footer 51 = 1150
+ *
+ * Beş genişlikte ölçüldü (1366/1440/1600/1920/2560), en büyüğü alındı, üstüne
+ * biraz nefes bırakıldı.
+ *
+ * Oyun seçici şeridi footer SATIRININ İÇİNDE olduğu için yükseklik eklemiyor.
+ * Kendi satırındayken ölçüm 1180 veriyordu ve bu, 1280×800 ile 1366×768'de
+ * ölçeği alt sınıra dayayıp sahneyi taşırıyordu.
+ *
+ * ⚠️ İkinci oyun eklenince bu değer İKİ KABUĞUN MAKSİMUMU olmalı: `UnluShell`
+ * sahnesi `Cassette`'ten uzun olabilir ve yalnızca şarkı sahnesini ölçmek
+ * ünlü sahnesini taşırır.
  */
-const TASARIM_Y = 1155
+const TASARIM_Y = 1160
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**
@@ -54,8 +70,11 @@ const MOBIL_ESIK = 900
  * pencerede sahne 6 px taşıyordu (gereken 0,608): son düğme ekranın altında
  * kalıyordu. Sınıra dayanınca sayfa yine kaydırılabilir kalıyor, yani en
  * kötü durumda içerik erişilemez olmuyor.
+ *
+ * 0,60 → 0,59: oyun seçici eklenince 1280x800'de gereken ölçek 0,5948'e düştü
+ * ve 4 px taşma çıktı. Metin farkı %1,7 — taşmaya değmez.
  */
-const EN_KUCUK = 0.6
+const EN_KUCUK = 0.59
 
 export function useOlcek(): void {
   useEffect(() => {

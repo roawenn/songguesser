@@ -281,14 +281,27 @@ export function TierStrip({ tier, onTier }: TierProps) {
  * Yerine Apple atfı geldi — zorunlu bir metin ve yeri burası; yan kartın
  * içinde kaybolduğu yerden alındı.
  */
-export function Footer() {
+export function Footer({ oyunlar }: { oyunlar?: React.ReactNode }) {
   return (
     <footer
       style={{
-        padding: '0 20px 26px',
+        padding: '0 20px 22px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        /*
+         * ⚠️ Oyun seçici KENDİ SATIRINDA değil, burada.
+         *
+         * Ayrı satır ölçümde `TASARIM_Y`'yi 1155 → 1195 çıkarıyordu ve bu,
+         * 1280×800 ile 1366×768'de ölçeği alt sınıra dayayıp sahneyi
+         * taşırıyordu: bir gezinme şeridi uğruna bütün oyun küçülüyordu.
+         * Aynı satırı paylaşınca eklenen yükseklik ~0.
+         *
+         * Dar ekranda `flexWrap` ile alt alta iniyor; orada sayfa zaten
+         * kaydırılabilir olduğu için ek yükseklik sorun değil.
+         */
+        flexWrap: 'wrap',
+        gap: 14,
         fontFamily: 'var(--font-mono)',
         fontSize: 10.5,
         lineHeight: 1.6,
@@ -296,7 +309,8 @@ export function Footer() {
         color: '#4e5459',
       }}
     >
-      Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.
+      {oyunlar}
+      <span>Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.</span>
     </footer>
   )
 }
