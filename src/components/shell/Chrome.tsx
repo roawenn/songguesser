@@ -296,23 +296,21 @@ export function Footer({
   return (
     <footer
       style={{
-        padding: '0 20px 22px',
+        padding: '0 20px 18px',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         /*
-         * ⚠️ Oyun seçici KENDİ SATIRINDA değil, burada.
+         * ⚠️ Oyun seçici artık ATIF YAZISININ ÜSTÜNDE, kendi satırında.
          *
-         * Ayrı satır ölçümde `TASARIM_Y`'yi 1155 → 1195 çıkarıyordu ve bu,
-         * 1280×800 ile 1366×768'de ölçeği alt sınıra dayayıp sahneyi
-         * taşırıyordu: bir gezinme şeridi uğruna bütün oyun küçülüyordu.
-         * Aynı satırı paylaşınca eklenen yükseklik ~0.
-         *
-         * Dar ekranda `flexWrap` ile alt alta iniyor; orada sayfa zaten
-         * kaydırılabilir olduğu için ek yükseklik sorun değil.
+         * Bir ara ikisi aynı satırdaydı: o zaman şerit tek kelimelik bir etiket
+         * taşıyordu ("Şarkı" / "Ünlü") ve kendi satırı ölçek bütçesine 38 px
+         * ekliyordu. Şerit ikon + ad + açıklama taşıyan kartlara dönüşünce yan
+         * yana dizilim hem atfı kenara itti hem de dar ekranda sarmalanıp
+         * yüksekliği zaten ikiye katladı; kendi satırı artık daha ucuz.
+         * Eklenen yükseklik `TASARIM_Y`'ye ÖLÇÜLEREK yansıtıldı.
          */
-        flexWrap: 'wrap',
-        gap: 14,
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 12,
         fontFamily: 'var(--font-mono)',
         fontSize: 10.5,
         lineHeight: 1.6,

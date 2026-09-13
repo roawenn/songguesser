@@ -526,24 +526,36 @@ export function HowToCard() {
 }
 
 /**
- * Klavye kısayolları — KENDİ kartı.
+ * Klavye kısayolları — KENDİ kartı, İKİ oyunda da aynı yerde.
  *
  * Önce "Nasıl oynanır"ın dibinde, ayıraçla bölünmüş bir bölümdü. Kart üç ayrı
  * konuyu (adımlar, bağlantılar, kısayollar) tek çerçevede taşıyınca hiçbiri
  * kendi başlığıyla okunmuyordu; ayrı kart, listedeki diğer kartlarla aynı
  * dilde konuşuyor.
+ *
+ * ⚠️ Satırlar PROP, kart KOPYALANMIYOR. Ünlü oyununda "Boşluk → klibi çal"
+ * satırı yok (çalınacak bir şey yok) ama kartın kendisi orada da duruyor:
+ * sağ sütunun ikinci kartı iki oyunda da bu, yoksa "Bağlantılar" kartı iki
+ * sayfada iki farklı yükseklikte başlıyor ve oyunlar arası geçişte sütun
+ * gözle görülür biçimde zıplıyordu.
  */
-export function KeyboardCard() {
+const SARKI_KISAYOLLARI = [
+  { key: 'Boşluk', what: 'klibi çal' },
+  { key: 'Enter', what: 'tahmini gönder' },
+  { key: '↑ ↓', what: 'önerilerde gez' },
+] as const
+
+export function KeyboardCard({
+  kisayollar = SARKI_KISAYOLLARI,
+}: {
+  kisayollar?: ReadonlyArray<{ key: string; what: string }>
+}) {
   return (
     <section style={CARD} aria-label="Klavye kısayolları">
       <CardTitle>Klavye</CardTitle>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {[
-          { key: 'Boşluk', what: 'klibi çal' },
-          { key: 'Enter', what: 'tahmini gönder' },
-          { key: '↑ ↓', what: 'önerilerde gez' },
-        ].map((k) => (
+        {kisayollar.map((k) => (
           <div
             key={k.key}
             style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12 }}
@@ -556,6 +568,7 @@ export function KeyboardCard() {
     </section>
   )
 }
+
 
 /**
  * Sayfa bağlantıları — sütunun EN ALTINDA, kendi kartında.

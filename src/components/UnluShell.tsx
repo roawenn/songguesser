@@ -13,10 +13,9 @@ import { GuessInput } from './guess/GuessInput'
 import { GuessLog } from './guess/GuessLog'
 import { UnluSonucPanel } from './reveal/UnluSonucPanel'
 import { SahneCercevesi } from './shell/SahneCercevesi'
-import { TASARIM_Y_UNLU } from './shell/useOlcek'
 import { TierStrip } from './shell/Chrome'
 import { UnluAyarKarti, UnluIstatistikKarti, UnluNasilKarti } from './shell/UnluPanels'
-import { LinksCard } from './shell/SidePanels'
+import { KeyboardCard, LinksCard } from './shell/SidePanels'
 import { SeritGostergesi } from './stage/SeritGostergesi'
 import { UnluKare, type UnluKareHandle } from './stage/UnluKare'
 
@@ -33,6 +32,12 @@ import { UnluKare, type UnluKareHandle } from './stage/UnluKare'
  * `.nk-eylem`) aynen kullanılıyor ki iki oyun arasında geçen oyuncu aynı
  * düzeni görsün ve `TASARIM_Y` bütçesi ikisinde de tutsun.
  */
+
+/** Ünlü oyununun klavye kısayolları — şarkıdakinin Boşluk'suz hâli. */
+const UNLU_KISAYOLLARI = [
+  { key: 'Enter', what: 'tahmini gönder' },
+  { key: '↑ ↓', what: 'önerilerde gez' },
+] as const
 
 export function UnluShell() {
   const tur = useUnluTur()
@@ -115,7 +120,6 @@ export function UnluShell() {
       secili={kategori}
       onSecki={(c) => setKategori(c as UnluChipId)}
       aktifOyun="unlu"
-      tasarimY={TASARIM_Y_UNLU}
       atif="Görseller yalnızca tanıma amacıyla, düşük çözünürlükte kullanılıyor."
       sol={
         <>
@@ -126,6 +130,9 @@ export function UnluShell() {
       sag={
         <>
           <UnluNasilKarti />
+          {/* ⚠️ Boşluk tuşu YOK: bu oyunda çalınacak bir şey yok. Kart yine de
+              burada — sağ sütunun ikinci kartı iki oyunda da bu olmalı. */}
+          <KeyboardCard kisayollar={UNLU_KISAYOLLARI} />
           <LinksCard />
         </>
       }

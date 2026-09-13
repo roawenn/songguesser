@@ -651,12 +651,18 @@ button {
 }
 
 /*
- * Sahne yüksekliği tur bitince DEĞİŞMEZ.
+ * Sahne yüksekliği tur bitince DEĞİŞMEZ — ve İKİ OYUNDA AYNIDIR.
  *
  * ⚠️ Sonuç kartı oyun sahnesinden çok daha kısa. Yükseklik serbest bırakılınca
  * ızgara yeniden ortalanıyor ve SOL/SAĞ KARTLAR DAHİL her şey aşağı kayıyordu.
  * Ölçüldü: ünlüde sahne 925 → 194 px, kartlar 145 px aşağı; şarkıda 851 → 590,
  * 39 px. Oyuncunun gözünde bu, cevabı görmek için ödenen bir "sıçrama".
+ *
+ * ⚠️ TEK DEĞER. Bir ara şarkı 851, ünlü 900 idi. Sahne ızgarası orta bölgede
+ * dikey ORTALANDIĞI için 49 px'lik fark ızgarayı 24 px yukarı kaydırıyordu:
+ * oyuncu alt şeritten oyun değiştirdiğinde ayarlar, istatistik ve kurallar
+ * kartları yer değiştiriyordu. Değer uzun olanın (ünlü) ihtiyacı; şarkı sahnesi
+ * `justify-content` ile bu kutunun ortasında duruyor, tepesine yapışmıyor.
  *
  * ⚠️ Yalnızca 900 px ÜSTÜNDE. Mobilde sayfa zaten uzun ve dikey ortalama
  * devrede değil; orada sabit yükseklik yalnızca ölü boşluk üretirdi.
@@ -665,10 +671,8 @@ button {
  */
 @media (min-width: 900px) {
   .nk-stage {
-    min-height: 851px;
-  }
-  .nk-stage.nk-unlu {
     min-height: 900px;
+    justify-content: center;
   }
 }
 

@@ -48,28 +48,33 @@ const TASARIM_G = 1920
  * Beş genişlikte ölçüldü (1366/1440/1600/1920/2560), en büyüğü alındı, üstüne
  * biraz nefes bırakıldı.
  *
- * Oyun seçici şeridi footer SATIRININ İÇİNDE olduğu için yükseklik eklemiyor.
- * Kendi satırındayken ölçüm 1180 veriyordu ve bu, 1280×800 ile 1366×768'de
- * ölçeği alt sınıra dayayıp sahneyi taşırıyordu.
+ * Oyun seçici şeridi bu bütçenin İÇİNDE. Footer satırının içindeyken yükseklik
+ * eklemiyordu; ikon + ad + açıklama taşıyan kartlara dönüşüp kendi satırına
+ * çıkınca footer 51 → 95 px oldu ve fark buraya yansıtıldı.
  *
- * ⚠️ İkinci oyun eklenince bu değer İKİ KABUĞUN MAKSİMUMU olmalı: `UnluShell`
- * sahnesi `Cassette`'ten uzun olabilir ve yalnızca şarkı sahnesini ölçmek
- * ünlü sahnesini taşırır.
- */
-const TASARIM_Y = 1160
-
-/**
- * ⚠️ Ünlü sahnesi ŞARKIDAN UZUN. Ölçüldü: şarkı 1150, ünlü 1255 — fark,
- * 3:5 oranındaki görselin kasetten yüksek olmasından geliyor.
+ * ⚠️ TEK DEĞER, İKİ OYUN — ve değer İKİ SAHNENİN MAKSİMUMU.
  *
- * Tek bir değere çıkmak şarkı oyununu gereksiz yere küçültürdü (1920x940'ta
- * ölçek 0,81 yerine 0,74). Bu yüzden her kabuk kendi ihtiyacını bildiriyor.
+ * Bir ara her kabuk kendi bütçesini bildiriyordu (şarkı 1160, ünlü 1205).
+ * Matematiği doğruydu, sonucu şuydu: 1920x1080'de şarkı 0,931, ünlü 0,896
+ * ölçekle çiziliyordu. Yani oyuncu alt şeritten oyun değiştirdiğinde marka,
+ * kategori çipleri, yan kartlar — SAYFANIN TAMAMI %4 büyüyüp küçülüyordu.
+ * "Genel tasarımda kayma" denen şey buydu; iki bütçe, iki ölçek demek.
  *
- * ⚠️ Bu değer SAHNEYE BİR ŞEY EKLENDİĞİNDE yeniden ölçülmeli. "Arkadaşınla
- * oyna" düğmesi eklendiğinde 1180 → 1242 oldu ve ara ölçüm yapılmasaydı
+ * Diğer yön (ünlü sahnesini şarkınınkine sığdırmak) 49 px istiyordu ve o 49 px
+ * görselin kendisinden gelirdi: 285 px genişlik → 256. Fotoğraftan tanıma
+ * oyununda fotoğrafı %10 küçültmek, iki sayfanın aynı ölçekte olmasından daha
+ * pahalı. Bu yüzden bütçe ünlünün ihtiyacı; şarkı sahnesi 1194 px'lik doğal
+ * yüksekliğiyle bunun içinde 54 px payla duruyor.
+ *
+ * ⚠️ İKİ SAHNEDEN BİRİNE BİR ŞEY EKLENİNCE yeniden ölçülmeli. "Arkadaşınla
+ * oyna" düğmesi eklendiğinde ünlü 1180 → 1242 olmuştu; ara ölçüm yapılmasaydı
  * BÜTÜN masaüstü boyutlarında 37-51 px taşıyacaktı.
+ *
+ * Ölçüm (ölçek 1'e sabitlenip `.nk-scale` çocukları toplanarak, 1920 genişlik):
+ *   şarkı  178 + 921 + 95 = 1194
+ *   ünlü   178 + 970 + 95 = 1243
  */
-export const TASARIM_Y_UNLU = 1205
+const TASARIM_Y = 1248
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**
@@ -92,7 +97,7 @@ const MOBIL_ESIK = 900
  */
 const EN_KUCUK = 0.58
 
-export function useOlcek(tasarimY: number = TASARIM_Y): void {
+export function useOlcek(): void {
   useEffect(() => {
     const kok = document.documentElement
 
@@ -107,7 +112,7 @@ export function useOlcek(tasarimY: number = TASARIM_Y): void {
        * İki kısıt da geçerli: sahne hem yatayda hem dikeyde sığmalı.
        * Hangisi daha darsa ölçeği o belirler.
        */
-      const ham = Math.min(1, g / TASARIM_G, window.innerHeight / tasarimY)
+      const ham = Math.min(1, g / TASARIM_G, window.innerHeight / TASARIM_Y)
       const olcek = Math.max(EN_KUCUK, ham)
       kok.style.setProperty('--nk-olcek', String(Math.round(olcek * 1000) / 1000))
       kok.setAttribute('data-olcek', olcek < 1 ? 'kucuk' : 'tam')
@@ -120,5 +125,5 @@ export function useOlcek(tasarimY: number = TASARIM_Y): void {
       kok.style.removeProperty('--nk-olcek')
       kok.removeAttribute('data-olcek')
     }
-  }, [tasarimY])
+  }, [])
 }
