@@ -16,7 +16,6 @@ import { SahneCercevesi } from './shell/SahneCercevesi'
 import { TierStrip } from './shell/Chrome'
 import { UnluAyarKarti, UnluIstatistikKarti, UnluNasilKarti } from './shell/UnluPanels'
 import { KeyboardCard, LinksCard } from './shell/SidePanels'
-import { SeritGostergesi } from './stage/SeritGostergesi'
 import { UnluKare, type UnluKareHandle } from './stage/UnluKare'
 
 /**
@@ -198,10 +197,6 @@ export function UnluShell() {
 
               <div className="nk-kademe">
                 <TierStrip tier={kademe} onTier={setKademe} />
-              </div>
-
-              <div className="nk-cubuk" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                <SeritGostergesi acilan={acilan} steps={steps} bitti={false} />
               </div>
 
               <div className="nk-giris" style={{ width: '100%' }}>

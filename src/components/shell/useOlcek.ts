@@ -60,21 +60,20 @@ const TASARIM_G = 1920
  * kategori çipleri, yan kartlar — SAYFANIN TAMAMI %4 büyüyüp küçülüyordu.
  * "Genel tasarımda kayma" denen şey buydu; iki bütçe, iki ölçek demek.
  *
- * Diğer yön (ünlü sahnesini şarkınınkine sığdırmak) 49 px istiyordu ve o 49 px
- * görselin kendisinden gelirdi: 285 px genişlik → 256. Fotoğraftan tanıma
- * oyununda fotoğrafı %10 küçültmek, iki sayfanın aynı ölçekte olmasından daha
- * pahalı. Bu yüzden bütçe ünlünün ihtiyacı; şarkı sahnesi 1194 px'lik doğal
- * yüksekliğiyle bunun içinde 54 px payla duruyor.
+ * Sahne kutusu uzun olanın ihtiyacı kadar (867 px, ünlü) ve iki sayfanın doğal
+ * yüksekliği artık BİREBİR aynı. Kalan 16 px'lik farkı kapatmak için görseli
+ * küçültmek gündeme geldi ve reddedildi: fotoğraftan tanıma oyununda fotoğraf
+ * oyunun kendisi, 16 px ölçek ise %1,3.
  *
  * ⚠️ İKİ SAHNEDEN BİRİNE BİR ŞEY EKLENİNCE yeniden ölçülmeli. "Arkadaşınla
  * oyna" düğmesi eklendiğinde ünlü 1180 → 1242 olmuştu; ara ölçüm yapılmasaydı
  * BÜTÜN masaüstü boyutlarında 37-51 px taşıyacaktı.
  *
  * Ölçüm (ölçek 1'e sabitlenip `.nk-scale` çocukları toplanarak, 1920 genişlik):
- *   şarkı  178 + 921 + 95 = 1194
- *   ünlü   178 + 970 + 95 = 1243
+ *   şarkı 178 + 937 + 95 = 1210
+ *   ünlü  178 + 937 + 95 = 1210
  */
-const TASARIM_Y = 1248
+const TASARIM_Y = 1215
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**

@@ -639,12 +639,14 @@ button {
  * eklenince sahne 1242 px'e çıktı ve 1366x768'de (maximize) 25 px taşıyordu.
  * Seçenek ya görseli küçültmekti ya aralıkları — görsel oyunun kendisi,
  * aralıklar değil.
+ *
+ * ⚠️ `.nk-cubuk` kuralı YOK: ünlü sahnesinde şerit göstergesi kaldırıldı.
+ * Şarkıda çubuk zorunlu (klibin ne kadarını duyduğunu başka hiçbir şey
+ * söylemiyor); burada görselin kendisi kaç şeridin açık olduğunu zaten
+ * gösteriyordu, tahmin listesi de yanlışları sayıyordu.
  */
-.nk-unlu .nk-cubuk {
-  margin-top: 34px;
-}
 .nk-unlu .nk-giris {
-  margin-top: 26px;
+  margin-top: 40px;
 }
 .nk-unlu .nk-eylem {
   margin-top: 16px;
@@ -667,11 +669,12 @@ button {
  * ⚠️ Yalnızca 900 px ÜSTÜNDE. Mobilde sayfa zaten uzun ve dikey ortalama
  * devrede değil; orada sabit yükseklik yalnızca ölü boşluk üretirdi.
  *
- * Değerler ölçüldü (ölçek 1, üç genişlikte aynı çıktı).
+ * Değer ölçüldü (ölçek 1, min-height sıfırlanıp içerik toplanarak):
+ * şarkı 851, ünlü 867 — uzun olan alındı.
  */
 @media (min-width: 900px) {
   .nk-stage {
-    min-height: 900px;
+    min-height: 867px;
     justify-content: center;
   }
 }

@@ -12,7 +12,6 @@ import { useUnluStatsStore } from '@/store/useUnluStatsStore'
 import { GuessInput } from './guess/GuessInput'
 import { GuessLog } from './guess/GuessLog'
 import { Backdrop } from './stage/Backdrop'
-import { SeritGostergesi } from './stage/SeritGostergesi'
 import { UnluKare, type UnluKareHandle } from './stage/UnluKare'
 import { Bitis, GeriSayim, Kutu, Lobi, Marka, Skor, SonBekleme, M } from './duello/Parcalar'
 
@@ -172,7 +171,6 @@ export function UnluDuelloShell({ kod }: { kod: string }) {
                     bitti={false}
                     reduce={reduce}
                   />
-                  <SeritGostergesi acilan={acilan} steps={steps} bitti={false} />
 
                   <div style={{ width: '100%' }}>
                     <GuessInput
