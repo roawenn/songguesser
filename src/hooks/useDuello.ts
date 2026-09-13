@@ -276,12 +276,23 @@ export function useDuello(kod: string): DuelloApi {
     [cevapYolla],
   )
 
-  // Rakip geride kaldıysa bekleme süresini ölç.
-  const bekliyor = aktif > 0 && aktif < DUELLO_SARKI && rakipIlerleme < aktif
+  /**
+   * ⚠️ Bekleme YALNIZCA SONDA.
+   *
+   * Eskiden her şarkıdan sonra rakibin o şarkıyı bitirmesi bekleniyordu: hızlı
+   * oyuncu beş kez, her seferinde dakikalarca bekleyebiliyordu ve düello bir
+   * oyundan çok sıra beklemeye dönüyordu. Artık herkes kendi hızında beş
+   * şarkıyı bitiriyor; tek bekleme noktası sonuç ekranından önce, ki ikisi de
+   * kazananı aynı anda görsün.
+   */
+  const hepsiBitti = aktif >= DUELLO_SARKI
+  const rakipBitti = rakipIlerleme >= DUELLO_SARKI
+  const sonBekleme = hepsiBitti && !rakipBitti
+
   useEffect(() => {
-    if (bekliyor) beklemeBasi.current ??= Date.now()
+    if (sonBekleme) beklemeBasi.current ??= Date.now()
     else beklemeBasi.current = null
-  }, [bekliyor])
+  }, [sonBekleme])
   const beklemeSuresi = beklemeBasi.current ? simdi - beklemeBasi.current : 0
 
   /** Sunucu saatiyle hizalanmış şimdi. */
@@ -315,8 +326,15 @@ export function useDuello(kod: string): DuelloApi {
     if (!slot && durum.oyuncuSayisi >= 2) return 'hata'
     if (durum.oyuncuSayisi < 2 || !durum.songs) return 'lobi'
     if (geriSayimKalan > 0) return 'gerisayim'
-    if (aktif >= DUELLO_SARKI) return 'bitti'
-    if (bekliyor && beklemeSuresi < BEKLEME_SINIRI_MS) return 'bekleme'
+    if (hepsiBitti) {
+      /*
+       * ⚠️ Süre aşımı ŞART. Rakip oyunu ortada bırakırsa bekleyen oyuncu
+       * sonucunu sonsuza kadar göremezdi. Cevaplanmamış şarkılar `skorla`
+       * içinde zaten kayıp sayılıyor.
+       */
+      if (rakipBitti || beklemeSuresi >= BEKLEME_SINIRI_MS) return 'bitti'
+      return 'bekleme'
+    }
     return 'oynaniyor'
   })()
 

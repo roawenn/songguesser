@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { chipById, CHIPS, CATEGORY_IDS, type ChipId } from '@/data/categories'
 import type { Pool, Song } from '@/data/schema'
 import {
-  SONG_COLUMNS, restHeaders, restTumSatirlar, toSong, supabaseReady, type SongRow,
+  POOL_COLUMNS, restHeaders, restTumSatirlar, toSong, supabaseReady, type SongRow,
 } from '@/lib/supabase'
 
 /**
@@ -74,7 +74,7 @@ function fallbackFromDisk(chip: ChipId): Song[] {
 async function fromSupabase(chip: ChipId): Promise<Song[]> {
   const source = chipById(chip).source
   const params = new URLSearchParams({
-    select: SONG_COLUMNS,
+    select: POOL_COLUMNS,
     enabled: 'eq.true',
     // Sıralama sayfalamanın tutarlı olması için ŞART: sırasız bir sorguda
     // planlayıcı sayfalar arasında aynı satırı iki kez verebilir ya da atlayabilir.

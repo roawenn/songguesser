@@ -44,8 +44,11 @@ export function DuelloShell({ kod }: { kod: string }) {
    * mi" değil, "sıradaki geldi mi".
    */
   const hazir = d.songs.length > d.aktif
-  const oynanabilir =
-    (d.faz === 'oynaniyor' || d.faz === 'bekleme' || d.faz === 'bitti') && hazir
+  /*
+   * ⚠️ Tur YALNIZCA oynanırken kurulur. Bitiş ve bekleme fazlarında da dizilim
+   * veriliyordu; bu, son şarkıyı boşuna yeniden kurup sesini indiriyordu.
+   */
+  const oynanabilir = d.faz === 'oynaniyor' && hazir
   const round = useRound(oynanabilir ? { sequence: d.songs, index: d.aktif } : undefined)
 
   const { onWrong } = round
@@ -112,26 +115,46 @@ export function DuelloShell({ kod }: { kod: string }) {
           ← tahmin.net
         </Link>
 
-        {d.faz === 'hata' && <Kutu tone="bad">{d.hata ?? 'Bir şeyler ters gitti.'}</Kutu>}
-        {d.faz === 'yukleniyor' && <div style={{ ...M, color: '#6a7075' }}>yükleniyor…</div>}
-        {d.faz === 'lobi' && <Lobi kod={kod} />}
-        {d.faz === 'gerisayim' && <GeriSayim n={d.geriSayim} />}
+        {/*
+          ⚠️ Oyun dışı ekranlar (lobi, geri sayım, bekleme, bitiş, hata) DİKEY
+          ORTALANIR. Hepsi sayfanın üstüne yapışıyordu ve altında bomboş bir
+          ekran kalıyordu; özellikle lobide, tek işi bir kodu göstermek olan
+          kart ekranın tepesinde asılı duruyordu.
+        */}
+        <div
+          style={{
+            flex: 1,
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: oynanabilir ? 'flex-start' : 'center',
+            gap: 22,
+          }}
+        >
+          {d.faz === 'hata' && <Kutu tone="bad">{d.hata ?? 'Bir şeyler ters gitti.'}</Kutu>}
+          {d.faz === 'yukleniyor' && <div style={{ ...M, color: '#6a7075' }}>yükleniyor…</div>}
+          {d.faz === 'lobi' && <Lobi kod={kod} />}
+          {d.faz === 'gerisayim' && <GeriSayim n={d.geriSayim} />}
 
-        {oynanabilir && (
-          <>
-            <Skor d={d} />
+          {(d.faz === 'oynaniyor' || d.faz === 'bekleme' || d.faz === 'bitti') && (
+            <>
+              <Skor d={d} />
 
-            {d.faz === 'bitti' ? (
-              <Bitis d={d} />
-            ) : d.faz === 'bekleme' ? (
-              <Bekleme d={d} />
-            ) : round.state.s === 'error' ? (
-              <CalinamadiKutusu d={d} />
-            ) : (
-              <Sahne round={round} cassette={cassette} reduce={reduce} d={d} />
-            )}
-          </>
-        )}
+              {d.faz === 'bitti' ? (
+                <Bitis d={d} />
+              ) : d.faz === 'bekleme' ? (
+                <SonBekleme d={d} />
+              ) : round.state.s === 'error' ? (
+                <CalinamadiKutusu d={d} />
+              ) : hazir ? (
+                <Sahne round={round} cassette={cassette} reduce={reduce} d={d} />
+              ) : (
+                <div style={{ ...M, color: '#6a7075' }}>şarkı hazırlanıyor…</div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -280,30 +303,74 @@ function CalinamadiKutusu({ d }: { d: Duello }) {
 }
 
 /**
- * Rakibi bekleme ekranı.
+ * Beş şarkıyı bitirip rakibi bekleme ekranı — düellodaki TEK bekleme noktası.
  *
- * ⚠️ Biten şarkı BURADA açıklanıyor. Düelloda tek oyunculu sonuç paneli yok;
- * bu satır olmadan oyuncu bilemediği parçanın adını hiç öğrenemiyor, beş şarkı
- * boyunca da öğrenemediği için oyun "ne çalıyordu?" sorusuyla bitiyordu.
+ * ⚠️ Şarkı listesi ve kazanan BURADA GÖSTERİLMEZ. İki oyuncu sonucu aynı anda
+ * görmeli; erken bitiren kişi cevapları görürse onları dışarıdan (WhatsApp vb.)
+ * söyleyebilir. Yalnızca kendi doğru sayısı ve rakibin ilerlemesi var.
  */
-function Bekleme({ d }: { d: Duello }) {
-  const biten = d.aktif > 0 ? d.songs[d.aktif - 1] : undefined
-  const bildi = d.aktif > 0 ? d.sonuclar[d.aktif - 1]?.benim : null
-
+function SonBekleme({ d }: { d: Duello }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-      {biten && (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ ...M, color: bildi ? 'var(--acc)' : '#a05a5a' }}>
-            {bildi ? 'bildin' : 'bilemedin'}
-          </div>
-          <div style={{ marginTop: 7, fontSize: 15, color: '#e6e8ea' }}>{biten.t}</div>
-          <div style={{ marginTop: 3, fontSize: 13, color: '#757b80' }}>{biten.a}</div>
-        </div>
-      )}
-      <Kutu tone="warn">
-        Rakibini bekliyorsun… ({d.rakipIlerleme}/{DUELLO_SARKI} bitirdi)
-      </Kutu>
+    <div
+      style={{
+        ...KART,
+        alignItems: 'center',
+        textAlign: 'center',
+        maxWidth: 420,
+        gap: 18,
+      }}
+    >
+      <div style={{ fontFamily: 'var(--font-serif)', fontSize: 34, color: '#e6e8ea' }}>
+        Sen bitirdin
+      </div>
+
+      <div style={{ ...M, color: '#8c9297' }}>
+        {d.benim.dogru}/{DUELLO_SARKI} doğru
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 9,
+          ...M,
+          color: '#6a7075',
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: '50%',
+            background: 'var(--acc)',
+            animation: 'nk-flick 1.4s ease-in-out infinite',
+          }}
+        />
+        rakibin {d.rakipIlerleme}/{DUELLO_SARKI} bitirdi
+      </div>
+
+      <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6, color: '#6a7075' }}>
+        Şarkılar ve kazanan, ikiniz de bitirince aynı anda açılacak.
+      </p>
+    </div>
+  )
+}
+
+/** Lobi ve bekleme ekranlarının üstündeki marka. */
+function Marka() {
+  return (
+    <div
+      style={{
+        fontFamily: 'var(--font-serif)',
+        fontStyle: 'italic',
+        fontSize: 30,
+        lineHeight: 1,
+        color: '#f2f4f5',
+        textShadow: '0 0 28px var(--accSoft)',
+      }}
+    >
+      tahmin
     </div>
   )
 }
@@ -319,7 +386,19 @@ function Lobi({ kod }: { kod: string }) {
   }, [kopyalandi])
 
   return (
-    <div style={{ ...KART, alignItems: 'center', textAlign: 'center', maxWidth: 460 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 26,
+        width: '100%',
+        maxWidth: 460,
+      }}
+    >
+      <Marka />
+
+      <div style={{ ...KART, alignItems: 'center', textAlign: 'center' }}>
       <div style={{ ...M, color: '#6a7075' }}>Lobi kodu</div>
       <div
         style={{
@@ -382,6 +461,7 @@ function Lobi({ kod }: { kod: string }) {
           }}
         />
         arkadaşın bekleniyor
+      </div>
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { clipPlayer } from '@/audio/ClipPlayer'
 import { installResumeHandlers } from '@/audio/context'
 import { loadChip } from '@/data/loadPool'
+import { alanlariAl, birlestir } from '@/data/loadSongFields'
 import type { Song } from '@/data/schema'
 import { MIN_PLAYABLE } from '@/data/categories'
 import { gameReducer, canPlay, currentClipLength, type GameState } from '@/game/machine'
@@ -122,6 +123,16 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
+    /**
+     * ⚠️ Elde kalan tur HEMEN düşürülür.
+     *
+     * Yeni seçkinin havuzu ağdan gelene kadar durum ESKİ turu `ready`
+     * tutuyordu, yani `canPlay` doğru kalıyordu: oyuncu kategoriyi değiştirip
+     * hemen çal'a bastığında önceki seçkinin şarkısı çalıyordu. Sesi de
+     * durdurmak gerekiyor — hazırlanmış klip şeritte duruyor.
+     */
+    clipPlayer.stop()
+    dispatch({ type: 'RESET' })
     loadChip(category)
       .then((songs) => {
         if (cancelled) return
@@ -212,13 +223,37 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
 
       setAmbiguous(null)
       setStalled(false)
-      dispatch({ type: 'ARM', track: song, ladder: rungs })
+
+      /**
+       * Oynanabilirlik alanlarını (önizleme, kapak, mağaza) tamamla.
+       *
+       * ⚠️ Bunlar toplu havuzda GELMİYOR — üç URL alanı 5089 satırlık yanıtın
+       * %60'ıydı. Önbellek ve önden ısıtma sayesinde bu çağrı neredeyse her
+       * zaman anında döner; yalnızca oturumun ilk turu ~200 baytlık bir istek
+       * bekler.
+       *
+       * ⚠️ Düelloda şarkılar sunucudan TAM geliyor; `p` zaten doluysa ağ hiç
+       * kullanılmaz.
+       */
+      const tam = song.p ? song : birlestir(song, await alanlariAl(song.id))
+
+      // ⚠️ Yeni bir `await`, yeni bir yarış penceresi: token burada da
+      // kontrol edilmeli, yoksa geçersiz kalmış kurulum ARM gönderir.
+      if (token !== roundToken.current) return
+
+      if (!tam.p) {
+        // Alanlar çekilemedi: ölü URL ile aynı muamele.
+        dispatch({ type: 'ARM_FAIL', reason: 'offline' })
+        return
+      }
+
+      dispatch({ type: 'ARM', track: tam, ladder: rungs })
 
       const result = await clipPlayer.arm({
-        id: song.id,
-        url: song.p,
-        clipStart: song.cs,
-        duration: song.du,
+        id: tam.id,
+        url: tam.p,
+        clipStart: tam.cs,
+        duration: tam.du,
       })
 
       // ⚠️ Bu arada yeni bir tur kurulduysa bu çağrı geçersizdir: sonucu
@@ -245,12 +280,29 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
             })()
         if (upcoming) {
           nextUp.current = upcoming
-          clipPlayer.prefetch({
-            id: upcoming.id,
-            url: upcoming.p,
-            clipStart: upcoming.cs,
-            duration: upcoming.du,
-          })
+          /*
+           * ⚠️ Sıradaki şarkının ALANLARI da şimdiden çekilir. Bu olmadan her
+           * tur başlangıcı ~200 baytlık bir istek beklerdi; böylece yalnızca
+           * oturumun ilk turu bekliyor.
+           */
+          if (upcoming.p) {
+            clipPlayer.prefetch({
+              id: upcoming.id,
+              url: upcoming.p,
+              clipStart: upcoming.cs,
+              duration: upcoming.du,
+            })
+          } else {
+            void alanlariAl(upcoming.id).then((alan) => {
+              if (!alan) return
+              clipPlayer.prefetch({
+                id: upcoming.id,
+                url: alan.p,
+                clipStart: upcoming.cs,
+                duration: upcoming.du,
+              })
+            })
+          }
         }
       } else if (result === 'dead-url') {
         /**

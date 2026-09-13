@@ -30,30 +30,56 @@ export interface SongRow {
   created_at?: string
 }
 
-/** DB satırını oyunun kullandığı kompakt biçime çevirir. */
+/**
+ * DB satırını oyunun kullandığı kompakt biçime çevirir.
+ *
+ * ⚠️ URL alanları YOKSA hiç yazılmaz. `POOL_COLUMNS` ile çekilen satırlarda
+ * kapak/önizleme/mağaza gelmiyor; `ar: undefined` yazmak JSON'a `null` basıp
+ * satır başına boşuna bayt eklerdi.
+ */
 export function toSong(r: SongRow): Song {
-  return {
+  const s: Song = {
     id: r.id,
     t: r.title,
     a: r.artist,
-    ar: r.artwork,
-    p: r.preview,
     cs: r.clip_start,
     du: r.duration,
     y: r.year,
     e: r.era as EraId,
     d: r.tier as Difficulty,
     c: r.category as CategoryId,
-    u: r.store_url,
     nT: r.norm_title,
     nA: r.norm_artist,
     k: r.accept_keys ?? [],
     off: r.enabled ? 0 : 1,
   }
+  if (r.artwork) s.ar = r.artwork
+  if (r.preview) s.p = r.preview
+  if (r.store_url) s.u = r.store_url
+  return s
 }
 
 export const SONG_COLUMNS =
   'id,category,title,artist,artwork,preview,store_url,clip_start,duration,year,era,tier,enabled,norm_title,norm_artist,accept_keys'
+
+/**
+ * Oyunun TOPLU havuzda okuduğu kolonlar — URL'ler YOK.
+ *
+ * ⚠️ Üç URL alanı (`artwork`, `preview`, `store_url`) 5089 satırlık yanıtın
+ * **%60'ıydı**: sırasıyla 659, 792 ve 428 KB. Hiçbiri havuzun tamamı için
+ * gerekli değil — `preview` yalnızca kurulan şarkıda, `artwork` ve `store_url`
+ * yalnızca sonuç kartında lazım. Ölçüm: 3,04 MB → 1,16 MB.
+ *
+ * ⚠️ `accept_keys` ve norm alanları BURADA KALIYOR. Başlık/sanatçıdan
+ * türetilebildikleri doğrulandı (5089/5089 birebir aynı) ama istemcide
+ * hesaplamak ~200 ms ana iş parçacığı demek — kazandırdığı indirme süresinden
+ * fazla. Ölçülmeden yapılsaydı iyileştirme sanılacak bir gerileme olurdu.
+ */
+export const POOL_COLUMNS =
+  'id,category,title,artist,clip_start,duration,year,era,tier,enabled,norm_title,norm_artist,accept_keys'
+
+/** Yalnızca oynanabilirlik için gereken alanlar — şarkı başına çekilir. */
+export const PLAY_COLUMNS = 'id,preview,artwork,store_url'
 
 /**
  * Sunucu tarafı istek başlığı.

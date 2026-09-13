@@ -102,6 +102,9 @@ if (fast) {
   let done = 0
 
   for (const song of all) {
+    // Havuz anlık görüntüsünde önizleme URL'i her zaman vardır; canlı havuzda
+    // alan ayrı çekildiği için yine de korumalı okunuyor.
+    if (!song.p) continue
     const res = await checkPreview(song.p)
     done++
     if (!res.ok) {

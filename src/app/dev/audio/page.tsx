@@ -86,7 +86,7 @@ export default function AudioDevPage() {
 
   async function arm(next = index) {
     const s = pool[next]
-    if (!s) return
+    if (!s?.p) return
     setArmState('hazırlanıyor…')
     const track: ArmTrack = { id: s.id, url: s.p, clipStart: s.cs, duration: s.du }
     const result = await clipPlayer.arm(track)

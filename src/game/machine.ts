@@ -54,6 +54,14 @@ export type Action =
   | { type: 'CORRECT' }
   | { type: 'SKIP' }
   | { type: 'EMPTY_POOL' }
+  /**
+   * Elde tur kalmadı — yeni bir tur kurulana kadar hiçbir şey oynatılamaz.
+   *
+   * ⚠️ Seçki değişimi için ŞART. Yeni havuz ağdan gelene kadar durum ESKİ turu
+   * `ready` tutuyordu: oyuncu kategoriyi değiştirip hemen çal'a bastığında
+   * önceki seçkinin şarkısı çalıyordu.
+   */
+  | { type: 'RESET' }
 
 /** Tur içinde miyiz? */
 export function inRound(state: GameState): state is Extract<GameState, { s: 'ready' | 'playing' }> {
@@ -93,6 +101,9 @@ function advance(round: Round, steps: Step[]): GameState {
 
 export function gameReducer(state: GameState, action: Action): GameState {
   switch (action.type) {
+    case 'RESET':
+      return { s: 'booting' }
+
     case 'ARM':
       return { s: 'arming', track: action.track, ladder: action.ladder }
 

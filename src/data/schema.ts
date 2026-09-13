@@ -14,10 +14,16 @@ export interface Song {
   t: string
   /** sanatçı (gösterim biçimi) */
   a: string
-  /** kapak URL'i, 100x100 — istemci 600x600bb.jpg'ye yükseltir */
-  ar: string
-  /** previewUrl — imzasız, kalıcı Apple CDN yolu */
-  p: string
+  /**
+   * Kapak URL'i, 100x100 — istemci 600x600bb.jpg'ye yükseltir.
+   *
+   * ⚠️ Toplu havuzda GELMEZ, yalnızca oynanan şarkı için çekilir. Üç URL alanı
+   * (kapak, önizleme, mağaza) 5089 şarkılık yanıtın %60'ıydı ve hiçbiri havuzun
+   * tamamı için gerekli değil.
+   */
+  ar?: string
+  /** previewUrl — imzasız, kalıcı Apple CDN yolu. Toplu havuzda gelmez. */
+  p?: string
   /** klip başlangıcı (sn). Pre-roll payı için >= 0.325 */
   cs: number
   /** preview süresi (sn) */
@@ -27,8 +33,8 @@ export interface Song {
   e: EraId
   d: Difficulty
   c: CategoryId
-  /** trackViewUrl — Apple Music atıf linki (ZORUNLU) */
-  u: string
+  /** trackViewUrl — Apple Music atıf linki. Toplu havuzda gelmez. */
+  u?: string
   /** önceden normalize edilmiş başlık */
   nT: string
   /** önceden normalize edilmiş sanatçı */
@@ -54,7 +60,13 @@ export interface Pool {
 
 export const POOL_VERSION = 1
 
-/** Kapak görselini istenen boyuta yükseltir. */
-export function artworkAt(ar: string, size: number): string {
+/**
+ * Kapak görselini istenen boyuta yükseltir.
+ *
+ * ⚠️ Kapak toplu havuzda GELMEZ (bkz. `POOL_COLUMNS`); şarkı alanları henüz
+ * çekilmemişse boş döner ve çağıran yer yedek bir kutu gösterir.
+ */
+export function artworkAt(ar: string | undefined, size: number): string {
+  if (!ar) return ''
   return ar.replace(/\/\d+x\d+bb\.jpg$/, `/${size}x${size}bb.jpg`)
 }
