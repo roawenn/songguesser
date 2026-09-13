@@ -54,14 +54,21 @@ export async function POST(req: Request) {
   }
 
   const oturum = await oturumAc(password)
-  if (!oturum) {
+  if (!oturum.ok) {
     await bekle()
-    return NextResponse.json({ error: 'Şifre yanlış.' }, { status: 401 })
+    // ⚠️ Sunucu hatasını "şifre yanlış" diye göstermek, doğru şifreyle giren
+    // kişiyi kendi hız sınırına kilitliyordu.
+    return oturum.sebep === 'parola'
+      ? NextResponse.json({ error: 'Şifre yanlış.' }, { status: 401 })
+      : NextResponse.json(
+          { error: 'Oturum açılamadı — veritabanına ulaşılamıyor. Şifren doğru olabilir.' },
+          { status: 503 },
+        )
   }
 
   await bekle()
   const res = NextResponse.json({ ok: true })
-  res.cookies.set(ADMIN_COOKIE, oturum, {
+  res.cookies.set(ADMIN_COOKIE, oturum.id, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',

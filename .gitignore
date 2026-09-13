@@ -12,3 +12,6 @@ data/arsiv/
 
 # Geçici yama betikleri
 *.cjs
+# Yerel yönetim sırları — asla commit edilmez
+.tahmin-oturum
+.admin-parola

@@ -73,13 +73,27 @@ async function hesap(): Promise<Hesap | null> {
  * ⚠️ Karşılaştırma sabit zamanlı. scrypt özetleri her zaman aynı uzunlukta
  * olduğu için `timingSafeEqual` doğrudan kullanılabiliyor.
  */
-export async function oturumAc(parola: string): Promise<string | null> {
+/**
+ * ⚠️ "Şifre yanlış" ile "oturum açılamadı" AYRI dönüyor.
+ *
+ * İkisi de `null` dönüyordu ve rota ikisini birden "Şifre yanlış" diye
+ * gösteriyordu. Veritabanı bir an takıldığında doğru şifreyle giren kişi
+ * şifresini yanlış sanıp defalarca deniyor, üstelik hız sınırını da kendi
+ * üstüne kilitliyordu. Teşhis edilemeyen bir hata, olmayan bir hatadan beterdir.
+ */
+export type OturumSonuc =
+  | { ok: true; id: string }
+  | { ok: false; sebep: 'parola' | 'sunucu' }
+
+export async function oturumAc(parola: string): Promise<OturumSonuc> {
   const h = await hesap()
-  if (!h) return null
+  if (!h) return { ok: false, sebep: 'sunucu' }
 
   const gelen = Buffer.from(await parolaOzeti(parola, h.tuz), 'hex')
   const beklenen = Buffer.from(h.parola_hash, 'hex')
-  if (gelen.length !== beklenen.length || !timingSafeEqual(gelen, beklenen)) return null
+  if (gelen.length !== beklenen.length || !timingSafeEqual(gelen, beklenen)) {
+    return { ok: false, sebep: 'parola' }
+  }
 
   const id = randomBytes(32).toString('hex')
   const biter = new Date(Date.now() + OTURUM_GUN * 24 * 3600 * 1000).toISOString()
@@ -88,7 +102,11 @@ export async function oturumAc(parola: string): Promise<string | null> {
     headers: { Prefer: 'return=minimal' },
     body: JSON.stringify({ id, biter }),
   })
-  return res.ok ? id : null
+  if (!res.ok) {
+    console.error(`[yonetim] oturum yazılamadı: Supabase ${res.status}`)
+    return { ok: false, sebep: 'sunucu' }
+  }
+  return { ok: true, id }
 }
 
 /** Çerezdeki oturumu siler — GERÇEK iptal, yalnızca tarayıcıyı temizlemek değil. */
