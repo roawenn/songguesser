@@ -281,7 +281,18 @@ export function TierStrip({ tier, onTier }: TierProps) {
  * Yerine Apple atfı geldi — zorunlu bir metin ve yeri burası; yan kartın
  * içinde kaybolduğu yerden alındı.
  */
-export function Footer({ oyunlar }: { oyunlar?: React.ReactNode }) {
+/**
+ * ⚠️ Atıf OYUNA GÖRE. Apple metni ToS gereği zorunlu ama YALNIZCA ses
+ * önizlemesi kullanan oyun için; ünlü sayfasında hiçbir Apple içeriği yok ve
+ * orada durması hem yanıltıcı hem gereksiz bir iddia olurdu.
+ */
+export function Footer({
+  oyunlar,
+  atif = 'Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.',
+}: {
+  oyunlar?: React.ReactNode
+  atif?: React.ReactNode
+}) {
   return (
     <footer
       style={{
@@ -310,7 +321,7 @@ export function Footer({ oyunlar }: { oyunlar?: React.ReactNode }) {
       }}
     >
       {oyunlar}
-      <span>Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.</span>
+      <span>{atif}</span>
     </footer>
   )
 }

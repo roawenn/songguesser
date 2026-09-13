@@ -42,6 +42,10 @@ interface Props {
 
   /** Alt şeritte hangi oyun seçili. */
   aktifOyun: 'sarki' | 'unlu'
+  /** Bu kabuğun ölçek bütçesi — sahneler farklı yükseklikte. */
+  tasarimY?: number
+  /** Footer'daki atıf metni — oyuna göre değişir. */
+  atif?: React.ReactNode
 }
 
 export function SahneCercevesi({
@@ -55,6 +59,8 @@ export function SahneCercevesi({
   orta,
   sag,
   aktifOyun,
+  tasarimY,
+  atif,
 }: Props) {
   /**
    * ⚠️ Sistemin `prefers-reduced-motion` tercihi KASITLI olarak okunmuyor.
@@ -70,7 +76,7 @@ export function SahneCercevesi({
   }, [reduce])
 
   // Sahneyi 1920 tasarımına göre orantılı küçültür.
-  useOlcek()
+  useOlcek(tasarimY)
 
   return (
     <div
@@ -146,7 +152,7 @@ export function SahneCercevesi({
           </div>
         </div>
 
-        <Footer oyunlar={<OyunSeridi aktif={aktifOyun} />} />
+        <Footer oyunlar={<OyunSeridi aktif={aktifOyun} />} atif={atif} />
       </div>
     </div>
   )

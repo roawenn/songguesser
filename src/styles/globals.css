@@ -609,3 +609,21 @@ button {
     gap: 16px;
   }
 }
+
+/*
+ * Yanlış tahminde ünlü görselinin kısa sarsıntısı.
+ *
+ * ⚠️ Yalnızca `transform` — boya özelliği YOK. Bu projede `box-shadow` ve
+ * `filter` animasyonları tam da bu yüzden kaldırılmıştı: compositor'dan
+ * düşürüp kare hızını kırıyorlardı.
+ */
+@keyframes nk-sars {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+.nk-sars {
+  animation: nk-sars 0.36s ease-out;
+}

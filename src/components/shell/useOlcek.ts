@@ -57,6 +57,15 @@ const TASARIM_G = 1920
  * ünlü sahnesini taşırır.
  */
 const TASARIM_Y = 1160
+
+/**
+ * ⚠️ Ünlü sahnesi ŞARKIDAN UZUN. Ölçüldü: şarkı 1150, ünlü 1255 — fark,
+ * 3:5 oranındaki görselin kasetten yüksek olmasından geliyor.
+ *
+ * Tek bir değere çıkmak şarkı oyununu gereksiz yere küçültürdü (1920x940'ta
+ * ölçek 0,81 yerine 0,74). Bu yüzden her kabuk kendi ihtiyacını bildiriyor.
+ */
+export const TASARIM_Y_UNLU = 1185
 /** Bu genişliğin altında artık ölçeklemiyoruz; mobil düzen devralıyor. */
 const MOBIL_ESIK = 900
 /**
@@ -73,10 +82,13 @@ const MOBIL_ESIK = 900
  *
  * 0,60 → 0,59: oyun seçici eklenince 1280x800'de gereken ölçek 0,5948'e düştü
  * ve 4 px taşma çıktı. Metin farkı %1,7 — taşmaya değmez.
+ *
+ * 0,59 → 0,58: ünlü sahnesi şarkıdan uzun (1180'e karşı 1150) ve 1280x800
+ * küçültülmüş pencerede 0,585 istiyordu.
  */
-const EN_KUCUK = 0.59
+const EN_KUCUK = 0.58
 
-export function useOlcek(): void {
+export function useOlcek(tasarimY: number = TASARIM_Y): void {
   useEffect(() => {
     const kok = document.documentElement
 
@@ -91,7 +103,7 @@ export function useOlcek(): void {
        * İki kısıt da geçerli: sahne hem yatayda hem dikeyde sığmalı.
        * Hangisi daha darsa ölçeği o belirler.
        */
-      const ham = Math.min(1, g / TASARIM_G, window.innerHeight / TASARIM_Y)
+      const ham = Math.min(1, g / TASARIM_G, window.innerHeight / tasarimY)
       const olcek = Math.max(EN_KUCUK, ham)
       kok.style.setProperty('--nk-olcek', String(Math.round(olcek * 1000) / 1000))
       kok.setAttribute('data-olcek', olcek < 1 ? 'kucuk' : 'tam')
@@ -104,5 +116,5 @@ export function useOlcek(): void {
       kok.style.removeProperty('--nk-olcek')
       kok.removeAttribute('data-olcek')
     }
-  }, [])
+  }, [tasarimY])
 }
