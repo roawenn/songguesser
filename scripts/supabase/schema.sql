@@ -386,3 +386,48 @@ create policy unluler_public_read on public.unluler
 insert into storage.buckets (id, name, public)
 values ('unluler', 'unluler', true)
 on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Düellonun ikinci oyuna açılması
+-- ---------------------------------------------------------------------------
+--
+-- ⚠️ Lobi kaydında oyunun hangisi olduğunu söyleyen HİÇBİR ŞEY yoktu:
+-- `/duello/<kod>` hangi kabuğu açacağını bilemiyordu.
+--
+-- `default 'sarki'` mevcut satırları güvene alıyor. Lobiler 2 saatte zaten
+-- geçersizleşiyor, yani riskli pencere dar; yine de varsayılan şart.
+alter table public.duels add column if not exists oyun text not null default 'sarki';
+alter table public.duels drop constraint if exists duels_oyun_chk;
+alter table public.duels add constraint duels_oyun_chk check (oyun in ('sarki', 'unlu'));
+
+-- ⚠️ `duels_songs_chk (= 5)` ve `song_index between 0 and 4` GEVŞETİLMİYOR.
+-- İki oyun da beş turluk (kademe 1→5). Çalışan bir kısıtı sebepsiz açmak,
+-- ileride beş olmayan bir dizinin sessizce yazılmasına kapı aralardı.
+--
+-- ⚠️ `song_ids` ve `song_index` adları da DEĞİŞMİYOR. `oge_ids`'e yeniden
+-- adlandırmak dört API rotasını, `duelStore`'u, `useDuello`'yu ve testleri aynı
+-- anda kırar; kazanç yalnızca isimlendirme.
+comment on column public.duels.song_ids is
+  'Tur kimlikleri — oyuna göre itunes:* ya da unlu:*. Ad tarihsel.';
+
+-- Oyundan BAĞIMSIZ sıralama ölçütü.
+--
+-- ⚠️ `heard_seconds` ve `listens` ses metriği; ünlü turunda karşılıkları yok.
+-- Onları "şerit sayısı" anlamında kullanmak sessiz bir aşırı yükleme olurdu.
+-- `maliyet` az olan iyidir: şarkıda duyulan saniye, ünlüde açılan şerit.
+alter table public.duel_answers add column if not exists maliyet real not null default 0;
+alter table public.duel_answers add column if not exists ikincil smallint not null default 0;
+
+-- Ünlü düellosunun beş kişisi: her kademeden bir tane, rastgele.
+--
+-- ⚠️ `duello_sec` parametrize edilmedi, İKİNCİ fonksiyon yazıldı. SQL'de
+-- dinamik tablo adı `execute` demek; o da `distinct on (tier)` planını ve
+-- `stable` işaretini kaybettirirdi.
+create or replace function public.duello_sec_unlu(p_kategori text default null)
+returns table (id text, tier smallint) language sql stable as $secunlu$
+  select distinct on (u.tier) u.id, u.tier
+  from public.unluler u
+  where u.enabled
+    and (p_kategori is null or u.category = p_kategori)
+  order by u.tier, random()
+$secunlu$;

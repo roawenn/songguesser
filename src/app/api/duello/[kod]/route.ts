@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { DUELLO_SARKI, kodGecerli } from '@/game/duel'
+import { DUELLO_TUR, kodGecerli } from '@/game/duel'
 import { cevaplar, duelloOku, oyuncular, slotDogrula } from '@/lib/duelStore'
 import { loadSongsByIds } from '@/lib/duelSongs'
+import { loadUnlulerByIds } from '@/lib/duelUnluler'
 
 /**
  * Düellonun durumu — istemci bunu ~1,5 saniyede bir yoklar.
@@ -52,10 +53,24 @@ export async function GET(req: Request, ctx: { params: Promise<{ kod: string }> 
    * öyle. Amaç beş cevabı peşin peşin servis etmemek.
    */
   const bitirilen = slot ? hepsi.filter((c) => c.slot === slot).length : 0
-  const gorunur = Math.min(DUELLO_SARKI, bitirilen >= DUELLO_SARKI ? DUELLO_SARKI : bitirilen + 2)
+  const gorunur = Math.min(DUELLO_TUR, bitirilen >= DUELLO_TUR ? DUELLO_TUR : bitirilen + 2)
+
+  /*
+   * ⚠️ Alan adı `songs` KALIYOR ama içerik oyuna göre değişiyor.
+   * `ogeler`'e çevirmek istemciyi, testleri ve açık sekmeleri aynı anda
+   * kırardı; kazanç yalnızca isimlendirme olurdu.
+   */
+  const gorunurIds = duel.song_ids.slice(0, gorunur)
+  const ogeler = slot
+    ? duel.oyun === 'unlu'
+      ? await loadUnlulerByIds(gorunurIds)
+      : await loadSongsByIds(gorunurIds)
+    : null
 
   return NextResponse.json({
     kod,
+    // ⚠️ İstemci hangi kabuğu açacağını buradan öğreniyor.
+    oyun: duel.oyun,
     chip: duel.chip,
     status: duel.status,
     startedAt: duel.started_at,
@@ -68,8 +83,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ kod: string }> 
     sunucuZamani: new Date().toISOString(),
     oyuncuSayisi: kisiler.length,
     slot,
-    // Şarkılar yalnızca doğrulanmış oyuncuya.
-    songs: slot ? await loadSongsByIds(duel.song_ids.slice(0, gorunur)) : null,
+    // Öğeler yalnızca doğrulanmış oyuncuya.
+    songs: ogeler,
     cevaplar: hepsi,
   })
 }

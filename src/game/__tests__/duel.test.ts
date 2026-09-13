@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import {
   kodUret, kodGecerli, KOD_UZUNLUK, skorla, kazanan,
-  BEKLEME_SINIRI_MS, DUELLO_SARKI, type DuelloCevap,
+  BEKLEME_SINIRI_MS, DUELLO_TUR, type DuelloCevap,
 } from '../duel'
 
 /** Testte belirlenimci bayt kaynağı — gerçekte crypto kullanılıyor. */
 const sahteBayt = (deger: number) => (n: number) => new Uint8Array(n).fill(deger)
 
 function cevap(over: Partial<DuelloCevap> = {}): DuelloCevap {
-  return { slot: 1, songIndex: 0, won: true, heardSeconds: 0.5, listens: 1, ...over }
+  return { slot: 1, songIndex: 0, won: true, maliyet: 0.5, ikincil: 1, ...over }
 }
 
 describe('lobi kodu', () => {
@@ -40,17 +40,17 @@ describe('lobi kodu', () => {
 describe('skorlama', () => {
   it('doğruları ve süreyi toplar', () => {
     const c = [
-      cevap({ songIndex: 0, won: true, heardSeconds: 0.5, listens: 1 }),
-      cevap({ songIndex: 1, won: true, heardSeconds: 2, listens: 3 }),
-      cevap({ songIndex: 2, won: false, heardSeconds: 10, listens: 5 }),
+      cevap({ songIndex: 0, won: true, maliyet: 0.5, ikincil: 1 }),
+      cevap({ songIndex: 1, won: true, maliyet: 2, ikincil: 3 }),
+      cevap({ songIndex: 2, won: false, maliyet: 10, ikincil: 5 }),
     ]
     const s = skorla(c, 1)
     expect(s.dogru).toBe(2)
     // ⚠️ Süre YALNIZCA doğru bilinenlerden toplanır; bilemediği şarkıda uzun
     // dinlemek onu cezalandırmamalı, zaten kaybetti.
-    expect(s.sure).toBe(2.5)
-    expect(s.listens).toBe(9)
-    expect(s.eksik).toBe(DUELLO_SARKI - 3)
+    expect(s.maliyet).toBe(2.5)
+    expect(s.ikincil).toBe(9)
+    expect(s.eksik).toBe(DUELLO_TUR - 3)
   })
 
   it('rakibin cevapları karışmaz', () => {
@@ -60,12 +60,12 @@ describe('skorlama', () => {
   })
 
   it('hiç cevap yoksa her şey eksik', () => {
-    expect(skorla([], 1)).toEqual({ dogru: 0, sure: 0, listens: 0, eksik: DUELLO_SARKI })
+    expect(skorla([], 1)).toEqual({ dogru: 0, maliyet: 0, ikincil: 0, eksik: DUELLO_TUR })
   })
 })
 
 describe('kazanan', () => {
-  const s = (dogru: number, sure: number, listens = 0) => ({ dogru, sure, listens, eksik: 0 })
+  const s = (dogru: number, maliyet: number, ikincil = 0) => ({ dogru, maliyet, ikincil, eksik: 0 })
 
   it('daha çok bilen kazanır', () => {
     expect(kazanan(s(4, 20), s(3, 2))).toBe('sen')
@@ -86,10 +86,10 @@ describe('kazanan', () => {
 
   it('⚠️ oyunu bırakan üstün çıkmaz', () => {
     // Bırakan kişinin cevapsız şarkıları doğru sayılmaz.
-    const bırakan = skorla([cevap({ songIndex: 0, won: true, heardSeconds: 0.5 })], 1)
+    const bırakan = skorla([cevap({ songIndex: 0, won: true, maliyet: 0.5 })], 1)
     const bitiren = skorla(
       Array.from({ length: 5 }, (_, i) =>
-        cevap({ slot: 2, songIndex: i, won: i < 2, heardSeconds: 5 }),
+        cevap({ slot: 2, songIndex: i, won: i < 2, maliyet: 5 }),
       ),
       2,
     )

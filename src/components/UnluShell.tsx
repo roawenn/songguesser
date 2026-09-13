@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { UNLU_CHIPS, unluChipById, type UnluChipId } from '@/data/categories'
 import { SERIT, unluSatiri } from '@/data/unlu'
 import { kalanHak, turBitti, turIcinde } from '@/game/unluMachine'
@@ -43,7 +45,37 @@ export function UnluShell() {
   const kaydet = useUnluStatsStore((s) => s.kaydet)
 
   const kare = useRef<UnluKareHandle>(null)
+  const router = useRouter()
+  const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
+  const [duelloHata, setDuelloHata] = useState<string | null>(null)
   const { durum, onYanlis } = tur
+
+  /**
+   * Lobi kur ve oraya git.
+   *
+   * ⚠️ Gizli anahtar navigasyondan ÖNCE yazılıyor ve `router.push`
+   * kullanılıyor (`window.location` değil): tam sayfa yüklemesi modül
+   * düzeyindeki bellek yedeğini siler ve tarayıcı verisi kapalıysa kuran kişi
+   * kendi lobisine 2. oyuncu olarak girer — şarkı tarafında yaşanan hata.
+   */
+  const duelloBaslat = async () => {
+    setDuelloKuruluyor(true)
+    setDuelloHata(null)
+    try {
+      const res = await fetch('/api/duello', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oyun: 'unlu', chip: kategori }),
+      })
+      const d = (await res.json()) as { kod?: string; gizli?: string; error?: string }
+      if (!res.ok || !d.kod || !d.gizli) throw new Error(d.error ?? 'Lobi kurulamadı.')
+      anahtarYaz(d.kod, d.gizli)
+      router.push(`/duello/${d.kod}`)
+    } catch (e) {
+      setDuelloHata((e as Error).message)
+      setDuelloKuruluyor(false)
+    }
+  }
 
   useEffect(() => {
     onYanlis(() => kare.current?.sars())
@@ -201,6 +233,38 @@ export function UnluShell() {
                 >
                   ↻ Kişiyi değiştir
                 </button>
+              </div>
+
+              <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => void duelloBaslat()}
+                  disabled={duelloKuruluyor}
+                  className="nk-duello"
+                  style={{
+                    ...GHOST,
+                    border: '1px solid var(--acc)',
+                    color: 'var(--acc)',
+                    background: 'oklch(0.81 0.12 var(--hue) / 0.08)',
+                    opacity: duelloKuruluyor ? 0.5 : 1,
+                  }}
+                >
+                  ⚔ {duelloKuruluyor ? 'Lobi kuruluyor…' : 'Arkadaşınla oyna'}
+                </button>
+                {duelloHata && (
+                  <div
+                    role="alert"
+                    style={{
+                      marginTop: 14,
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11.5,
+                      color: '#d09a9a',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {duelloHata}
+                  </div>
+                )}
               </div>
             </>
           )}

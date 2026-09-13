@@ -29,6 +29,17 @@ import { useSettingsStore } from '@/store/useSettingsStore'
  *     her değişimde yeniden çizdiriyor.
  */
 
+/**
+ * Düello kipi: tur sırası DIŞARIDAN sürülür.
+ *
+ * İki oyuncu aynı beş kişiyi aynı sırayla oynuyor; hangi turun ne zaman
+ * kurulacağına kanca değil düello sayfası karar veriyor.
+ */
+export interface DizilimOpts {
+  dizilim: Unlu[]
+  index: number
+}
+
 /** Ölü görselde art arda en fazla kaç kişi denenir. */
 const OLU_GORSEL_SINIR = 6
 /** `img.decode()` askıda kalırsa turu sonsuza kadar bekletmesin. */
@@ -75,7 +86,7 @@ async function gorselHazirla(url: string): Promise<'ready' | 'dead'> {
   }
 }
 
-export function useUnluTur(): UnluTurApi {
+export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
   const [durum, dispatch] = useReducer(unluReducer, { s: 'booting' } as UnluDurum)
   const [havuz, setHavuz] = useState<Unlu[]>([])
   const [yukleniyor, setYukleniyor] = useState(true)
@@ -124,6 +135,9 @@ export function useUnluTur(): UnluTurApi {
     }
   }, [kategori])
 
+  const dizilim = opts?.dizilim
+  const dizilimIndex = opts?.index ?? 0
+
   const suzulmus = useMemo(() => filterByTier(havuz, kademe), [havuz, kademe])
   const cokDar = havuz.length > 0 && suzulmus.length < MIN_PLAYABLE
 
@@ -135,10 +149,16 @@ export function useUnluTur(): UnluTurApi {
    * göremez — `useRound`'daki aynı gerekçe.
    */
   const evren = useMemo(() => {
-    if (!turIcinde(durum) && durum.s !== 'won' && durum.s !== 'lost') return suzulmus
+    /*
+     * ⚠️ Düelloda dizilimdeki kişiler de evrene GİRMELİ. Girmezse "Kolay
+     * arama" açık oyuncu doğru cevabı öneri listesinde göremez ve tur
+     * oynanamaz hâle gelir — `useRound`'daki aynı gerekçe.
+     */
+    const taban = dizilim ? [...suzulmus, ...dizilim.filter((u) => !suzulmus.some((x) => x.id === u.id))] : suzulmus
+    if (!turIcinde(durum) && durum.s !== 'won' && durum.s !== 'lost') return taban
     const k = durum.kisi
-    return suzulmus.some((u) => u.id === k.id) ? suzulmus : [...suzulmus, k]
-  }, [suzulmus, durum])
+    return taban.some((u) => u.id === k.id) ? taban : [...taban, k]
+  }, [suzulmus, durum, dizilim])
 
   const index = useMemo(
     () => (evren.length > 0 ? buildIndex(evren, (u) => u.nT) : null),
@@ -147,14 +167,14 @@ export function useUnluTur(): UnluTurApi {
 
   // --- tur kurulumu ---
   const turBaslat = useCallback(
-    async (liste: Unlu[], denendi = 0) => {
+    async (liste: Unlu[], denendi = 0, zorlanan?: Unlu) => {
       const token = ++turToken.current
       if (denendi >= OLU_GORSEL_SINIR) {
         dispatch({ type: 'ARM_FAIL', reason: 'offline' })
         return
       }
 
-      let kisi = sonraki.current
+      let kisi = zorlanan ?? sonraki.current
       sonraki.current = null
       if (!kisi || !liste.some((u) => u.id === kisi!.id)) {
         const sec = pickNext(liste, oynanan.current)
@@ -176,6 +196,12 @@ export function useUnluTur(): UnluTurApi {
       if (token !== turToken.current) return
 
       if (sonuc === 'dead') {
+        // ⚠️ Özyineleme `zorlanan`ı TAŞIMAZ: sabitlenen kişi açılamıyorsa aynı
+        // ölü görseli altı kez denemenin anlamı yok.
+        if (zorlanan) {
+          dispatch({ type: 'ARM_FAIL', reason: 'image' })
+          return
+        }
         void turBaslat(liste, denendi + 1)
         return
       }
@@ -183,23 +209,34 @@ export function useUnluTur(): UnluTurApi {
       dispatch({ type: 'ARM_OK' })
 
       // Sıradaki kişiyi şimdiden seç ve görselini indirmeye başla.
-      const aday = pickNext(liste, oynanan.current)
-      if (aday && !aday.recycled) {
-        sonraki.current = aday.song
-        void gorselHazirla(storagePublicUrlIstemci(unluGorselYolu(aday.song)))
+      // Düelloda sıra belli; rastgele seçmenin anlamı yok.
+      const aday = zorlanan
+        ? null
+        : (() => {
+            const a = pickNext(liste, oynanan.current)
+            return a && !a.recycled ? a.song : null
+          })()
+      if (aday) {
+        sonraki.current = aday
+        void gorselHazirla(storagePublicUrlIstemci(unluGorselYolu(aday)))
       }
     },
     [],
   )
 
   useEffect(() => {
+    if (dizilim) {
+      const k = dizilim[dizilimIndex]
+      if (k) void turBaslat(dizilim, 0, k)
+      return
+    }
     if (yukleniyor) return
     if (suzulmus.length === 0) {
       dispatch({ type: 'EMPTY_POOL' })
       return
     }
     void turBaslat(suzulmus)
-  }, [suzulmus, yukleniyor, turBaslat])
+  }, [suzulmus, yukleniyor, turBaslat, dizilim, dizilimIndex])
 
   // --- eylemler ---
   const yanlisIsle = useCallback((text: string) => {
@@ -239,6 +276,13 @@ export function useUnluTur(): UnluTurApi {
   }, [suzulmus, turBaslat])
 
   const sonrakiTur = useCallback(() => {
+    /*
+     * ⚠️ Düelloda `sonraki()` tur KURMAZ ve kademe YÜKSELTMEZ. Sırayı düello
+     * sayfası sürüyor (index artınca etki turu kurar); burada ayrıca tur
+     * kurmak onu iki kez kurardı. Kademe de oyuncunun seçimi değil düellonun
+     * rampası — kalıcı ayarına yazılmamalı.
+     */
+    if (dizilim) return
     // Bildiyse bir üst kademeye çık; İmkansız'da (5) tavan.
     const cikilan = durum.s === 'won' ? (Math.min(5, kademe + 1) as Difficulty) : kademe
     if (cikilan !== kademe) {
@@ -251,7 +295,7 @@ export function useUnluTur(): UnluTurApi {
       return
     }
     void turBaslat(suzulmus)
-  }, [durum, kademe, setKademe, suzulmus, turBaslat])
+  }, [durum, kademe, setKademe, suzulmus, turBaslat, dizilim])
 
   const belirsizligiTemizle = useCallback(() => setBelirsiz(null), [])
   const onYanlis = useCallback((fn: () => void) => {

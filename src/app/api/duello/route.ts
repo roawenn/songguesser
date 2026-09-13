@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { CHIPS, type ChipId } from '@/data/categories'
-import { duelloKur, sarkilariSec } from '@/lib/duelStore'
+import { CHIPS, type ChipId, UNLU_CHIPS, type UnluChipId } from '@/data/categories'
+import { duelloKur, turleriSec } from '@/lib/duelStore'
 import { supabaseReady } from '@/lib/supabase'
 import { sinirAsildi, cokHizli } from '@/lib/hizSinir'
 
@@ -26,21 +26,37 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
-  const chip = body.chip as ChipId
-  if (!CHIPS.some((c) => c.id === chip)) {
+
+  /*
+   * ⚠️ `oyun` varsayılanı 'sarki': eski istemciler (açık sekmeler) gövdeye
+   * bu alanı koymuyor ve onları kırmanın anlamı yok.
+   */
+  const oyun = body.oyun === 'unlu' ? 'unlu' : 'sarki'
+  const chip = body.chip as ChipId | UnluChipId
+
+  const gecerli =
+    oyun === 'unlu'
+      ? UNLU_CHIPS.some((c) => c.id === chip)
+      : CHIPS.some((c) => c.id === chip)
+  if (!gecerli) {
     return NextResponse.json({ error: 'Bilinmeyen seçki.' }, { status: 400 })
   }
 
-  const songIds = await sarkilariSec(chip)
+  const songIds = await turleriSec(oyun, chip)
   if (!songIds) {
     // Kademelerden biri boş — bu seçki düelloya yetmiyor.
     return NextResponse.json(
-      { error: 'Bu seçkide her zorluktan şarkı yok; başka bir seçki dene.' },
+      {
+        error:
+          oyun === 'unlu'
+            ? 'Bu seçkide her zorluktan ünlü yok; başka bir seçki dene.'
+            : 'Bu seçkide her zorluktan şarkı yok; başka bir seçki dene.',
+      },
       { status: 409 },
     )
   }
 
-  const kurulan = await duelloKur(chip, songIds)
+  const kurulan = await duelloKur(oyun, chip, songIds)
   if (!kurulan) {
     return NextResponse.json({ error: 'Lobi kurulamadı, tekrar dene.' }, { status: 502 })
   }

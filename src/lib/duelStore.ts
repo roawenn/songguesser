@@ -1,8 +1,8 @@
 import 'server-only'
 import { randomBytes, randomUUID } from 'node:crypto'
-import { chipById, type ChipId } from '@/data/categories'
+import { chipById, unluChipById, type ChipId, type UnluChipId } from '@/data/categories'
 import { restUrl, restHeaders } from '@/lib/supabase'
-import { DUELLO_SARKI, kodUret } from '@/game/duel'
+import { DUELLO_TUR, kodUret, type DuelloOyun } from '@/game/duel'
 
 /**
  * Düello veri katmanı — yalnızca SUNUCUDA.
@@ -13,7 +13,10 @@ import { DUELLO_SARKI, kodUret } from '@/game/duel'
 
 export interface DuelRow {
   code: string
-  chip: ChipId
+  /** ⚠️ Hangi oyun — bu olmadan `/duello/<kod>` kabuğu seçemez. */
+  oyun: DuelloOyun
+  /** Şarkıda `ChipId`, ünlüde `UnluChipId`. */
+  chip: ChipId | UnluChipId
   song_ids: string[]
   status: 'bekliyor' | 'oynaniyor' | 'bitti'
   created_at: string
@@ -25,8 +28,9 @@ export interface AnswerRow {
   slot: 1 | 2
   song_index: number
   won: boolean
-  heard_seconds: number
-  listens: number
+  /** Oyundan bağımsız maliyet — az olan iyi. */
+  maliyet: number
+  ikincil: number
 }
 
 async function rest(path: string, init?: RequestInit) {
@@ -48,8 +52,28 @@ async function rest(path: string, init?: RequestInit) {
  * eşleşmeli; bir kademede hiç şarkı yoksa lobi kurulmaz ve kullanıcı açık bir
  * hata görür.
  */
-export async function sarkilariSec(chip: ChipId): Promise<string[] | null> {
-  const source = chipById(chip).source
+export async function turleriSec(
+  oyun: DuelloOyun,
+  chip: ChipId | UnluChipId,
+): Promise<string[] | null> {
+  /*
+   * ⚠️ İki oyunun seçim uzayı farklı: şarkıda tür VE dönem, ünlüde yalnızca
+   * kategori. Tek bir RPC'ye sıkıştırmak dinamik tablo adı demekti; o da
+   * `distinct on (tier)` planını ve `stable` işaretini kaybettirirdi.
+   */
+  if (oyun === 'unlu') {
+    const c = unluChipById(chip as UnluChipId)
+    const r = await rest('rpc/duello_sec_unlu', {
+      method: 'POST',
+      body: JSON.stringify({ p_kategori: c.kategori }),
+    })
+    if (!r.ok) return null
+    const satirlar = (await r.json()) as { id: string; tier: number }[]
+    if (satirlar.length !== DUELLO_TUR) return null
+    return [...satirlar].sort((a, b) => a.tier - b.tier).map((x) => x.id)
+  }
+
+  const source = chipById(chip as ChipId).source
 
   /*
    * ⚠️ Seçim TEK SORGUDA ve veritabanında yapılıyor (`duello_sec`).
@@ -75,14 +99,15 @@ export async function sarkilariSec(chip: ChipId): Promise<string[] | null> {
 
   const rows = (await res.json()) as { id: string; tier: number }[]
   // Her kademeden bir tane gelmeli; biri boşsa bu seçki düelloya yetmiyor.
-  if (rows.length !== DUELLO_SARKI) return null
+  if (rows.length !== DUELLO_TUR) return null
 
   return [...rows].sort((a, b) => a.tier - b.tier).map((r) => r.id)
 }
 
 /** Benzersiz bir kodla lobi kurar. */
 export async function duelloKur(
-  chip: ChipId,
+  oyun: DuelloOyun,
+  chip: ChipId | UnluChipId,
   songIds: string[],
 ): Promise<{ code: string; secret: string } | null> {
   // ⚠️ Çakışma ihtimali düşük ama sıfır değil; birkaç kez dene.
@@ -91,7 +116,7 @@ export async function duelloKur(
     const res = await rest('duels', {
       method: 'POST',
       headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ code, chip, song_ids: songIds }),
+      body: JSON.stringify({ code, oyun, chip, song_ids: songIds }),
     })
     if (res.status === 409) continue // kod tutulmuş
     if (!res.ok) return null
@@ -135,7 +160,7 @@ export async function oyuncular(code: string): Promise<{ slot: 1 | 2; secret: st
 
 export async function cevaplar(code: string): Promise<AnswerRow[]> {
   const res = await rest(
-    `duel_answers?code=eq.${encodeURIComponent(code)}&select=slot,song_index,won,heard_seconds,listens&order=song_index.asc`,
+    `duel_answers?code=eq.${encodeURIComponent(code)}&select=slot,song_index,won,maliyet,ikincil&order=song_index.asc`,
   )
   if (!res.ok) return []
   return (await res.json()) as AnswerRow[]
@@ -164,7 +189,7 @@ export async function katil(code: string): Promise<{ slot: 2; secret: string } |
 export async function cevapYaz(
   code: string,
   slot: 1 | 2,
-  a: { songIndex: number; won: boolean; heardSeconds: number; listens: number },
+  a: { songIndex: number; won: boolean; maliyet: number; ikincil: number },
 ): Promise<boolean> {
   const res = await rest('duel_answers', {
     method: 'POST',
@@ -174,8 +199,15 @@ export async function cevapYaz(
       slot,
       song_index: a.songIndex,
       won: a.won,
-      heard_seconds: a.heardSeconds,
-      listens: a.listens,
+      maliyet: a.maliyet,
+      ikincil: a.ikincil,
+      /*
+       * ⚠️ Eski ses kolonları da yazılıyor: ikisi de NOT NULL ve varsayılanı
+       * yok. Şemadan düşürmek yerine doldurmak seçildi — düşürmek, göç
+       * sırasında yazılmış eski satırları okunamaz hâle getirirdi.
+       */
+      heard_seconds: a.maliyet,
+      listens: a.ikincil,
     }),
   })
   return res.ok

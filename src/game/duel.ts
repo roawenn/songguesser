@@ -7,7 +7,7 @@
  */
 
 /** Düellodaki şarkı sayısı — kademe 1'den 5'e, her kademeden bir tane. */
-export const DUELLO_SARKI = 5
+export const DUELLO_TUR = 5
 
 /**
  * Lobi kodu alfabesi.
@@ -44,21 +44,33 @@ export function kodUret(rastgele: (n: number) => Uint8Array): string {
   return out
 }
 
-/** Bir oyuncunun tek şarkıdaki sonucu. */
+/** Düellonun hangi oyunu oynadığı. */
+export type DuelloOyun = 'sarki' | 'unlu'
+
+/**
+ * Bir oyuncunun tek turdaki sonucu.
+ *
+ * ⚠️ `maliyet` ve `ikincil` OYUNDAN BAĞIMSIZ ölçütler; ikisinde de AZ olan
+ * iyidir. Şarkı: duyulan saniye ve dinleme sayısı. Ünlü: açılan şerit ve 0.
+ *
+ * Eski adları (`heardSeconds`, `listens`) korumak, ünlü turunda "duyulan
+ * saniye" diye bir alana şerit sayısı yazmak olurdu — sessiz bir aşırı
+ * yükleme ve ilk bakan kişiyi yanıltacak bir isim.
+ */
 export interface DuelloCevap {
   slot: 1 | 2
   songIndex: number
   won: boolean
-  heardSeconds: number
-  listens: number
+  maliyet: number
+  ikincil: number
 }
 
 export interface DuelloSkor {
   dogru: number
-  /** Doğru bilinen şarkılarda duyulan toplam saniye — az olan iyi. */
-  sure: number
-  listens: number
-  /** Kaç şarkıyı hiç cevaplamadı (bıraktı ya da süresi doldu). */
+  /** Doğru bilinen turlarda toplam maliyet — az olan iyi. */
+  maliyet: number
+  ikincil: number
+  /** Kaç turu hiç cevaplamadı (bıraktı ya da süresi doldu). */
   eksik: number
 }
 
@@ -70,14 +82,18 @@ export interface DuelloSkor {
  * yerine eksikliği burada yorumluyoruz — yazma yolu ne kadar dar kalırsa
  * o kadar iyi.
  */
-export function skorla(cevaplar: DuelloCevap[], slot: 1 | 2): DuelloSkor {
+export function skorla(
+  cevaplar: DuelloCevap[],
+  slot: 1 | 2,
+  turSayisi: number = DUELLO_TUR,
+): DuelloSkor {
   const benim = cevaplar.filter((c) => c.slot === slot)
   const dogrular = benim.filter((c) => c.won)
   return {
     dogru: dogrular.length,
-    sure: dogrular.reduce((n, c) => n + c.heardSeconds, 0),
-    listens: benim.reduce((n, c) => n + c.listens, 0),
-    eksik: DUELLO_SARKI - benim.length,
+    maliyet: dogrular.reduce((n, c) => n + c.maliyet, 0),
+    ikincil: benim.reduce((n, c) => n + c.ikincil, 0),
+    eksik: turSayisi - benim.length,
   }
 }
 
@@ -86,13 +102,14 @@ export type DuelloSonuc = 'sen' | 'rakip' | 'berabere'
 /**
  * Kazananı belirler.
  *
- * Sıra: daha çok doğru → daha az duyulan saniye → daha az dinleme.
- * "En çok bilen, eşitse en kısa sürede bilen" kuralı bu.
+ * Sıra: daha çok doğru → daha az maliyet → daha az ikincil.
+ * "En çok bilen, eşitse en ucuza bilen" kuralı bu. Şarkıda maliyet duyulan
+ * saniye, ünlüde açılan şerit — mantık ikisinde de aynı.
  */
 export function kazanan(benim: DuelloSkor, rakip: DuelloSkor): DuelloSonuc {
   if (benim.dogru !== rakip.dogru) return benim.dogru > rakip.dogru ? 'sen' : 'rakip'
-  if (benim.sure !== rakip.sure) return benim.sure < rakip.sure ? 'sen' : 'rakip'
-  if (benim.listens !== rakip.listens) return benim.listens < rakip.listens ? 'sen' : 'rakip'
+  if (benim.maliyet !== rakip.maliyet) return benim.maliyet < rakip.maliyet ? 'sen' : 'rakip'
+  if (benim.ikincil !== rakip.ikincil) return benim.ikincil < rakip.ikincil ? 'sen' : 'rakip'
   return 'berabere'
 }
 

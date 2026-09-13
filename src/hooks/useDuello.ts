@@ -5,7 +5,7 @@ import type { Song } from '@/data/schema'
 import type { ChipId } from '@/data/categories'
 import { anahtarOku, anahtarYaz } from '@/lib/duelloAnahtar'
 import {
-  BEKLEME_SINIRI_MS, DUELLO_SARKI, kazanan, skorla,
+  BEKLEME_SINIRI_MS, DUELLO_TUR, kazanan, skorla,
   type DuelloCevap, type DuelloSkor, type DuelloSonuc,
 } from '@/game/duel'
 
@@ -31,7 +31,15 @@ export type DuelloFaz =
   | 'bitti'
   | 'hata'
 
-interface Durum {
+/**
+ * ⚠️ Kanca artık öğe tipinde JENERİK: şarkı düellosu `Song`, ünlü düellosu
+ * `Unlu` geçiriyor. Yoklama, saat kayması, bekleyen cevap yeniden denemesi,
+ * terminal hata ve faz makinesi — hiçbirine dokunulmadı; hepsi öğeden bağımsız
+ * ve tek tek kazanılmış düzeltmeler.
+ */
+interface Durum<T> {
+  /** Hangi oyun — sunucudan gelir, kabuk seçimini o belirler. */
+  oyun: 'sarki' | 'unlu'
   chip: ChipId
   status: 'bekliyor' | 'oynaniyor' | 'bitti'
   startedAt: string | null
@@ -39,16 +47,18 @@ interface Durum {
   sunucuZamani: string
   oyuncuSayisi: number
   slot: 1 | 2 | null
-  songs: Song[] | null
-  cevaplar: { slot: 1 | 2; song_index: number; won: boolean; heard_seconds: number; listens: number }[]
+  songs: T[] | null
+  cevaplar: { slot: 1 | 2; song_index: number; won: boolean; maliyet: number; ikincil: number }[]
 }
 
-export interface DuelloApi {
+export interface DuelloApi<T> {
   faz: DuelloFaz
   hata: string | null
   kod: string
   slot: 1 | 2 | null
-  songs: Song[]
+  songs: T[]
+  /** Lobinin oyunu — sahne rengi ve kabuk bunu kullanır. */
+  chip: ChipId | null
   /** Şu an oynanan şarkının sırası (0..4). */
   aktif: number
   benim: DuelloSkor
@@ -60,11 +70,11 @@ export interface DuelloApi {
   sonuclar: { benim: boolean | null; rakip: boolean | null }[]
   /** Geri sayımda kalan saniye (3, 2, 1). */
   geriSayim: number
-  cevapGonder: (r: { won: boolean; heardSeconds: number; listens: number }) => void
+  cevapGonder: (r: { won: boolean; maliyet: number; ikincil: number }) => void
 }
 
-export function useDuello(kod: string): DuelloApi {
-  const [durum, setDurum] = useState<Durum | null>(null)
+export function useDuello<T extends { id: string }>(kod: string): DuelloApi<T> {
+  const [durum, setDurum] = useState<Durum<T> | null>(null)
   const [hata, setHata] = useState<string | null>(null)
   const [simdi, setSimdi] = useState(() => Date.now())
 
@@ -84,7 +94,7 @@ export function useDuello(kod: string): DuelloApi {
    */
   const bekleyenCevap = useRef<{
     songIndex: number
-    r: { won: boolean; heardSeconds: number; listens: number }
+    r: { won: boolean; maliyet: number; ikincil: number }
   } | null>(null)
   const gonderiliyor = useRef(false)
   /**
@@ -174,7 +184,7 @@ export function useDuello(kod: string): DuelloApi {
         }
       }
 
-      const gelen = d as Durum
+      const gelen = d as Durum<T>
       if (gelen.sunucuZamani) {
         const t = Date.parse(gelen.sunucuZamani)
         if (Number.isFinite(t)) sapma.current = t - Date.now()
@@ -246,8 +256,8 @@ export function useDuello(kod: string): DuelloApi {
     slot: c.slot,
     songIndex: c.song_index,
     won: c.won,
-    heardSeconds: c.heard_seconds,
-    listens: c.listens,
+    maliyet: c.maliyet,
+    ikincil: c.ikincil,
   }))
 
   const slot = durum?.slot ?? null
@@ -258,14 +268,14 @@ export function useDuello(kod: string): DuelloApi {
   const rakipIlerleme = cevaplar.filter((c) => c.slot === rakipSlot).length
   const aktif = benimCevap.length
   // Beş tur bitince lobi süresi dolsa da sonuç ekranı korunur (bkz. `yokla`).
-  if (aktif >= DUELLO_SARKI) bitmis.current = true
+  if (aktif >= DUELLO_TUR) bitmis.current = true
 
   // `cevapGonder` çağrıldığı anda hangi sıradaydık — render'dan bağımsız tut.
   const gonderilenSira = useRef<number | null>(null)
-  gonderilenSira.current = aktif < DUELLO_SARKI ? aktif : null
+  gonderilenSira.current = aktif < DUELLO_TUR ? aktif : null
 
   const cevapGonder = useCallback(
-    (r: { won: boolean; heardSeconds: number; listens: number }) => {
+    (r: { won: boolean; maliyet: number; ikincil: number }) => {
       const i = gonderilenSira.current
       if (i === null || gonderilen.current.has(i) || !gizli.current) return
       // Aynı sıra için zaten bir gönderim bekliyorsa üstüne yazma.
@@ -285,8 +295,8 @@ export function useDuello(kod: string): DuelloApi {
    * şarkıyı bitiriyor; tek bekleme noktası sonuç ekranından önce, ki ikisi de
    * kazananı aynı anda görsün.
    */
-  const hepsiBitti = aktif >= DUELLO_SARKI
-  const rakipBitti = rakipIlerleme >= DUELLO_SARKI
+  const hepsiBitti = aktif >= DUELLO_TUR
+  const rakipBitti = rakipIlerleme >= DUELLO_TUR
   const sonBekleme = hepsiBitti && !rakipBitti
 
   useEffect(() => {
@@ -343,7 +353,7 @@ export function useDuello(kod: string): DuelloApi {
   const benim = skorla(cevaplar, benimSlot)
   const rakip = skorla(cevaplar, rakipSlot)
 
-  const sonuclar = Array.from({ length: DUELLO_SARKI }, (_, i) => ({
+  const sonuclar = Array.from({ length: DUELLO_TUR }, (_, i) => ({
     benim: cevaplar.find((c) => c.slot === benimSlot && c.songIndex === i)?.won ?? null,
     rakip: cevaplar.find((c) => c.slot === rakipSlot && c.songIndex === i)?.won ?? null,
   }))
@@ -364,7 +374,11 @@ export function useDuello(kod: string): DuelloApi {
     kod,
     slot,
     songs,
-    aktif: Math.min(aktif, DUELLO_SARKI - 1),
+    // ⚠️ Lobinin çipi DIŞA VERİLİYOR. Okunuyordu ama API'de yoktu; kabuk sahne
+    // rengini yerel ayardan alıyordu, yani davet linkine tıklayan arkadaş
+    // düello başka seçkide olsa bile KENDİ son seçkisinin rengini görüyordu.
+    chip: durum?.chip ?? null,
+    aktif: Math.min(aktif, DUELLO_TUR - 1),
     benim,
     rakip,
     sonuc: kazanan(benim, rakip),

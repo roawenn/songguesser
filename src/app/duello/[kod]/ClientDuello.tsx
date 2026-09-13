@@ -13,19 +13,28 @@ const DuelloShell = dynamic(
   () => import('@/components/DuelloShell').then((m) => m.DuelloShell),
   {
     ssr: false,
-    loading: () => (
-      <div
-        aria-hidden
-        style={{
-          minHeight: '100vh',
-          background:
-            'radial-gradient(120% 80% at 50% -10%, #14171b 0%, #0a0b0d 55%, #07080a 100%)',
-        }}
-      />
-    ),
+    loading: () => <Iskelet />,
   },
 )
 
-export function ClientDuello({ kod }: { kod: string }) {
-  return <DuelloShell kod={kod} />
+function Iskelet() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        minHeight: '100vh',
+        background:
+          'radial-gradient(120% 80% at 50% -10%, #14171b 0%, #0a0b0d 55%, #07080a 100%)',
+      }}
+    />
+  )
+}
+
+const UnluDuelloShell = dynamic(
+  () => import('@/components/UnluDuelloShell').then((m) => m.UnluDuelloShell),
+  { ssr: false, loading: () => <Iskelet /> },
+)
+
+export function ClientDuello({ kod, oyun }: { kod: string; oyun: 'sarki' | 'unlu' }) {
+  return oyun === 'unlu' ? <UnluDuelloShell kod={kod} /> : <DuelloShell kod={kod} />
 }
