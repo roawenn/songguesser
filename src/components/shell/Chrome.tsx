@@ -246,18 +246,21 @@ export function TierStrip({ tier, onTier }: TierProps) {
   )
 }
 
-interface FooterProps {
-  categoryLabel: string
-  tierLabel: string
-}
-
 /**
  * İnce künye şeridi.
  *
  * "Nasıl oynanır" bağlantısı kaldırıldı: kurallar artık sahnenin sağındaki
  * kalıcı kartta duruyor, aynı şeyi iki yere koymanın anlamı yok.
  */
-export function Footer({ categoryLabel, tierLabel }: FooterProps) {
+/**
+ * Sayfa altı.
+ *
+ * ⚠️ Seçki ve zorluk KALDIRILDI: ikisi de sahnede zaten görünüyor (çip
+ * şeridi ve kademe seçici), altta tekrar etmeleri bilgi değil gürültüydü.
+ * Yerine Apple atfı geldi — zorunlu bir metin ve yeri burası; yan kartın
+ * içinde kaybolduğu yerden alındı.
+ */
+export function Footer() {
   return (
     <footer
       style={{
@@ -265,20 +268,14 @@ export function Footer({ categoryLabel, tierLabel }: FooterProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
-        flexWrap: 'wrap',
         fontFamily: 'var(--font-mono)',
         fontSize: 10.5,
+        lineHeight: 1.6,
+        textAlign: 'center',
         color: '#4e5459',
       }}
     >
-      <span>
-        Seçki: <span style={{ color: '#7b8186' }}>{categoryLabel}</span>
-      </span>
-      <span style={{ color: '#2b3034' }}>/</span>
-      <span>
-        Zorluk: <span style={{ color: '#7b8186' }}>{tierLabel}</span>
-      </span>
+      Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.
     </footer>
   )
 }

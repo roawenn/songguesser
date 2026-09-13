@@ -201,6 +201,21 @@ button {
   transition-duration: 0.01ms !important;
 }
 
+
+/*
+ * Sahnenin orantılı ölçeği (bkz. useOlcek.ts).
+ *
+ * ⚠️ `transform: scale` DEĞİL, `zoom`. `transform` düzeni etkilemez:
+ * ölçeklenen eleman eski yerini kaplamaya devam eder, altında kocaman bir
+ * boşluk kalır ve kaydırma bozulur. `zoom` düzenin kendisini ölçekler.
+ *
+ * ⚠️ `min-height` ölçeğe BÖLÜNMELİ. Zoom altında `100vh` da küçülür ve
+ * sayfa görünen alanın altında biterdi.
+ */
+.nk-scale {
+  zoom: var(--nk-olcek, 1);
+  min-height: calc(100vh / var(--nk-olcek, 1));
+}
 /*
  * Üst bant: marka + kategoriler.
  *
@@ -268,7 +283,11 @@ button {
    * farkı kapatır; `clamp` de ara genişliklerde ızgarayı daraltarak taşmayı
    * önler — `8vw` tam olarak bu oranı korur.
    */
-  gap: clamp(56px, 8vw, 150px);
+  /*
+   * ⚠️ `vw` DEĞİL sabit px. Ölçek altında `vw` gerçek görünüm alanına
+   * çözülüyor, yani ölçeklenen sahnede boşluk orantısız büyüyordu.
+   */
+  gap: 150px;
   align-items: start;
   justify-content: center;
   width: 100%;
@@ -290,18 +309,28 @@ button {
 }
 
 /* Yan kartlar sahneyle birlikte nefes alsın, ekrana yapışmasınlar. */
+/* Sol sütunda iki kart var (ayarlar + istatistik); aralarında nefes olsun. */
 .nk-stage-grid > .nk-side {
   position: sticky;
   top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /*
- * ⚠️ Kırılma noktası ızgaranın GERÇEK genişliğinden hesaplanır. 1501px'te
- * boşluk 8vw = 120px, yani 310 + 560 + 310 + 240 + 40 iç dolgu = 1460px —
- * kıl payı sığar. Daha dar bir eşik verildiğinde arada kalan genişliklerde üç
- * sütun sığmıyor ve sahne sağa taşıyor.
+ * ⚠️ Eşik 1500 DEĞİL 900.
+ *
+ * 1500'ken MacBook genişliklerinde ızgara tek sütuna düşüyor ve her şey yer
+ * değiştiriyordu. Arada kalan genişlikleri artık orantılı ölçek karşılıyor
+ * (bkz. `.nk-scale`): dizilim birebir aynı kalıyor, yalnızca küçülüyor.
+ * 900px altında ölçek okunabilirlik sınırına dayanıyor ve mobil düzen
+ * devralıyor.
+ *
+ * ⚠️ `zoom` medya sorgularını ETKİLEMEZ — sorgular gerçek görünüm alanına
+ * bakar. Bu yüzden eşiği ölçeğe göre ayrıca hesaplamak gerekmiyor.
  */
-@media (max-width: 1500px) {
+@media (max-width: 899px) {
   .nk-stage-grid {
     /*
      * ⚠️ Tek iz `minmax(0, 1fr)` — sabit ya da yüzdeli bir max DEĞİL.
@@ -448,5 +477,76 @@ button {
   100% {
     opacity: 0;
     transform: scale(1.5);
+  }
+}
+
+/*
+ * Sahne dizilimindeki dikey boşluklar.
+ *
+ * ⚠️ Satır içi `marginTop` yerine sınıf: satır içi stil CSS'ten `!important`
+ * olmadan ezilemiyor ve mobilde bu boşlukları sıkıştırmanın başka yolu yoktu.
+ *
+ * ⚠️ Çubuk ve kontrol AYNI boşluğa sahip (55/55) ve öyle kalmalı: çubuk,
+ * kaset + kademe ikilisini ("ne çalıyor") oynatma kontrollerinden ("ne
+ * yapıyorum") ayıran aralığın tam ortasında duruyor.
+ */
+.nk-kademe {
+  margin-top: 24px;
+}
+.nk-cubuk {
+  margin-top: 55px;
+}
+.nk-kontrol {
+  margin-top: 55px;
+}
+.nk-giris {
+  margin-top: 44px;
+}
+.nk-eylem {
+  margin-top: 44px;
+}
+
+/*
+ * --- MOBİL ---
+ *
+ * ⚠️ Hedef: kaset, çubuk, çal, tahmin kutusu ve "Geç" KAYDIRMADAN tek ekranda.
+ * Ölçüm (390×844): düzenlemeden önce "Geç" düğmesinin altı 871px'teydi, yani
+ * görünen alanın dışında kalıyordu — telefonda oynamak için kaydırmak
+ * gerekiyordu.
+ *
+ * Kazanç üç yerden: üst bandın dolgusu, kasetin genişliği ve sahne
+ * aralıkları. Yan kartlar oyunun altına iniyor; oraya ulaşmak için kaydırmak
+ * sorun değil, oyun alanı için kaydırmak sorundu.
+ */
+@media (max-width: 899px) {
+  .nk-top {
+    gap: 8px;
+    padding: 14px 16px 12px;
+  }
+  .nk-kademe {
+    margin-top: 12px;
+  }
+  .nk-cubuk {
+    margin-top: 18px;
+  }
+  .nk-kontrol {
+    margin-top: 18px;
+  }
+  .nk-giris {
+    margin-top: 16px;
+  }
+  .nk-eylem {
+    margin-top: 14px;
+  }
+  /* Kaset sahnenin kimliği; küçülüyor ama kaybolmuyor. */
+  .nk-stage-grid > .nk-stage > :first-child {
+    max-width: 300px;
+  }
+  .nk-center {
+    padding-top: 4px;
+  }
+  .nk-stage-grid {
+    padding: 4px 16px 24px;
+    gap: 16px;
   }
 }

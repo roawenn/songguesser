@@ -34,6 +34,34 @@ const CARD = {
   gap: 24,
 }
 
+
+/** Kart içindeki bağlantı düğmesi. */
+const KART_DUGME = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '10px 8px',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 5,
+  fontFamily: 'var(--font-mono)',
+  fontSize: 10.5,
+  letterSpacing: '.06em',
+  color: '#a9aeb3',
+  textAlign: 'center' as const,
+}
+
+const KBD = {
+  flex: 'none' as const,
+  minWidth: 58,
+  textAlign: 'center' as const,
+  padding: '4px 8px',
+  borderRadius: 4,
+  border: '1px solid rgba(255,255,255,0.12)',
+  background: 'rgba(255,255,255,0.03)',
+  color: '#b6bbbf',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 10.5,
+}
 function CardTitle({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -254,43 +282,6 @@ export function SettingsCard({
         onChange={onReduce}
       />
 
-      <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={CAPTION}>Klavye</div>
-        <div
-          style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 11 }}
-        >
-          {[
-            { key: 'Boşluk', what: 'klibi çal' },
-            { key: 'Enter', what: 'tahmini gönder' },
-            { key: '↑ ↓', what: 'önerilerde gez' },
-          ].map((k) => (
-            <div
-              key={k.key}
-              style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12 }}
-            >
-              <kbd
-                style={{
-                  flex: 'none',
-                  minWidth: 58,
-                  textAlign: 'center',
-                  padding: '4px 8px',
-                  borderRadius: 4,
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  background: 'rgba(255,255,255,0.03)',
-                  color: '#b6bbbf',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10.5,
-                }}
-              >
-                {k.key}
-              </kbd>
-              <span style={{ color: '#7b8186' }}>{k.what}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <IstatistikBlogu />
     </section>
   )
 }
@@ -302,7 +293,7 @@ export function SettingsCard({
  * kimse göremiyor — liderlik tablosu bilinçli olarak kapsam dışı bırakıldı.
  * Veri kullanıcının olduğu için silme düğmesi de burada duruyor.
  */
-function IstatistikBlogu() {
+export function StatsCard() {
   const s = useStatsStore()
   const sifirla = useStatsStore((x) => x.sifirla)
   const [soruyor, setSoruyor] = useState(false)
@@ -317,13 +308,13 @@ function IstatistikBlogu() {
   const enYuksek = Math.max(1, ...s.kademeDagilimi)
 
   return (
-    <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', ...CAPTION }}>
+    <section style={CARD} aria-label="İstatistik">
+      <div style={{ display: 'flex', justifyContent: 'space-between', ...CAPTION, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <span>İstatistik</span>
         <span style={{ color: '#8d9398' }}>bu tarayıcıda</span>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 13 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
         <Sayac buyuk={`%${isabet(s)}`} alt="isabet" vurgu />
         <Sayac buyuk={String(s.oynanan)} alt="tur" />
         <Sayac
@@ -431,7 +422,7 @@ function IstatistikBlogu() {
           </button>
         )}
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -529,29 +520,50 @@ export function HowToCard() {
         &ldquo;Gülpembe&rdquo; kabul edilir. Küçük yazım hataları da affedilir.
       </p>
 
+      {/*
+        ⚠️ İki bağlantı, aynı yeri BÖLEN iki düğme.
+        Küçük metin bağlantıları olarak yan yana dururken tıklanabilir
+        oldukları belli olmuyordu; eşit bölünmüş iki düğme hem hedefi
+        büyütüyor hem de ikisinin eş değerde olduğunu gösteriyor.
+      */}
       <div
         style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 12,
-          paddingTop: 13,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 8,
+          paddingTop: 14,
           borderTop: '1px solid rgba(255,255,255,0.06)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 11,
         }}
       >
-        <a href="/nasil-oynanir" style={{ color: '#8d9398' }}>
-          Tüm kurallar →
+        <a href="/nasil-oynanir" className="nk-kart-dugme" style={KART_DUGME}>
+          Tüm kurallar
         </a>
-        <a href="/hakkinda" style={{ color: '#6a7075' }}>
+        <a href="/hakkinda" className="nk-kart-dugme" style={KART_DUGME}>
           Hakkında
         </a>
       </div>
 
-      {/* Apple ToS: atıf zorunlu. */}
-      <p style={{ margin: 0, fontSize: 10.5, lineHeight: 1.6, color: '#5c6267' }}>
-        Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.
-      </p>
+      {/* Klavye kısayolları BURADA: sol sütunda yalnızca ayarlar kalsın. */}
+      <div style={{ paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={CAPTION}>Klavye</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 11 }}>
+          {[
+            { key: 'Boşluk', what: 'klibi çal' },
+            { key: 'Enter', what: 'tahmini gönder' },
+            { key: '↑ ↓', what: 'önerilerde gez' },
+          ].map((k) => (
+            <div
+              key={k.key}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12 }}
+            >
+              <kbd style={KBD}>{k.key}</kbd>
+              <span style={{ color: '#7b8186' }}>{k.what}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Apple atfı footer'a taşındı — burada kartın dibinde kayboluyordu. */}
     </section>
   )
 }

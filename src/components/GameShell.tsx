@@ -6,7 +6,7 @@ import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useStatsStore } from '@/store/useStatsStore'
 import { anahtarYaz } from '@/lib/duelloAnahtar'
-import { chipById, TIER_LABELS } from '@/data/categories'
+import { chipById } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { heardLength } from '@/game/machine'
 import { Backdrop } from './stage/Backdrop'
@@ -16,7 +16,8 @@ import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
 import { ResultPanel } from './reveal/ResultPanel'
 import { Header, CategoryStrip, TierStrip, Footer } from './shell/Chrome'
-import { SettingsCard, HowToCard } from './shell/SidePanels'
+import { SettingsCard, HowToCard, StatsCard } from './shell/SidePanels'
+import { useOlcek } from './shell/useOlcek'
 
 export function GameShell() {
   const round = useRound()
@@ -38,6 +39,8 @@ export function GameShell() {
     else root.removeAttribute('data-motion')
   }, [reduce])
 
+  // Sahneyi 1920 tasarımına göre orantılı küçültür.
+  useOlcek()
   const router = useRouter()
   const cassette = useRef<CassetteHandle>(null)
   const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
@@ -73,7 +76,6 @@ export function GameShell() {
   }
 
   const chip = chipById(settings.category)
-  const tierLabel = TIER_LABELS[settings.tier]
 
   // Yanlış tahminde kaseti sarsan geri çağrıyı kaydet.
   const { onWrong } = round
@@ -186,13 +188,18 @@ export function GameShell() {
         {announcement}
       </div>
 
+      {/*
+        ⚠️ Ölçek YALNIZCA içeriğe uygulanır, arka plana değil.
+        `Backdrop` tam ekran kalmalı; ölçeklenseydi kenarlarda boş bant
+        kalırdı. Detay için `useOlcek.ts`.
+      */}
       <div
+        className="nk-scale"
         style={{
           position: 'relative',
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh',
         }}
       >
         {/*
@@ -211,6 +218,7 @@ export function GameShell() {
           <div className="nk-center">
             {/* Üç sütun: ayarlar · sahne · kurallar. */}
             <div className="nk-stage-grid">
+            {/* Sol sütun: yalnızca ayarlar, altında istatistik kartı. */}
             <div className="nk-side">
               <SettingsCard
                 volume={settings.volume}
@@ -220,6 +228,7 @@ export function GameShell() {
                 onReduce={settings.setReduce}
                 onEasySearch={settings.setEasySearch}
               />
+              <StatsCard />
             </div>
 
             {/*
@@ -246,7 +255,7 @@ export function GameShell() {
                 reduce={reduce}
               />
 
-              <div style={{ marginTop: 24 }}>
+              <div className="nk-kademe">
                 <TierStrip tier={settings.tier} onTier={settings.setTier} />
               </div>
 
@@ -259,11 +268,11 @@ export function GameShell() {
               */}
               <div
                 style={{
-                  marginTop: 55,
                   width: '100%',
                   display: 'flex',
                   justifyContent: 'center',
                 }}
+                className="nk-cubuk"
               >
                 <StepIndicator
                   attempt={attempt}
@@ -277,12 +286,12 @@ export function GameShell() {
 
               <div
                 style={{
-                  marginTop: 55,
                   width: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                 }}
+                className="nk-kontrol"
               >
               {state.s === 'error' ? (
                 <Notice tone="bad">
@@ -354,7 +363,7 @@ export function GameShell() {
                     onPlay={round.play}
                   />
 
-                  <div style={{ marginTop: 44, width: '100%' }}>
+                  <div className="nk-giris" style={{ width: '100%' }}>
                     <GuessInput
                       index={round.index}
                       suggestions={settings.easySearch}
@@ -370,13 +379,13 @@ export function GameShell() {
 
                   <div
                     style={{
-                      marginTop: 44,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 10,
                       flexWrap: 'wrap',
                     }}
+                    className="nk-eylem"
                   >
                     {/*
                       Geç, yanındaki "Şarkıyı değiştir"den farklı olarak BİR HAK
@@ -413,10 +422,15 @@ export function GameShell() {
                       type="button"
                       onClick={round.reroll}
                       disabled={arming}
-                      className="nk-skip"
+                      className="nk-degistir"
                       title="Aynı seçkide başka bir şarkıya geç — hakkın gitmez"
                       style={{
                         ...GHOST,
+                        // ⚠️ "Geç" kehribar, bu mavi-gri: ikisi de nötr griyken
+                        // yanlışlıkla hak yakmak kolaydı.
+                        border: '1px solid rgba(126,164,190,0.34)',
+                        background: 'rgba(126,164,190,0.07)',
+                        color: '#9db9cc',
                         opacity: arming ? 0.4 : 1,
                         cursor: arming ? 'not-allowed' : 'pointer',
                       }}
@@ -424,29 +438,38 @@ export function GameShell() {
                       <span aria-hidden style={{ fontSize: 13 }}>↻</span> Şarkıyı değiştir
                     </button>
 
-                    {/*
-                      Düello: aynı seçkiden 5 şarkı, kolaydan zora, iki kişi.
-                      Paylaşım düğmeleri kaldırıldığı için oyunun tek sosyal
-                      çıkışı burası.
-                    */}
-                    <button
-                      type="button"
-                      onClick={() => void duelloBaslat()}
-                      disabled={duelloKuruluyor}
-                      className="nk-skip"
-                      title="Arkadaşınla aynı 5 şarkıyı oyna"
-                      style={{
-                        ...GHOST,
-                        borderColor: 'var(--acc)',
-                        color: 'var(--acc)',
-                        background: 'oklch(0.81 0.12 var(--hue) / 0.08)',
-                        opacity: duelloKuruluyor ? 0.5 : 1,
-                        cursor: duelloKuruluyor ? 'progress' : 'pointer',
-                      }}
-                    >
-                      <span aria-hidden style={{ fontSize: 13 }}>⚔</span>{' '}
-                      {duelloKuruluyor ? 'lobi kuruluyor…' : 'Arkadaşınla oyna'}
-                    </button>
+                  </div>
+
+                  {/*
+                    ⚠️ Düello KENDİ SATIRINDA, diğer ikisinin altında.
+                    Üçü yan yanayken tur içi iki eylem (pas geç, şarkı
+                    değiştir) ile sayfadan çıkaran bir eylem aynı ağırlıkta
+                    duruyordu. Alt satır, farklı bir işe geçtiğini gösteriyor.
+                  */}
+                  <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
+                  {/*
+                    Düello: aynı seçkiden 5 şarkı, kolaydan zora, iki kişi.
+                    Paylaşım düğmeleri kaldırıldığı için oyunun tek sosyal
+                    çıkışı burası.
+                  */}
+                  <button
+                    type="button"
+                    onClick={() => void duelloBaslat()}
+                    disabled={duelloKuruluyor}
+                    className="nk-skip"
+                    title="Arkadaşınla aynı 5 şarkıyı oyna"
+                    style={{
+                      ...GHOST,
+                      borderColor: 'var(--acc)',
+                      color: 'var(--acc)',
+                      background: 'oklch(0.81 0.12 var(--hue) / 0.08)',
+                      opacity: duelloKuruluyor ? 0.5 : 1,
+                      cursor: duelloKuruluyor ? 'progress' : 'pointer',
+                    }}
+                  >
+                    <span aria-hidden style={{ fontSize: 13 }}>⚔</span>{' '}
+                    {duelloKuruluyor ? 'lobi kuruluyor…' : 'Arkadaşınla oyna'}
+                  </button>
                   </div>
 
                   {duelloHata && (
@@ -475,7 +498,7 @@ export function GameShell() {
           </div>
         </div>
 
-        <Footer categoryLabel={chip.label} tierLabel={tierLabel} />
+        <Footer />
       </div>
 
       <style>{`
@@ -483,6 +506,11 @@ export function GameShell() {
           border-color: var(--acc) !important;
           color: var(--acc) !important;
           background: rgba(255,255,255,0.07) !important;
+        }
+        .nk-degistir:hover:not(:disabled) {
+          border-color: rgba(126,164,190,0.7) !important;
+          color: #c3dcec !important;
+          background: rgba(126,164,190,0.14) !important;
         }
         .nk-pass:hover:not(:disabled) {
           border-color: rgba(201,162,94,0.7) !important;
