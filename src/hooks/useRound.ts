@@ -69,7 +69,17 @@ export interface DizilimOpts {
 }
 
 export function useRound(dizilim?: DizilimOpts): RoundApi {
-  const { category, tier, easySearch, volume, setTier } = useSettingsStore()
+  /*
+   * ⚠️ Alan alan abone olunuyor. Seçicisiz `useSettingsStore()` bütün depoya
+   * abone olur; "Azaltılmış animasyon" anahtarına dokunmak bile tur kancasını
+   * ve altındaki her şeyi yeniden çizdiriyordu — oysa `reduce` burada hiç
+   * kullanılmıyor.
+   */
+  const category = useSettingsStore((s) => s.category)
+  const tier = useSettingsStore((s) => s.tier)
+  const easySearch = useSettingsStore((s) => s.easySearch)
+  const volume = useSettingsStore((s) => s.volume)
+  const setTier = useSettingsStore((s) => s.setTier)
 
   const sequence = dizilim?.sequence
   const seqIndex = dizilim?.index ?? 0

@@ -90,16 +90,19 @@ function Toggle({
           position: 'relative',
         }}
       >
+        {/* `left` yerine `transform`: 180 ms boyunca her kare düzen yerine
+            yalnızca birleştirme. */}
         <span
           style={{
             position: 'absolute',
             top: 2,
-            left: on ? 21 : 2,
+            left: 2,
             width: 17,
             height: 17,
             borderRadius: '50%',
             background: '#f0f2f3',
-            transition: 'left .18s ease',
+            transform: on ? 'translateX(19px)' : 'none',
+            transition: 'transform .18s ease',
           }}
         />
       </button>
@@ -120,12 +123,19 @@ export function SettingsCard({
   volume, reduce, easySearch, onVolume, onReduce, onEasySearch,
 }: SettingsProps) {
   const volRef = useRef<HTMLDivElement>(null)
+  /**
+   * Sürükleme başındaki şerit ölçüsü.
+   *
+   * ⚠️ `getBoundingClientRect()` her `pointermove`'da çağrılıyordu; bu, yüksek
+   * örnekleme hızlı farelerde ve izleme yüzeylerinde saniyede yüzlerce kez
+   * ZORLANMIŞ DÜZEN demek. Ölçü sürükleme boyunca zaten değişmiyor.
+   */
+  const olcu = useRef<DOMRect | null>(null)
   const pct = `${Math.round(volume * 100)}%`
 
   function setVolFromEvent(clientX: number) {
-    const el = volRef.current
-    if (!el) return
-    const r = el.getBoundingClientRect()
+    const r = olcu.current ?? volRef.current?.getBoundingClientRect()
+    if (!r) return
     onVolume(Math.max(0, Math.min(1, (clientX - r.left) / r.width)))
   }
 
@@ -148,10 +158,17 @@ export function SettingsCard({
           aria-valuenow={Math.round(volume * 100)}
           onPointerDown={(e) => {
             e.currentTarget.setPointerCapture(e.pointerId)
+            olcu.current = volRef.current?.getBoundingClientRect() ?? null
             setVolFromEvent(e.clientX)
           }}
           onPointerMove={(e) => {
             if (e.buttons === 1) setVolFromEvent(e.clientX)
+          }}
+          onPointerUp={() => {
+            olcu.current = null
+          }}
+          onPointerCancel={() => {
+            olcu.current = null
           }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowLeft') onVolume(Math.max(0, volume - 0.05))
@@ -175,29 +192,50 @@ export function SettingsCard({
               background: 'rgba(255,255,255,0.09)',
             }}
           >
+            {/*
+              ⚠️ `width` ve `left` DÜZEN özellikleri: sürükleme boyunca her
+              işaretçi olayı stil → düzen → boya → birleştirme zinciri
+              çalıştırıyordu. `transform` ise yalnızca birleştirme.
+            */}
             <div
               style={{
                 position: 'absolute',
                 inset: '0 auto 0 0',
-                width: pct,
+                width: '100%',
+                transform: `scaleX(${volume})`,
+                transformOrigin: 'left',
                 background: 'var(--acc)',
                 borderRadius: 2,
               }}
             />
+            {/*
+              Topuz kendi genişliği kadar değil ŞERİT genişliği kadar kaymalı.
+              Bu yüzden yüzde çeviri, şeridi tam kaplayan bu sarmalayıcıya
+              uygulanıyor — yüzdeler elemanın kendi ölçüsüne göre hesaplanır.
+            */}
             <div
+              aria-hidden
               style={{
                 position: 'absolute',
-                top: '50%',
-                left: pct,
-                width: 13,
-                height: 13,
-                marginLeft: -6.5,
-                marginTop: -6.5,
-                borderRadius: '50%',
-                background: '#f0f2f3',
-                boxShadow: '0 0 0 4px var(--accSoft)',
+                inset: 0,
+                transform: `translateX(${volume * 100}%)`,
               }}
-            />
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: 0,
+                  width: 13,
+                  height: 13,
+                  marginLeft: -6.5,
+                  marginTop: -6.5,
+                  borderRadius: '50%',
+                  background: '#f0f2f3',
+                  boxShadow: '0 0 0 4px var(--accSoft)',
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

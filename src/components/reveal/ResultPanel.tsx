@@ -8,6 +8,7 @@ import { heardLength, type Step } from '@/game/machine'
 import type { ChipId } from '@/data/categories'
 import { encodeShare, marksOf, type Mark } from '@/game/share'
 import { isabet } from '@/game/stats'
+import { useShallow } from 'zustand/react/shallow'
 import { useStatsStore } from '@/store/useStatsStore'
 import { Confetti } from './Confetti'
 
@@ -96,7 +97,11 @@ export function ResultPanel({
   const heardSeconds = heardLength(heardIndex, ladder)
   const { headline, rank } = praise(heardSeconds)
 
-  const istatistik = useStatsStore()
+  // Yalnızca gösterilen üç sayaca abone: tur biterken depoya yazılan diğer
+  // alanlar (ör. çift kayıt koruması) bu kartı yeniden çizdirmesin.
+  const istatistik = useStatsStore(
+    useShallow((s) => ({ oynanan: s.oynanan, kazanilan: s.kazanilan, seri: s.seri })),
+  )
   /*
    * Görsel adresi turun kendisinden türüyor; sunucuya hiçbir şey yazılmıyor.
    * Aynı kod hem yatay OG kartını hem bu dikey Story görselini besliyor.
@@ -138,10 +143,31 @@ export function ResultPanel({
             reduce
               ? undefined
               : won
-                ? 'nk-burst .52s cubic-bezier(.22,1.2,.36,1) both, nk-glow 1.4s ease-out both'
+                ? 'nk-burst .52s cubic-bezier(.22,1.2,.36,1) both'
                 : 'nk-rise .4s ease both',
         }}
       >
+        {/*
+          Parıltı KENDİ katmanında ve gölgesi statik.
+          Kartın animasyon kısayoluna `nk-glow` olarak eklenmişti; `box-shadow`
+          bir boya özelliği olduğu için hem her karede Gaussian yeniden
+          rasterize ediliyor hem de kartı compositor'dan düşürüp yanındaki
+          `nk-burst`i de yavaşlatıyordu.
+        */}
+        {won && !reduce && (
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: 8,
+              boxShadow: '0 0 46px -6px var(--accSoft)',
+              pointerEvents: 'none',
+              animation: 'nk-parilti 1.4s ease-out both',
+            }}
+          />
+        )}
+
         {/* Patlama anında dışa açılan tek halka. */}
         {won && !reduce && (
           <span
@@ -156,11 +182,17 @@ export function ResultPanel({
             }}
           />
         )}
+        {/*
+          ⚠️ 300 değil 200: kutu 96px, yani 2× ekranda bile 192px yetiyor.
+          300'lük kaynak hem gereksiz bayt hem de kod çözme işi demekti ve
+          çözme tam da açılış animasyonlarının olduğu 750 ms'ye düşüyordu.
+        */}
         <img
-          src={artworkAt(song.ar, 300)}
+          src={artworkAt(song.ar, 200)}
           alt=""
           width={96}
           height={96}
+          decoding="async"
           style={{
             width: 96,
             height: 96,

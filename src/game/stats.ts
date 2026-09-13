@@ -79,8 +79,12 @@ export function uygula(s: Istatistik, t: TurSonucu, simdi = new Date()): Istatis
   }
 }
 
-/** Kazanma yüzdesi, 0-100 arası tam sayı. Hiç oynanmadıysa 0. */
-export function isabet(s: Istatistik): number {
+/**
+ * Kazanma yüzdesi, 0-100 arası tam sayı. Hiç oynanmadıysa 0.
+ *
+ * Girdi bilerek DAR: arayüz deponun tamamına abone olmak zorunda kalmasın.
+ */
+export function isabet(s: Pick<Istatistik, 'oynanan' | 'kazanilan'>): number {
   return s.oynanan === 0 ? 0 : Math.round((s.kazanilan / s.oynanan) * 100)
 }
 

@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { CHIPS, type ChipId } from '@/data/categories'
+import { havuzuIsit } from '@/data/loadPool'
 import { useSettingsStore } from '@/store/useSettingsStore'
 
 /**
@@ -77,5 +78,15 @@ function seckiyiHizala() {
 
 export function ClientGame() {
   seckiyiHizala()
+  /*
+   * ⚠️ Havuz isteği, tembel `GameShell` parçası inip çalışmadan başlatılıyor.
+   *
+   * Oynanabilir ilk tura giden yol üç seri ağ adımıydı: HTML → ana paket →
+   * kabuk parçası → mount → havuz. Bu çağrı son iki adımı paralelleştiriyor.
+   * Sabit bir `<link rel="preload">` yerine burada duruyor çünkü seçki
+   * `localStorage`'da: varsayılan dışında bir seçki kullanan oyuncuya yanlış
+   * havuzu indirtmek, kazandırdığından fazlasını götürürdü.
+   */
+  if (typeof window !== 'undefined') havuzuIsit(useSettingsStore.getState().category)
   return <GameShell />
 }

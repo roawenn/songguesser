@@ -99,6 +99,10 @@ function CassetteBase({
   const shellRef = useRef<HTMLDivElement>(null)
   const reelA = useRef<HTMLDivElement>(null)
   const reelB = useRef<HTMLDivElement>(null)
+  /** Dönen rAF'ın kimliği; 0 = döngü duruyor. */
+  const rafRef = useRef(0)
+  /** Durmuş döngüyü yeniden ateşleyen işlev. */
+  const baslatRef = useRef<(() => void) | null>(null)
 
   // Çalma durumu ref'e yansır: rAF döngüsü her durum değişiminde yeniden
   // kurulmasın, makaranın ivmesi korunsun.
@@ -138,7 +142,6 @@ function CassetteBase({
       return
     }
 
-    let raf = 0
     let last = performance.now()
     let angle = 0
     let speed = 0 // derece / ms
@@ -161,15 +164,48 @@ function CassetteBase({
         for (const ref of [reelA, reelB]) {
           if (ref.current) ref.current.style.transform = css
         }
-      } else if (speed !== 0) {
+      } else if (target === 0) {
+        /**
+         * ⚠️ Makara durdu: DÖNGÜ DE DURUR.
+         *
+         * Buranın çıkışı yoktu ve döngü tüm oturum boyunca 60 Hz çalışıyordu.
+         * Kare başına yapılan aritmetik önemsiz; asıl maliyet zamanlayıcının
+         * kendisi: sürekli planlanmış bir rAF, Chromium'u her vsync'te
+         * `BeginFrame` üretmeye ve ana iş parçacığını saniyede 60 kez
+         * uyandırmaya zorluyor. Dizüstünde boşta kalmayı engelliyor ve
+         * önemsediğimiz her karenin (konfeti dahil) yanında yarışıyor.
+         *
+         * Yeniden başlatma aşağıdaki `playing` etkisinde.
+         */
         speed = 0
+        rafRef.current = 0
+        return
       }
 
-      raf = requestAnimationFrame(tick)
+      rafRef.current = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+
+    // `last` sıfırlanmadan başlatılırsa durmuş döngü uyanırken kocaman bir
+    // `dt` görür ve makara birden fırlar.
+    const baslat = () => {
+      if (rafRef.current !== 0) return
+      last = performance.now()
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    baslatRef.current = baslat
+    baslat()
+    return () => {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = 0
+      baslatRef.current = null
+    }
   }, [reduce])
+
+  /** Çalma başlayınca durmuş döngüyü yeniden ateşle. */
+  useEffect(() => {
+    if (playing && !reduce) baslatRef.current?.()
+  }, [playing, reduce])
 
 
   // Her çubuğa farklı süre ve gecikme: tek tip nabız yerine canlı bir hareket.
@@ -216,8 +252,14 @@ function CassetteBase({
         borderRadius: 8,
         background:
           'linear-gradient(163deg, #2c3137 0%, #1e2227 34%, #14171b 72%, #0f1216 100%)',
+        /*
+         * ⚠️ Vurgu parıltısının yarıçapı 90px'ten 40px'e indirildi. `--accSoft`
+         * içerdiği için kategori geçişinin her karesinde yeniden rasterize
+         * ediliyor; 90px'lik bulanıklık 440×273'lük bir kutuda ~620×450'lik iki
+         * geçişli bir Gaussian demekti. Görsel fark neredeyse yok.
+         */
         boxShadow:
-          '0 46px 96px -42px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.09), inset 0 -2px 4px rgba(0,0,0,0.6), 0 0 90px -26px var(--accSoft)',
+          '0 46px 96px -42px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.09), inset 0 -2px 4px rgba(0,0,0,0.6), 0 0 40px -20px var(--accSoft)',
       }}
     >
       {/* köşe vidaları */}

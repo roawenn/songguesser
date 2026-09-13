@@ -42,9 +42,18 @@ export function StepIndicator({
   const pctFor = (tierIndex: number) =>
     (Math.min(tierIndex + 1, ATTEMPTS) / ATTEMPTS) * 100
 
+  /**
+   * ⚠️ Dolgu `width` ile DEĞİL `transform: scaleX` ile sürülüyor.
+   *
+   * `width` bir DÜZEN özelliği: klip boyunca saniyede 60 kez düzen → boya →
+   * birleştirme zinciri çalışıyordu. `scaleX` yalnızca birleştirme adımına
+   * dokunur. Eleman tam genişlikte duruyor, ölçek 0..1 arasında sürülüyor.
+   */
+  const olcek = (yuzde: number) => `scaleX(${(yuzde / 100).toFixed(4)})`
+
   // Yeni şarkı: dolgu sıfırlanır. (Duyulan kademe artık oyun durumunda tutulur.)
   useEffect(() => {
-    if (sweepRef.current) sweepRef.current.style.width = '0%'
+    if (sweepRef.current) sweepRef.current.style.transform = 'scaleX(0)'
   }, [roundKey])
 
   useEffect(() => {
@@ -52,12 +61,12 @@ export function StepIndicator({
     if (!el) return
 
     if (!playing) {
-      el.style.width = heardIndex >= 0 ? `${pctFor(heardIndex)}%` : '0%'
+      el.style.transform = heardIndex >= 0 ? olcek(pctFor(heardIndex)) : 'scaleX(0)'
       return
     }
 
     const target = pctFor(attempt)
-    el.style.width = '0%'
+    el.style.transform = 'scaleX(0)'
     const total = clipLength * 1000
     let raf = 0
 
@@ -66,7 +75,7 @@ export function StepIndicator({
       const start = clipPlayer.plateauStart
       if (start != null) {
         const p = Math.max(0, Math.min(1, (performance.now() - start) / total))
-        el.style.width = `${(p * target).toFixed(2)}%`
+        el.style.transform = olcek(p * target)
         if (p >= 1) return
       }
       raf = requestAnimationFrame(tick)
@@ -101,7 +110,9 @@ export function StepIndicator({
             left: 0,
             top: 0,
             bottom: 0,
-            width: '0%',
+            width: '100%',
+            transform: 'scaleX(0)',
+            transformOrigin: 'left',
             background: 'var(--acc)',
             opacity: 0.85,
             borderRadius: 2,

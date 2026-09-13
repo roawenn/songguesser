@@ -47,10 +47,20 @@
  * alt elemanda --hue değişse bile yeniden hesaplanmaz. Bu yüzden ikisi de
  * --hue'nun atandığı elemanda, yani burada tekrar bildiriliyor.
  */
+/*
+ * ⚠️ Süre BİLEREK kısa (620ms → 280ms).
+ *
+ * `--hue` kalıtılan bir özel değişken, yani her ara değerde Chromium bütün
+ * `.themed` alt ağacının kalıtım haritasını geçersiz kılıp `var(--acc)` /
+ * `var(--accSoft)` kullanan her düğümü yeniden boyuyor. Bu kümede tam ekran
+ * iki radyal gradyan (Backdrop), kasetin büyük gölgesi ve birkaç parıltı var.
+ * 620 ms ≈ 37 kare tam ekran yeniden rasterizasyon demekti ve kategori
+ * değiştirmek, konfetiden daha sık yaşanan bir takılma kaynağıydı.
+ */
 .themed {
   --acc: oklch(0.81 0.12 var(--hue));
   --accSoft: oklch(0.62 0.13 var(--hue) / 0.17);
-  transition: --hue 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: --hue 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html,
@@ -352,30 +362,50 @@ button {
   }
 }
 
-/* Kapak bulanıktan nete: şarkı "ortaya çıkıyor". */
+/*
+ * Kapak uzaktan yaklaşarak beliriyor.
+ *
+ * ⚠️ `filter` ANİMASYONLANMAZ. `blur(16px) → 0` her karede filtre grafiğini
+ * yeniden çalıştırıyordu ve `box-shadow`la aynı tuzağa düşüyordu: aynı
+ * elemandaki `transform: scale` bu yüzden compositor'a çıkamıyordu. Bu
+ * animasyon, konfetiyle en yoğun çakışan 750 ms'de duruyor.
+ *
+ * Geriye kalan `opacity` + `transform` ikilisi tamamen composited.
+ */
 @keyframes nk-artwork {
   from {
     opacity: 0;
-    filter: blur(16px) saturate(0.4);
     transform: scale(1.14);
   }
   to {
     opacity: 1;
-    filter: blur(0) saturate(1);
     transform: scale(1);
   }
 }
 
-/* Kart kenarında tek seferlik parıltı. */
-@keyframes nk-glow {
+/*
+ * Kart kenarında tek seferlik parıltı.
+ *
+ * ⚠️ `box-shadow` ANİMASYONLANMAZ. Öyleydi ve kare hızını düşüren asıl şey
+ * oydu: gölge bir BOYA özelliği, yani 1,4 saniye boyunca her karede ~46px
+ * yarıçaplı bir Gaussian yeniden rasterize ediliyordu — tam da konfetinin
+ * patladığı anda. Dahası, aynı elemanda boya özelliği animasyonlanınca
+ * Chromium o elemanı GPU katmanına terfi ettirmiyor, böylece yanındaki
+ * `nk-burst` (`transform: scale`) de compositor'dan geri çekiliyordu: tek
+ * keyframe iki optimizasyonu birden öldürüyordu.
+ *
+ * Gölge artık ayrı bir katmanda STATİK duruyor; animasyonlanan tek şey
+ * `opacity` ve o tamamen compositor'da çalışıyor.
+ */
+@keyframes nk-parilti {
   0% {
-    box-shadow: 0 0 0 0 var(--accSoft);
+    opacity: 0;
   }
   55% {
-    box-shadow: 0 0 46px -6px var(--accSoft);
+    opacity: 1;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    opacity: 0;
   }
 }
 
