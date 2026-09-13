@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { ADMIN_COOKIE, oturumAc, oturumKapat, adminConfigured } from '@/lib/adminAuth'
-import { sinirAsildi, cokHizli } from '@/lib/hizSinir'
+import { sinirKilitli, basarisizSay, sinirSifirla, cokHizli } from '@/lib/hizSinir'
 
 /**
  * Yönetim paneli girişi.
@@ -17,9 +17,16 @@ import { sinirAsildi, cokHizli } from '@/lib/hizSinir'
 
 const TABAN_GECIKME_MS = 250
 
+/**
+ * ⚠️ Sayaç yalnızca BAŞARISIZ denemelerde artar.
+ *
+ * Eskiden her deneme sayılıyordu; doğru şifreyle art arda giren kişi kendini
+ * kilitliyordu ve bu kaba kuvvete karşı hiçbir şey kazandırmıyordu — şifreyi
+ * bilen zaten içeride. Üç yanlış, ardından 15 dakika.
+ */
 const SINIR = {
   ad: 'giris',
-  limit: 5,
+  limit: 3,
   pencere: '15 minutes',
   // Veritabanı yokken zaten giriş yapılamaz; kapalı kalmak bedava.
   hataVarsaIzin: false,
@@ -32,9 +39,9 @@ export async function POST(req: Request) {
     if (kalan > 0) await new Promise((r) => setTimeout(r, kalan))
   }
 
-  if (await sinirAsildi(req, SINIR)) {
+  if (await sinirKilitli(req, SINIR)) {
     await bekle()
-    return cokHizli('Çok fazla deneme. 15 dakika sonra tekrar dene.')
+    return cokHizli('Üç kez yanlış girildi. 15 dakika sonra tekrar dene.')
   }
 
   if (!(await adminConfigured())) {
@@ -55,6 +62,9 @@ export async function POST(req: Request) {
 
   const oturum = await oturumAc(password)
   if (!oturum.ok) {
+    // ⚠️ Yalnızca YANLIŞ ŞİFRE sayılır. Sunucu hatasını saymak, veritabanı
+    // sarsıldığında doğru şifreyi giren kişiyi kendi sınırına kilitlerdi.
+    if (oturum.sebep === 'parola') await basarisizSay(req, SINIR)
     await bekle()
     // ⚠️ Sunucu hatasını "şifre yanlış" diye göstermek, doğru şifreyle giren
     // kişiyi kendi hız sınırına kilitliyordu.
@@ -66,6 +76,8 @@ export async function POST(req: Request) {
         )
   }
 
+  // Başarılı giriş önceki yanlışları siler: bir sonraki oturumda kilitlemesin.
+  await sinirSifirla(req, SINIR)
   await bekle()
   const res = NextResponse.json({ ok: true })
   res.cookies.set(ADMIN_COOKIE, oturum.id, {

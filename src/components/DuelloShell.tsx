@@ -15,6 +15,7 @@ import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
+import { GuessLog } from './guess/GuessLog'
 
 /**
  * Düello sahnesi.
@@ -238,6 +239,11 @@ function Sahne({
               round.guessSong(song)
             }}
           />
+        </div>
+
+        {/* Üç yanlış kuralı düelloda da geçerli; hakların nerede olduğu görünsün. */}
+        <div style={{ marginTop: 14, width: '100%' }}>
+          <GuessLog steps={steps} />
         </div>
 
         <button

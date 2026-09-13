@@ -10,6 +10,23 @@ import type { Song } from '@/data/schema'
  */
 export type StepKind = 'wrong' | 'skip'
 
+/**
+ * Bir turda en fazla kaç YANLIŞ TAHMİN yapılabilir.
+ *
+ * ⚠️ Merdivenin uzunluğundan (`ATTEMPTS` = 5) AYRI bir sınır. Pas geçmek
+ * merdiveni ilerletir ama tahmin hakkı yakmaz; tahmin hakkı yalnızca yanlış
+ * bilince gider. Üçüncü yanlışta tur biter ve şarkı açılır.
+ *
+ * Tur KAYIP sayılır, dolayısıyla `useRound.next()` zorluğu yükseltmez —
+ * oyuncu bulunduğu zorlukta kalır.
+ */
+export const MAX_WRONG = 3
+
+/** Turda şimdiye kadar yapılmış yanlış tahmin sayısı. */
+export function wrongCount(steps: readonly Step[]): number {
+  return steps.reduce((n, s) => (s.kind === 'wrong' ? n + 1 : n), 0)
+}
+
 export interface Step {
   kind: StepKind
   /** Kullanıcının yazdığı ham metin (pasta boş). */
@@ -150,10 +167,19 @@ export function gameReducer(state: GameState, action: Action): GameState {
 
     case 'WRONG': {
       if (!inRound(state)) return state
-      return advance(state, [
+      const steps: Step[] = [
         ...state.steps,
-        { kind: 'wrong' as const, text: action.text, sameArtist: action.sameArtist },
-      ])
+        { kind: 'wrong', text: action.text, sameArtist: action.sameArtist },
+      ]
+      /*
+       * İki ayrı bitiş koşulu var ve ikisi de geçerli:
+       *   - üç yanlış tahmin (MAX_WRONG),
+       *   - merdivenin sonuna gelmek (pas geçmeler de sayar).
+       * Hangisi önce dolarsa tur orada biter.
+       */
+      const next = { ...state, attempt: state.attempt + 1, steps }
+      const bitti = wrongCount(steps) >= MAX_WRONG || next.attempt >= state.ladder.length
+      return { ...next, s: bitti ? 'lost' : 'ready' }
     }
 
     case 'SKIP': {

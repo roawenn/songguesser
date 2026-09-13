@@ -8,12 +8,13 @@ import { useStatsStore } from '@/store/useStatsStore'
 import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { chipById } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
-import { heardLength } from '@/game/machine'
+import { heardLength, MAX_WRONG, wrongCount } from '@/game/machine'
 import { Backdrop } from './stage/Backdrop'
 import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
+import { GuessLog } from './guess/GuessLog'
 import { ResultPanel } from './reveal/ResultPanel'
 import { Header, CategoryStrip, TierStrip, Footer } from './shell/Chrome'
 import {
@@ -151,8 +152,9 @@ export function GameShell() {
     if (state.s !== 'ready') return ''
     const last = steps[steps.length - 1]
     const head = last?.kind === 'wrong' ? 'Yanlış.' : last?.kind === 'skip' ? 'Pas geçildi.' : ''
-    const left = ATTEMPTS - attempt
-    return `${head} Klip ${tr(round.clipLength)} saniye. ${left} hakkın kaldı.`.trim()
+    // Sınırı artık merdiven değil TAHMİN HAKKI koyuyor; okunan sayı o olmalı.
+    const left = MAX_WRONG - wrongCount(steps)
+    return `${head} Klip ${tr(round.clipLength)} saniye. ${left} tahmin hakkın kaldı.`.trim()
   })()
 
   return (
@@ -378,6 +380,9 @@ export function GameShell() {
                       }}
                     />
                   </div>
+
+                  {/* Yapılan tahminler — üç hakkın nereye gittiği görünsün. */}
+                  <GuessLog steps={steps} />
 
                   <div
                     style={{

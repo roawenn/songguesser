@@ -5,6 +5,8 @@ import {
   canPlay,
   currentClipLength,
   heardLength,
+  MAX_WRONG,
+  wrongCount,
   type GameState,
 } from '../machine'
 import { pickNext, filterByTier } from '../select'
@@ -154,12 +156,39 @@ describe('kademe tüketimi', () => {
 })
 
 describe('tur sonu', () => {
-  it('beş yanlış tahminden sonra tur kaybedilir', () => {
+  it('ÜÇÜNCÜ yanlış tahminde tur kaybedilir', () => {
     let state: GameState = ready()
-    for (let i = 0; i < ATTEMPTS; i++) {
-      state = gameReducer(state, { type: 'WRONG', text: 'x', sameArtist: false })
-    }
+    state = gameReducer(state, { type: 'WRONG', text: 'a', sameArtist: false })
+    expect(state.s).toBe('ready')
+    state = gameReducer(state, { type: 'WRONG', text: 'b', sameArtist: false })
+    expect(state.s).toBe('ready')
+    state = gameReducer(state, { type: 'WRONG', text: 'c', sameArtist: false })
     expect(state.s).toBe('lost')
+  })
+
+  it('pas geçmek TAHMİN HAKKI yakmaz', () => {
+    // Bir pas + üç yanlış: merdiven (5) dolmadan, yanlış sınırından biter.
+    let state: GameState = gameReducer(ready(), { type: 'SKIP' })
+    for (const t of ['a', 'b']) {
+      state = gameReducer(state, { type: 'WRONG', text: t, sameArtist: false })
+      expect(state.s).toBe('ready')
+    }
+    state = gameReducer(state, { type: 'WRONG', text: 'c', sameArtist: false })
+    expect(state.s).toBe('lost')
+    if (state.s === 'lost') {
+      expect(wrongCount(state.steps)).toBe(MAX_WRONG)
+      // Merdiven sonuna GELMEDEN bitti: sınırı yanlış sayısı koydu.
+      expect(state.attempt).toBeLessThan(ATTEMPTS)
+    }
+  })
+
+  it('wrongCount yalnızca yanlışları sayar', () => {
+    let state: GameState = gameReducer(ready(), { type: 'SKIP' })
+    state = gameReducer(state, { type: 'WRONG', text: 'a', sameArtist: false })
+    if (state.s === 'ready') {
+      expect(state.steps).toHaveLength(2)
+      expect(wrongCount(state.steps)).toBe(1)
+    }
   })
 
   it('beş pastan sonra da kaybedilir', () => {

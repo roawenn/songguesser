@@ -461,8 +461,8 @@ export function HowToCard() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
         {[
           { n: '1', t: 'Çal', d: 'Bulunduğun kademeyi istediğin kadar dinle — dinlemek bedava.' },
-          { n: '2', t: 'Yaz', d: 'Şarkı adı yeterli, sanatçıyı eklemen gerekmez.' },
-          { n: '3', t: 'Geç', d: 'Bilemediysen pas geç; klip uzar, bir hakkın gider.' },
+          { n: '2', t: 'Yaz', d: 'Şarkı adı yeterli, sanatçıyı eklemen gerekmez. Üç yanlış hakkın var.' },
+          { n: '3', t: 'Geç', d: 'Bilemediysen pas geç; klip uzar ama tahmin hakkın gitmez.' },
         ].map((s) => (
           <div key={s.n} style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
             <span

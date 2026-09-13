@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { clipPlayer } from '@/audio/ClipPlayer'
 import { tr } from '@/game/ladder'
 
@@ -31,6 +31,33 @@ export function Transport({
   onPlay,
 }: Props) {
   const clockRef = useRef<HTMLDivElement>(null)
+
+  /**
+   * Fırıldak GECİKMELİ gösterilir.
+   *
+   * ⚠️ Sıradaki şarkının hem alanları hem sesi önceki tur sırasında
+   * önyükleniyor, yani `arming` genelde birkaç milisaniye sürüyor. Buna rağmen
+   * her tur geçişinde üçgen bir an fırıldağa dönüp geri dönüyordu: düğme
+   * "yenileniyormuş" gibi görünen, tamamen gereksiz bir titreme. Yükleme
+   * gerçekten uzarsa fırıldak yine çıkar — bilgi kaybı yok, yalnızca yanıp
+   * sönme yok.
+   */
+  const [mesgul, setMesgul] = useState(false)
+  useEffect(() => {
+    if (!arming) {
+      setMesgul(false)
+      return
+    }
+    const t = setTimeout(() => setMesgul(true), 280)
+    return () => clearTimeout(t)
+  }, [arming])
+
+  /*
+   * Bekleme penceresinde düğme SOLMAZ da: sönükleşip geri parlamak da aynı
+   * titremenin bir parçasıydı. Tıklama yine işlemez (`disabled` duruyor), ama
+   * bu en fazla 280 ms sürüyor.
+   */
+  const soluk = arming && !mesgul ? false : disabled
 
   useEffect(() => {
     const el = clockRef.current
@@ -77,12 +104,12 @@ export function Transport({
           background:
             'radial-gradient(circle at 40% 30%, rgba(255,255,255,0.12), rgba(255,255,255,0.02) 60%), #15181c',
           boxShadow: '0 0 0 8px rgba(255,255,255,0.015), 0 18px 40px -22px var(--acc)',
-          opacity: disabled ? 0.4 : 1,
+          opacity: soluk ? 0.4 : 1,
           cursor: disabled ? 'not-allowed' : 'pointer',
           transition: 'border-color .18s ease, opacity .18s ease',
         }}
       >
-        {arming ? (
+        {mesgul ? (
           <span
             aria-hidden
             style={{

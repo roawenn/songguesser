@@ -241,6 +241,39 @@ begin
 end $$;
 
 /*
+ * Sayacı ARTIRMADAN bakar: "bu kova şu an kilitli mi?"
+ *
+ * ⚠️ Giriş uç noktasında saymak ile bakmak AYRILMAK ZORUNDA. `hiz_sinir_dene`
+ * her çağrıda artırıyor, yani BAŞARILI girişler de kaba kuvvet bütçesini
+ * yiyordu: doğru şifreyle üç kez giren kendini kilitliyordu. Doğrusu, denemeden
+ * önce bakmak ve yalnızca şifre YANLIŞ çıkınca saymak.
+ *
+ * Pencere geçmişse kova boşalmış sayılır; silme işini bir sonraki sayım yapar.
+ */
+create or replace function public.hiz_sinir_bak(
+  p_anahtar text,
+  p_limit   integer,
+  p_pencere interval
+) returns boolean language sql security definer as $bak$
+  select coalesce(
+    (select h.sayac < p_limit or h.pencere < now() - p_pencere
+       from public.hiz_sinir h
+      where h.anahtar = p_anahtar),
+    true)
+$bak$;
+
+/*
+ * Kovayı sıfırlar — başarılı girişten sonra çağrılır.
+ *
+ * Doğru şifreyi giren kişinin önceki başarısız denemeleri onu bir sonraki
+ * oturumda kilitlememeli.
+ */
+create or replace function public.hiz_sinir_sil(p_anahtar text)
+returns void language sql security definer as $sil$
+  delete from public.hiz_sinir where anahtar = p_anahtar
+$sil$;
+
+/*
  * Düellonun beş şarkısını TEK sorguda seçer: her kademeden bir tane, rastgele.
  *
  * ⚠️ Bunun yerine beş ayrı `limit=400` sorgusu atılıyordu ve her biri TAM

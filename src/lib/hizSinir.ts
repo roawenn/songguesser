@@ -69,6 +69,59 @@ export async function sinirAsildi(req: Request, ayar: SinirAyari): Promise<boole
   }
 }
 
+/** RPC yardımcısı — gövde döner, hata olursa null. */
+async function rpc(ad: string, govde: unknown): Promise<unknown | null> {
+  try {
+    const res = await fetch(restUrl(`rpc/${ad}`), {
+      method: 'POST',
+      headers: restHeaders({ secret: true }),
+      cache: 'no-store',
+      body: JSON.stringify(govde),
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Kova kilitli mi? SAYMADAN bakar.
+ *
+ * ⚠️ Giriş uç noktasında saymak ile bakmak AYRI olmak ZORUNDA. `sinirAsildi`
+ * her çağrıda artırıyor, yani BAŞARILI girişler de kaba kuvvet bütçesini
+ * yiyordu; doğru şifreyle üç kez giren kendini kilitliyordu. Bunun kaba kuvvete
+ * karşı hiçbir faydası yok — şifreyi bilen zaten içeride.
+ */
+export async function sinirKilitli(req: Request, ayar: SinirAyari): Promise<boolean> {
+  const izin = await rpc('hiz_sinir_bak', {
+    p_anahtar: kova(req, ayar.ad),
+    p_limit: ayar.limit,
+    p_pencere: ayar.pencere,
+  })
+  if (izin === null) return !ayar.hataVarsaIzin
+  return izin !== true
+}
+
+/**
+ * Bir BAŞARISIZ denemeyi sayar.
+ *
+ * ⚠️ Yalnızca şifre yanlış olduğunda çağrılmalı. Sunucu hatasını saymak,
+ * veritabanı sarsıldığında doğru şifreyi giren kişiyi kilitlerdi.
+ */
+export async function basarisizSay(req: Request, ayar: SinirAyari): Promise<void> {
+  await rpc('hiz_sinir_dene', {
+    p_anahtar: kova(req, ayar.ad),
+    p_limit: ayar.limit,
+    p_pencere: ayar.pencere,
+  })
+}
+
+/** Kovayı sıfırlar — başarılı girişten sonra. */
+export async function sinirSifirla(req: Request, ayar: SinirAyari): Promise<void> {
+  await rpc('hiz_sinir_sil', { p_anahtar: kova(req, ayar.ad) })
+}
+
 /** Sınır aşıldığında dönecek yanıt. */
 export function cokHizli(mesaj = 'Çok fazla istek. Biraz bekleyip tekrar dene.') {
   return Response.json({ error: mesaj }, { status: 429 })

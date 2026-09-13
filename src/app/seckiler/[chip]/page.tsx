@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation'
 import { CHIPS, chipById, ERA_LABELS, type ChipId, type EraId } from '@/data/categories'
 import { CHIP_COPY } from '@/data/chipCopy'
 import { seedsFor } from '@/data/seeds'
-import { STEPS, ATTEMPTS, tr } from '@/game/ladder'
+import { STEPS, tr } from '@/game/ladder'
+import { MAX_WRONG } from '@/game/machine'
 import { songCount } from '@/lib/poolCount'
 
 /**
@@ -105,7 +106,8 @@ export default async function SeckiPage({ params }: Props) {
           <dt className="font-semibold text-ink-0">Nasıl oynanır?</dt>
           <dd className="mt-1.5 leading-relaxed text-ink-2">
             {tr(STEPS[0]!)} saniyelik bir klip çalınır. Bilemezsen ya da pas geçersen klip
-            uzar: {STEPS.map((s) => `${tr(s)} sn`).join(' → ')}. Toplam {ATTEMPTS} hakkın var.{' '}
+            uzar: {STEPS.map((s) => `${tr(s)} sn`).join(' → ')}. {MAX_WRONG} yanlış tahmin
+            hakkın var; dinlemek bedava.{' '}
             <Link href="/nasil-oynanir" className="underline underline-offset-4">
               Tüm kurallar
             </Link>

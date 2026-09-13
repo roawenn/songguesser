@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { STEPS, ATTEMPTS, tr } from '@/game/ladder'
+import { MAX_WRONG } from '@/game/machine'
 
 export const metadata: Metadata = {
   title: 'Nasıl Oynanır',
@@ -21,15 +22,19 @@ const ladder = STEPS.map((s) => `${tr(s)} sn`).join(' → ')
 const faq = [
   {
     q: 'Oyun nasıl işliyor?',
-    a: `Rastgele bir Türkçe şarkıdan çok kısa bir klip çalınır. Her turda ${ATTEMPTS} adım hakkın var. Adımı üç şey tüketir: bir klibi sonuna kadar dinlemek, yanlış tahmin etmek ya da pas geçmek. Her tükenen adımla bir sonraki klip uzar.`,
+    a: `Rastgele bir Türkçe şarkıdan çok kısa bir klip çalınır. Bulunduğun kademeyi istediğin kadar tekrar dinleyebilirsin — dinlemek bedava. Klip yalnızca yanlış tahminle ya da pas geçmekle uzar; merdivende ${ATTEMPTS} kademe var.`,
+  },
+  {
+    q: 'Kaç kez yanlış tahmin edebilirim?',
+    a: `${MAX_WRONG} kez. Üçüncü yanlıştan sonra şarkı kendiliğinden açılır ve tur biter. Tahminlerin sahnede listelenir, kaç hakkın kaldığını orada görürsün. Tur kaybedildiği için zorluk yükselmez — bulunduğun zorlukta kalırsın.`,
+  },
+  {
+    q: 'Pas geçmek tahmin hakkımı yakar mı?',
+    a: `Hayır. Pas geçmek merdivende bir kademe ilerletir, yani klibi uzatır; ${MAX_WRONG} tahmin hakkın olduğu gibi kalır. Merdivenin sonuna gelirsen tur yine biter.`,
   },
   {
     q: 'Klip ne kadar uzuyor?',
-    a: `Merdiven sabittir: ${ladder}. İlk Çal yarım saniye duyurur, ikincisi bir saniye, üçüncüsü iki saniye… Aynı uzunluğu ikinci kez dinleyemezsin.`,
-  },
-  {
-    q: 'Bütün klipleri dinlersem kaybeder miyim?',
-    a: `Hayır. ${ATTEMPTS} adımın hepsini dinleyerek harcarsan Çal düğmesi kapanır ama bir tahmin hakkın kalır. Tur yalnızca yanlış tahminle ya da pas geçmekle kaybedilir.`,
+    a: `Merdiven sabittir: ${ladder}. İlk kademe yarım saniye duyurur, ikincisi bir saniye, üçüncüsü iki saniye… Aynı kademeyi kaç kez dinlediğin hiçbir şeye mal olmaz.`,
   },
   {
     q: 'Türkçe karakter yazmak zorunda mıyım?',
