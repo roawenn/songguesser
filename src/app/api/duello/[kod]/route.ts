@@ -24,7 +24,16 @@ export async function GET(req: Request, ctx: { params: Promise<{ kod: string }> 
     return NextResponse.json({ error: 'Bu lobinin süresi dolmuş.' }, { status: 410 })
   }
 
-  const gizli = new URL(req.url).searchParams.get('gizli') ?? ''
+  /**
+   * ⚠️ Gizli anahtar BAŞLIKTAN okunur, sorgu dizesinden değil.
+   *
+   * Bu değer, oyuncunun adına cevap yazmanın tek taşıyıcı kimlik bilgisi ve
+   * yoklama onu 1,5 saniyede bir gönderiyor. URL'de olduğu sürece CDN ve ters
+   * vekil günlüklerine, tarayıcı geçmişine ve ileride eklenecek her analitiğe
+   * düşüyordu — bir düelloda yüzlerce kez. Aynı köken olduğu için özel başlık
+   * preflight de gerektirmiyor.
+   */
+  const gizli = req.headers.get('x-duello-gizli') ?? ''
   const slot = gizli ? await slotDogrula(kod, gizli) : null
   const kisiler = await oyuncular(kod)
   const hepsi = await cevaplar(kod)

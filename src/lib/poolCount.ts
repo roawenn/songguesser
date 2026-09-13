@@ -1,3 +1,4 @@
+import 'server-only'
 import { chipById, type ChipId } from '@/data/categories'
 import { restUrl, restHeaders, supabaseReady } from '@/lib/supabase'
 

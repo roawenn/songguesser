@@ -114,8 +114,11 @@ export function useDuello(kod: string): DuelloApi {
 
   const yokla = useCallback(async () => {
     try {
-      const q = gizli.current ? `?gizli=${encodeURIComponent(gizli.current)}` : ''
-      const res = await fetch(`/api/duello/${kod}${q}`)
+      // ⚠️ Anahtar BAŞLIKTA. URL'de olduğu sürece her yoklama onu CDN/vekil
+      // günlüklerine ve tarayıcı geçmişine yazıyordu.
+      const res = await fetch(`/api/duello/${kod}`, {
+        headers: gizli.current ? { 'x-duello-gizli': gizli.current } : undefined,
+      })
       const d = await res.json()
       if (!res.ok) {
         setHata(d.error ?? 'Düello okunamadı.')

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sinirAsildi, cokHizli } from '@/lib/hizSinir'
 import { restUrl, restHeaders, supabaseReady } from '@/lib/supabase'
 
 /**
@@ -27,6 +28,16 @@ function metin(v: unknown, enFazla: number): string | null {
 }
 
 export async function POST(req: Request) {
+  /*
+   * ⚠️ Bal küpü bota yeter, KARARLI birine yetmez — tek satır kaldırmakla
+   * atlatılıyor. Sınırsızken bu uç nokta istek başına ~4 KB yazabiliyordu,
+   * yani ücretsiz kademenin 500 MB'ını doldurabilecek bir yol; üstelik
+   * panelde gerçek mesajların üstünü örterdi.
+   */
+  if (await sinirAsildi(req, { ad: 'iletisim', limit: 3, pencere: '10 minutes', hataVarsaIzin: true })) {
+    return cokHizli('Çok fazla mesaj gönderdin. Biraz bekle.')
+  }
+
   if (!supabaseReady || !process.env.SUPABASE_SECRET_KEY) {
     return NextResponse.json({ error: 'Mesaj kutusu şu an kapalı.' }, { status: 503 })
   }

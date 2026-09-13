@@ -173,3 +173,111 @@ begin
   get diagnostics silinen = row_count;
   return silinen;
 end $$;
+
+-- --- Yönetim kimliği ve hız sınırı ---
+--
+-- ⚠️ Şifre ARTIK ORTAM DEĞİŞKENİNDE DEĞİL. Eski tasarımda oturum çerezi
+-- `sha256(şifre + ":tahmin.net")` idi: tuzsuz, statik bir türev. Sonuçları
+-- şunlardı — çıkış yapmak çerezi iptal etmiyordu (sunucu tarafında hâlâ
+-- geçerliydi), sunucu tarafında süre sonu yoktu, ve çerezi ele geçiren biri
+-- ADMIN_PASSWORD'ü çevrimdışı kırabiliyordu.
+--
+-- Not: burası env'den "daha güvenli" olduğu için seçilmedi — veritabanına
+-- zaten env'deki secret key ile gidiliyor. Kazanç şifrenin NASIL durduğundan
+-- geliyor: tuzlu scrypt + rastgele oturum kimliği, yani gerçek iptal, gerçek
+-- süre sonu ve yeniden dağıtım olmadan şifre değiştirme.
+
+create table if not exists public.admin_hesap (
+  id           smallint primary key default 1 check (id = 1),
+  parola_hash  text        not null,
+  tuz          text        not null,
+  guncellendi  timestamptz not null default now()
+);
+
+create table if not exists public.admin_oturum (
+  id           text        primary key,   -- randomBytes(32), türev değil
+  olusturuldu  timestamptz not null default now(),
+  son_gorulme  timestamptz not null default now(),
+  biter        timestamptz not null default now() + interval '30 days'
+);
+
+create index if not exists admin_oturum_biter_idx on public.admin_oturum (biter);
+
+-- Herkese açık yazma yollarının sayacı. Ham IP TUTULMAZ, yalnızca özeti.
+create table if not exists public.hiz_sinir (
+  anahtar  text        primary key,
+  sayac    integer     not null default 0,
+  pencere  timestamptz not null default now()
+);
+
+create index if not exists hiz_sinir_pencere_idx on public.hiz_sinir (pencere);
+
+alter table public.admin_hesap  enable row level security;
+alter table public.admin_oturum enable row level security;
+alter table public.hiz_sinir    enable row level security;
+
+/*
+ * Atomik hız sınırı: tek gidiş-dönüş, yarışa kapalı.
+ *
+ * `true` = isteğe izin var. Sayaç pencere dolduğunda sıfırlanır. Sayma ve
+ * karar aynı deyimde olduğu için iki eşzamanlı istek aynı sayacı okuyup
+ * ikisi birden geçemez.
+ */
+create or replace function public.hiz_sinir_dene(
+  p_anahtar text,
+  p_limit   integer,
+  p_pencere interval
+) returns boolean language plpgsql security definer as $$
+declare v_sayac integer;
+begin
+  insert into public.hiz_sinir as h (anahtar, sayac, pencere)
+  values (p_anahtar, 1, now())
+  on conflict (anahtar) do update
+    set sayac   = case when h.pencere < now() - p_pencere then 1 else h.sayac + 1 end,
+        pencere = case when h.pencere < now() - p_pencere then now() else h.pencere end
+  returning h.sayac into v_sayac;
+
+  return v_sayac <= p_limit;
+end $$;
+
+/*
+ * Düellonun beş şarkısını TEK sorguda seçer: her kademeden bir tane, rastgele.
+ *
+ * ⚠️ Bunun yerine beş ayrı `limit=400` sorgusu atılıyordu ve her biri TAM
+ * satırı (başlık, sanatçı, kapak, önizleme URL'i, accept_keys) çekiyordu:
+ * ~200 baytlık bir istek 2000 satır okutuyor, 5'i kullanılıyordu. Kimlik
+ * doğrulaması olmayan bir uç nokta için bu, ücretsiz kademenin aylık çıkışını
+ * birkaç bin istekte bitirebilecek bir yükselteçti.
+ *
+ * ⚠️ Aynı sorgu ikinci bir hatayı da kapatıyor: o `limit=400`'ün ORDER BY'ı
+ * yoktu, yani düellolar hep aynı ~400 en eski satırdan seçiliyordu.
+ */
+create or replace function public.duello_sec(
+  p_kategori text default null,
+  p_donemler text[] default null
+) returns table (id text, tier smallint) language sql stable as $$
+  select distinct on (s.tier) s.id, s.tier
+  from public.songs s
+  where s.enabled
+    and (p_kategori is null or s.category = p_kategori)
+    and (p_donemler is null or s.era = any(p_donemler))
+  order by s.tier, random()
+$$;
+
+/*
+ * Süresi dolmuş satırları toplar: lobiler, oturumlar, hız sınırı sayaçları.
+ *
+ * ⚠️ Bunu ÇAĞIRAN bir zamanlayıcı yok. `duel_temizle` da aynı durumdaydı.
+ * Supabase'de pg_cron varsa oraya bağlanmalı; yoksa lobi kurulurken seyrek
+ * (1/50) tetikleniyor (bkz. `duelloKur`).
+ */
+create or replace function public.temizle()
+returns integer language plpgsql as $$
+declare silinen integer;
+begin
+  delete from public.duels where expires_at < now();
+  get diagnostics silinen = row_count;
+  delete from public.admin_oturum where biter < now();
+  delete from public.hiz_sinir where pencere < now() - interval '1 day';
+  return silinen;
+end $$;

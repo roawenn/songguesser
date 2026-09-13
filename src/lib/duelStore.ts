@@ -1,7 +1,7 @@
+import 'server-only'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { chipById, type ChipId } from '@/data/categories'
-import type { Song } from '@/data/schema'
-import { SONG_COLUMNS, restUrl, restHeaders, toSong, type SongRow } from '@/lib/supabase'
+import { restUrl, restHeaders } from '@/lib/supabase'
 import { DUELLO_SARKI, kodUret } from '@/game/duel'
 
 /**
@@ -48,30 +48,36 @@ async function rest(path: string, init?: RequestInit) {
  * eşleşmeli; bir kademede hiç şarkı yoksa lobi kurulmaz ve kullanıcı açık bir
  * hata görür.
  */
-export async function sarkilariSec(chip: ChipId): Promise<Song[] | null> {
+export async function sarkilariSec(chip: ChipId): Promise<string[] | null> {
   const source = chipById(chip).source
-  const secilen: Song[] = []
 
-  for (let tier = 1; tier <= DUELLO_SARKI; tier++) {
-    const params = new URLSearchParams({
-      select: SONG_COLUMNS,
-      enabled: 'eq.true',
-      tier: `eq.${tier}`,
-      limit: '400',
-    })
-    if (source.kind === 'genre') params.set('category', `eq.${source.genre}`)
-    else if (source.kind === 'eras') params.set('era', `in.(${source.eras.join(',')})`)
+  /*
+   * ⚠️ Seçim TEK SORGUDA ve veritabanında yapılıyor (`duello_sec`).
+   *
+   * Eskiden beş ayrı sorgu atılıyor, her biri `limit=400` ile TAM satırı
+   * (başlık, sanatçı, kapak, önizleme URL'i, accept_keys) çekiyordu: ~200
+   * baytlık bir istek 2000 satır okutuyor, 5'i kullanılıyordu. Kimlik
+   * doğrulaması olmayan bir uç nokta için bu, ücretsiz kademenin aylık
+   * çıkışını birkaç bin istekte bitirebilecek bir yükselteçti.
+   *
+   * ⚠️ İkinci hatayı da kapatıyor: o `limit=400`'ün ORDER BY'ı yoktu, yani
+   * planlayıcının fiziksel sırası geçerliydi ve düellolar hep aynı ~400 en
+   * eski satırdan seçiliyordu. Artık `order by tier, random()`.
+   */
+  const res = await rest('rpc/duello_sec', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_kategori: source.kind === 'genre' ? source.genre : null,
+      p_donemler: source.kind === 'eras' ? source.eras : null,
+    }),
+  })
+  if (!res.ok) return null
 
-    const res = await rest(`songs?${params}`)
-    if (!res.ok) return null
-    const rows = (await res.json()) as SongRow[]
-    const aday = rows.filter((r) => !secilen.some((s) => s.id === r.id))
-    if (aday.length === 0) return null
+  const rows = (await res.json()) as { id: string; tier: number }[]
+  // Her kademeden bir tane gelmeli; biri boşsa bu seçki düelloya yetmiyor.
+  if (rows.length !== DUELLO_SARKI) return null
 
-    secilen.push(toSong(aday[randomBytes(4).readUInt32BE(0) % aday.length]!))
-  }
-
-  return secilen
+  return [...rows].sort((a, b) => a.tier - b.tier).map((r) => r.id)
 }
 
 /** Benzersiz bir kodla lobi kurar. */
@@ -97,6 +103,18 @@ export async function duelloKur(
       body: JSON.stringify({ code, slot: 1, secret }),
     })
     if (!p.ok) return null
+
+    /*
+     * ⚠️ Süresi dolmuş satırları TOPLAYAN bir zamanlayıcı yok. `temizle()`
+     * yazıldı ama onu çağıran hiçbir şey yoktu; lobiler, biten oturumlar ve
+     * hız sınırı sayaçları sonsuza kadar birikiyordu. Supabase'de pg_cron
+     * kurulana kadar seyrek ve fırsatçı olarak burada tetikleniyor: her 50
+     * lobide bir, yanıtı beklenmeden.
+     */
+    if (randomBytes(1)[0]! < 5) {
+      void rest('rpc/temizle', { method: 'POST', body: '{}' }).catch(() => {})
+    }
+
     return { code, secret }
   }
   return null

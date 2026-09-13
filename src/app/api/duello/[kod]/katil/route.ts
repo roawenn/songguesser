@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
 import { kodGecerli } from '@/game/duel'
 import { duelloOku, katil, oyuncular } from '@/lib/duelStore'
+import { sinirAsildi, cokHizli } from '@/lib/hizSinir'
 
 /** İkinci oyuncu olarak lobiye girer. */
-export async function POST(_req: Request, ctx: { params: Promise<{ kod: string }> }) {
+export async function POST(req: Request, ctx: { params: Promise<{ kod: string }> }) {
+  // Kod uzayını taramaya kalkanı yavaşlatır; normal oyuncu dakikada bir kez gelir.
+  if (await sinirAsildi(req, { ad: 'duello-katil', limit: 20, pencere: '10 minutes', hataVarsaIzin: true })) {
+    return cokHizli()
+  }
+
   const { kod } = await ctx.params
   if (!kodGecerli(kod)) return NextResponse.json({ error: 'Geçersiz kod.' }, { status: 400 })
 

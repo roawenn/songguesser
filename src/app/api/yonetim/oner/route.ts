@@ -10,7 +10,7 @@ import { scanArtist, ITunesError } from '@/lib/itunesSearch'
  * akıtılıyor, burada paralel çağrı yapılmıyor. Sonuçlar bir saat önbellekli.
  */
 export async function GET(req: Request) {
-  if (!adminConfigured()) {
+  if (!(await adminConfigured())) {
     return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
   }
   if (!(await isAuthed())) {

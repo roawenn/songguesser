@@ -1,3 +1,4 @@
+import 'server-only'
 import type { Song } from '@/data/schema'
 import { SONG_COLUMNS, restUrl, restHeaders, toSong, type SongRow } from '@/lib/supabase'
 

@@ -19,7 +19,7 @@ import { ADMIN_COLUMNS, restUrl, restHeaders, type SongRow, restTumSatirlar } fr
  */
 
 async function guard() {
-  if (!adminConfigured()) {
+  if (!(await adminConfigured())) {
     return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
   }
   if (!(await isAuthed())) {

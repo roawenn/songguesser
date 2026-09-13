@@ -224,8 +224,8 @@ export function AdminPanel({ configured }: { configured: boolean }) {
       <main style={S.page}>
         <h1 style={S.h1}>Panel yapılandırılmamış</h1>
         <p style={S.sub}>
-          <code>ADMIN_PASSWORD</code> ve <code>SUPABASE_SECRET_KEY</code> ortam
-          değişkenleri tanımlı olmalı.
+          <code>SUPABASE_SECRET_KEY</code> tanımlı olmalı ve yönetici şifresi
+          kurulmalı: <code>npm run admin:parola -- &lt;yeni-parola&gt;</code>
         </p>
       </main>
     )

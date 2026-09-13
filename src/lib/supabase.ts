@@ -1,3 +1,4 @@
+import 'server-only'
 import type { Song } from '@/data/schema'
 import type { CategoryId, EraId, Difficulty } from '@/data/categories'
 

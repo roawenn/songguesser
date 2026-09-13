@@ -49,6 +49,27 @@ async function main() {
   console.log('Şema kuruluyor…')
   await client.query(readFileSync(join(here, 'schema.sql'), 'utf8'))
 
+  /**
+   * ⚠️ VERİ TAŞIMA ARTIK İSTEĞE BAĞLI (`--veri`).
+   *
+   * Bu betik "tekrar tekrar çalıştırılabilir" diye yazılmıştı ve şema kısmı
+   * gerçekten öyle. Ama veri kısmı, diskteki `public/data/pool/*.json` anlık
+   * görüntüsünü CANLI satırların üstüne upsert ediyor. Havuz o dosyalarda 321
+   * satırken veritabanında 5089 satıra çıktı; bugün çalıştırılsa 321 şarkının
+   * kademe/yıl/açık alanları küratörün panelde yaptığı düzenlemelere
+   * bakılmaksızın eski değerlerine döner — hiçbir uyarı vermeden.
+   *
+   * Şema değişikliği için bayraksız çalıştır; ilk kurulumda ya da yedekten
+   * dönerken `--veri` ekle.
+   */
+  if (!process.argv.includes('--veri')) {
+    const n = await client.query('select count(*)::int n from public.songs')
+    console.log(`Şema hazır. Veri taşınmadı (veritabanında ${n.rows[0].n} şarkı var).`)
+    console.log('Diskteki anlık görüntüyü canlı verinin üstüne yazmak için: --veri')
+    await client.end()
+    return
+  }
+
   const all: Song[] = []
   for (const cat of CATEGORY_IDS) all.push(...readPool(cat))
   console.log(`${all.length} şarkı taşınıyor…`)

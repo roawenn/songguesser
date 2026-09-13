@@ -13,6 +13,8 @@ export const metadata = { robots: { index: false, follow: false } }
 // Çerez okunduğu için her istekte taze render.
 export const dynamic = 'force-dynamic'
 
-export default function YonetimPage() {
-  return <AdminPanel configured={adminConfigured()} />
+// `adminConfigured` artık veritabanına soruyor (şifre env'de değil); Server
+// Component olduğu için `await` sorunsuz.
+export default async function YonetimPage() {
+  return <AdminPanel configured={await adminConfigured()} />
 }
