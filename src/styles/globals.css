@@ -705,11 +705,13 @@ button {
    * Sonuç kartı telefonda iki satır: üstte kapak + başlık/sanatçı, altta
    * rozetler. Tek satırda kapak (96) ve iki rozet (~180) genişliği paylaşıp
    * metne ~30 px bırakıyordu — başlık rozetlerin üstüne taşıyordu.
+   *
+   * ⚠️ Kartın `align-items: center`'ı EZİLMİYOR: sarmalanan flex kutuda hiza
+   * satır başına uygulanıyor, yani başlık bloğu kapağın tam ortasında, rozet
+   * satırı ise kendi satırında kalıyor. Bir ara `flex-start` yazılmıştı ve
+   * metin kapağın tepesine yapışıyordu.
    * ⚠️ `!important`: rozet kutusunun hizası satır içi.
    */
-  .nk-sonuc-kart {
-    align-items: flex-start !important;
-  }
   .nk-sonuc-rozetler {
     order: 3;
     width: 100%;
