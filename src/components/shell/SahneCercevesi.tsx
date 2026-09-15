@@ -2,7 +2,8 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { Backdrop } from '../stage/Backdrop'
-import { Header, CategoryStrip, Footer } from './Chrome'
+import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
+import { MobilMenu } from './MobilMenu'
 import { OyunSeridi } from './OyunSeridi'
 import { useOlcek } from './useOlcek'
 
@@ -15,10 +16,8 @@ import { useOlcek } from './useOlcek'
  * tutmaya devam ediyor.
  *
  * ⚠️ `DuelloShell` bunu KULLANMAZ: onun kendi ortalanmış düzeni var, `.nk-scale`
- * ızgarası yok. Tüketici sayısı iki ve bu yeterli — çünkü paylaşılan şey bir
- * ÖLÇÜLMÜŞ sabitin (`TASARIM_Y`) tüketicisi. Kopyalansaydı alt oyun şeridi iki
- * yerde ayrı bakım isteyecek ve ölçek bütçesi sessizce ikiye ayrılacaktı; ikinci
- * kabuk 1920×1080'de taşardı ve bunu kimse fark etmezdi.
+ * ızgarası yok. Paylaşılan şey ÖLÇÜLMÜŞ bir sabitin (`TASARIM_Y`) tüketicisi;
+ * kopyalansaydı ölçek bütçesi sessizce ikiye ayrılırdı.
  */
 
 interface Props {
@@ -28,16 +27,22 @@ interface Props {
   /** Ekran okuyucuya turun gidişatını bildiren metin. */
   anons: string
 
-  /** Kategori şeridi. Kimlik tipi oyuna göre değişir. */
+  /**
+   * Kategoriler. Kimlik tipi oyuna göre değişir.
+   *
+   * ⚠️ Çerçeve bunları İKİ yerde çiziyor: masaüstünde sol sütunun başında dikey
+   * liste, mobilde markanın altında yatay şerit. Kabuklar kategoriyi `sol`'a
+   * koymamalı, yoksa iki kez görünür.
+   */
   cipler: ReadonlyArray<{ id: string; label: string; hue: number }>
   secili: string
   onSecki: (id: string) => void
 
-  /** Sol sütun: ayarlar + istatistik. */
+  /** Sol sütun, kategori listesinin ALTINDA: istatistik. */
   sol: ReactNode
   /** Orta sütun — kendi `<main className="nk-stage">`'ini içermeli. */
   orta: ReactNode
-  /** Sağ sütun: nasıl oynanır + klavye + bağlantılar. */
+  /** Sağ sütun: ayarlar + nasıl oynanır. */
   sag: ReactNode
 
   /** Alt şeritte hangi oyun seçili. */
@@ -63,8 +68,8 @@ export function SahneCercevesi({
    * ⚠️ Sistemin `prefers-reduced-motion` tercihi KASITLI olarak okunmuyor.
    *
    * Windows'ta "Animasyon efektleri" kapalı olan makinelerde Chrome bunu
-   * bildiriyor ve makara dönüşü, konfeti, kart patlaması — oyunun bütün geri
-   * bildirimi tek bayrakla ölüyordu. Kısıtlamak isteyen Ayarlar'dan kapatır.
+   * bildiriyor ve oyunun bütün geri bildirimi tek bayrakla ölüyordu.
+   * Kısıtlamak isteyen Ayarlar'dan kapatır.
    */
   useEffect(() => {
     const root = document.documentElement
@@ -72,8 +77,8 @@ export function SahneCercevesi({
     else root.removeAttribute('data-motion')
   }, [reduce])
 
-  // Sahneyi 1920 tasarımına göre orantılı küçültür — bütçe TEK, iki oyunda da
-  // aynı; yoksa oyun değiştirince sayfanın tamamı büyüyüp küçülüyor.
+  // Orantılı ölçek — bütçe TEK, iki oyunda da aynı; yoksa oyun değiştirince
+  // sayfanın tamamı büyüyüp küçülüyor.
   useOlcek()
 
   return (
@@ -120,30 +125,37 @@ export function SahneCercevesi({
         style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column' }}
       >
         {/*
-         * Üst bant: marka ve kategoriler.
+         * Üst bant: masaüstünde YALNIZCA marka.
          *
-         * Sayfanın kimliği ve ana seçimi burada; oyunla aynı blokta değil,
-         * kendi bandında duruyor. Altındaki ince çizgi ikisini ayırır ama
-         * kesmez — kenarlarda sönerek bitiyor.
+         * ⚠️ Kategori şeridi masaüstünde buradan çıktı: bant 1210 px'lik
+         * yükseklik bütçesinin 178 px'ini alıyordu ve sayfa her ekranda
+         * yüksekliğe takıldığı için bu doğrudan küçük metin demekti.
          */}
         <div className="nk-top">
+          {/* Yan kartlar mobilde bu menüde: önce ayarlar ve kurallar, sonra istatistik. */}
+          <MobilMenu>
+            {sag}
+            {sol}
+          </MobilMenu>
           <Header />
-          <CategoryStrip chips={cipler} category={secili} onCategory={onSecki} />
+          <div className="nk-yalniz-mobil" style={{ width: '100%' }}>
+            <CategoryStrip chips={cipler} category={secili} onCategory={onSecki} />
+          </div>
         </div>
 
         {/*
-          ⚠️ `paddingBottom` YOK.
-
-          Burada `flex: 1` ile birlikte 176px'lik bir alt dolgu duruyordu.
-          `flex: 1` kalan alanı zaten dolduruyor; dolgu onun ÜSTÜNE biniyor ve
-          footer'ı ekranın dışına itiyordu. Sonuç: sayfa her zaman tam olarak o
-          kadar kayıyordu — içerik sığsa bile kaydırma çubuğu çıkıyordu.
+          ⚠️ `paddingBottom` YOK. `flex: 1` kalan alanı zaten dolduruyor;
+          üstüne binen bir dolgu footer'ı ekranın dışına itiyor ve içerik sığsa
+          bile kaydırma çubuğu çıkarıyordu.
         */}
         <div style={{ flex: 1, display: 'flex', width: '100%' }}>
           <div className="nk-center">
-            {/* Üç sütun: ayarlar · sahne · kurallar. */}
+            {/* Üç sütun: kategoriler + istatistik · sahne · ayarlar + kurallar. */}
             <div className="nk-stage-grid">
-              <div className="nk-side">{sol}</div>
+              <div className="nk-side">
+                <KategoriListesi chips={cipler} category={secili} onCategory={onSecki} />
+                {sol}
+              </div>
               {orta}
               <div className="nk-side">{sag}</div>
             </div>

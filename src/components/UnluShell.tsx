@@ -15,7 +15,6 @@ import { UnluSonucPanel } from './reveal/UnluSonucPanel'
 import { SahneCercevesi } from './shell/SahneCercevesi'
 import { TierStrip } from './shell/Chrome'
 import { UnluAyarKarti, UnluIstatistikKarti, UnluNasilKarti } from './shell/UnluPanels'
-import { KeyboardCard, LinksCard } from './shell/SidePanels'
 import { UnluKare, type UnluKareHandle } from './stage/UnluKare'
 
 /**
@@ -23,20 +22,13 @@ import { UnluKare, type UnluKareHandle } from './stage/UnluKare'
  *
  * `GameShell`'in yerine geçmez, YANINDA durur — `DuelloShell`'in koyduğu
  * kuralın aynısı. Dış iskelet (`SahneCercevesi`) ve yaprak bileşenler
- * (`GuessInput`, `GuessLog`, `TierStrip`, `LinksCard`, `Confetti`)
- * paylaşılıyor; kopyalanmıyor.
+ * (`GuessInput`, `GuessLog`, `TierStrip`, `Confetti`) paylaşılıyor.
  *
- * ⚠️ `Transport` ve Boşluk tuşu YOK — burada çalınacak bir şey yok. Ama dikey
- * ritim sınıfları (`.nk-kademe`, `.nk-cubuk`, `.nk-kontrol`, `.nk-giris`,
- * `.nk-eylem`) aynen kullanılıyor ki iki oyun arasında geçen oyuncu aynı
- * düzeni görsün ve `TASARIM_Y` bütçesi ikisinde de tutsun.
+ * ⚠️ Masaüstünde görsel ve kontroller YAN YANA (`.nk-unlu-izgara`). Dikey
+ * dizilimde 475 px'lik görsel sayfayı en az 1113 px'e kilitliyordu ve iki oyun
+ * aynı ölçeği paylaştığı için şarkı oyununu da küçültüyordu. Görseli küçültmek
+ * yerine orta sütunun boş genişliği kullanıldı. Telefonda dizilim dikey.
  */
-
-/** Ünlü oyununun klavye kısayolları — şarkıdakinin Boşluk'suz hâli. */
-const UNLU_KISAYOLLARI = [
-  { key: 'Enter', what: 'tahmini gönder' },
-  { key: '↑ ↓', what: 'önerilerde gez' },
-] as const
 
 export function UnluShell() {
   const tur = useUnluTur()
@@ -120,19 +112,11 @@ export function UnluShell() {
       onSecki={(c) => setKategori(c as UnluChipId)}
       aktifOyun="unlu"
       atif="Görseller yalnızca tanıma amacıyla, düşük çözünürlükte kullanılıyor."
-      sol={
-        <>
-          <UnluAyarKarti />
-          <UnluIstatistikKarti />
-        </>
-      }
+      sol={<UnluIstatistikKarti />}
       sag={
         <>
+          <UnluAyarKarti />
           <UnluNasilKarti />
-          {/* ⚠️ Boşluk tuşu YOK: bu oyunda çalınacak bir şey yok. Kart yine de
-              burada — sağ sütunun ikinci kartı iki oyunda da bu olmalı. */}
-          <KeyboardCard kisayollar={UNLU_KISAYOLLARI} />
-          <LinksCard />
         </>
       }
       orta={
@@ -161,8 +145,8 @@ export function UnluShell() {
             />
             </div>
           ) : (
-            <>
-              <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <div className="nk-unlu-izgara">
+              <div className="nk-unlu-gorsel">
                 <UnluKare
                   ref={kare}
                   url={tur.gorselUrl}
@@ -171,129 +155,132 @@ export function UnluShell() {
                   reduce={reduce}
                 />
 
-              {/*
-                Havuz inceyken oyun ENGELLENMİYOR, yalnızca durum söyleniyor —
-                küratör içerik eklerken oyunu deneyebilmeli.
+                {/*
+                  Havuz inceyken oyun ENGELLENMİYOR, yalnızca durum söyleniyor —
+                  küratör içerik eklerken oyunu deneyebilmeli.
 
-                ⚠️ `position: absolute` (bkz. `.nk-ipucu`): normal akışta
-                sahneyi 25 px uzatıyor ve yüksekliği havuzun doluluğuna bağlı
-                hâle getiriyordu.
-              */}
-              {tur.azKisi && (
-                <div
-                  className="nk-ipucu"
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    letterSpacing: '.14em',
-                    textTransform: 'uppercase',
-                    color: '#6a7075',
-                  }}
-                >
-                  bu seçkide {tur.suzulmus.length} kişi var · tekrar edebilir
-                </div>
-              )}
-              </div>
-
-              <div className="nk-kademe">
-                <TierStrip tier={kademe} onTier={setKademe} />
-              </div>
-
-              <div className="nk-giris" style={{ width: '100%' }}>
-                <GuessInput
-                  index={tur.index}
-                  suggestions={easySearch}
-                  disabled={!canli}
-                  ambiguous={tur.belirsiz}
-                  onGuess={tur.tahmin}
-                  onPickAmbiguous={(u) => {
-                    tur.belirsizligiTemizle()
-                    tur.kisiSec(u)
-                  }}
-                  satir={unluSatiri}
-                  yerTutucu="Ünlünün adını yaz…"
-                />
-              </div>
-
-              {/* ⚠️ `hakToplam` MAX_WRONG değil: burada sınırı şerit sayısı koyuyor. */}
-              <GuessLog
-                steps={steps}
-                hakToplam={SERIT - 1}
-                hakKalan={kalanHak(acilan)}
-                yakinlikEtiketi={null}
-              />
-
-              <div
-                className="nk-eylem"
-                style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}
-              >
-                <button
-                  type="button"
-                  onClick={tur.pas}
-                  disabled={!canli}
-                  className="nk-pass"
-                  style={{
-                    ...GHOST,
-                    border: '1px solid rgba(201,162,94,0.38)',
-                    background: 'rgba(201,162,94,0.07)',
-                    color: '#d5b477',
-                    opacity: canli ? 1 : 0.4,
-                    cursor: canli ? 'pointer' : 'not-allowed',
-                  }}
-                >
-                  Geç{' '}
-                  <span style={{ color: '#8a7448', letterSpacing: 0, textTransform: 'none' }}>
-                    {acilan < SERIT - 1 ? `→ ${acilan + 1}. şerit` : '→ son hak'}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={tur.degistir}
-                  className="nk-degistir"
-                  style={{
-                    ...GHOST,
-                    border: '1px solid rgba(126,164,190,0.32)',
-                    color: '#a9c7da',
-                  }}
-                  title="Aynı seçkide başka bir kişiye geç — hakkın gitmez"
-                >
-                  ↻ Kişiyi değiştir
-                </button>
-              </div>
-
-              <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => void duelloBaslat()}
-                  disabled={duelloKuruluyor}
-                  className="nk-duello"
-                  style={{
-                    ...GHOST,
-                    border: '1px solid var(--acc)',
-                    color: 'var(--acc)',
-                    background: 'oklch(0.81 0.12 var(--hue) / 0.08)',
-                    opacity: duelloKuruluyor ? 0.5 : 1,
-                  }}
-                >
-                  ⚔ {duelloKuruluyor ? 'Lobi kuruluyor…' : 'Arkadaşınla oyna'}
-                </button>
-                {duelloHata && (
+                  ⚠️ Masaüstünde `position: absolute` (bkz. `.nk-ipucu`): normal
+                  akışta sahneyi uzatıyor ve yüksekliği havuzun doluluğuna bağlı
+                  hâle getiriyordu. Telefonda normal akışta — orada ölçek
+                  bütçesi yok, mutlak konumda "Zorluk" yazısının üstüne biniyordu.
+                */}
+                {tur.azKisi && (
                   <div
-                    role="alert"
+                    className="nk-ipucu"
                     style={{
-                      marginTop: 14,
                       fontFamily: 'var(--font-mono)',
-                      fontSize: 11.5,
-                      color: '#d09a9a',
-                      textAlign: 'center',
+                      fontSize: 10,
+                      letterSpacing: '.14em',
+                      textTransform: 'uppercase',
+                      color: '#6a7075',
                     }}
                   >
-                    {duelloHata}
+                    bu seçkide {tur.suzulmus.length} kişi var · tekrar edebilir
                   </div>
                 )}
               </div>
-            </>
+
+              <div className="nk-unlu-kontrol">
+                <div className="nk-kademe">
+                  <TierStrip tier={kademe} onTier={setKademe} />
+                </div>
+
+                <div className="nk-giris" style={{ width: '100%' }}>
+                  <GuessInput
+                    index={tur.index}
+                    suggestions={easySearch}
+                    disabled={!canli}
+                    ambiguous={tur.belirsiz}
+                    onGuess={tur.tahmin}
+                    onPickAmbiguous={(u) => {
+                      tur.belirsizligiTemizle()
+                      tur.kisiSec(u)
+                    }}
+                    satir={unluSatiri}
+                    yerTutucu="Ünlünün adını yaz…"
+                  />
+                </div>
+
+                {/* ⚠️ `hakToplam` MAX_WRONG değil: burada sınırı şerit sayısı koyuyor. */}
+                <GuessLog
+                  steps={steps}
+                  hakToplam={SERIT - 1}
+                  hakKalan={kalanHak(acilan)}
+                  yakinlikEtiketi={null}
+                />
+
+                <div
+                  className="nk-eylem"
+                  style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}
+                >
+                  <button
+                    type="button"
+                    onClick={tur.pas}
+                    disabled={!canli}
+                    className="nk-pass"
+                    style={{
+                      ...GHOST,
+                      border: '1px solid rgba(201,162,94,0.38)',
+                      background: 'rgba(201,162,94,0.07)',
+                      color: '#d5b477',
+                      opacity: canli ? 1 : 0.4,
+                      cursor: canli ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    Geç{' '}
+                    <span style={{ color: '#8a7448', letterSpacing: 0, textTransform: 'none' }}>
+                      {acilan < SERIT - 1 ? `→ ${acilan + 1}. şerit` : '→ son hak'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={tur.degistir}
+                    className="nk-degistir"
+                    style={{
+                      ...GHOST,
+                      border: '1px solid rgba(126,164,190,0.32)',
+                      color: '#a9c7da',
+                    }}
+                    title="Aynı seçkide başka bir kişiye geç — hakkın gitmez"
+                  >
+                    ↻ Kişiyi değiştir
+                  </button>
+                </div>
+
+                <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => void duelloBaslat()}
+                    disabled={duelloKuruluyor}
+                    className="nk-duello"
+                    style={{
+                      ...GHOST,
+                      border: '1px solid var(--acc)',
+                      color: 'var(--acc)',
+                      background: 'oklch(0.81 0.12 var(--hue) / 0.08)',
+                      opacity: duelloKuruluyor ? 0.5 : 1,
+                    }}
+                  >
+                    ⚔ {duelloKuruluyor ? 'Lobi kuruluyor…' : 'Arkadaşınla oyna'}
+                  </button>
+                  {duelloHata && (
+                    <div
+                      role="alert"
+                      style={{
+                        marginTop: 14,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11.5,
+                        color: '#d09a9a',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {duelloHata}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
 
           <style>{`

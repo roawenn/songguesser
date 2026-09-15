@@ -22,8 +22,8 @@
 }
 
 /*
- * Kategoriye göre değişen tek sayı: hue. Vurgu, yumuşak hâli, spot ışığı,
- * kaset şeridi ve çip kenarlıkları hepsi bundan türer.
+ * Kategoriye göre değişen tek sayı: hue. Vurgu, yumuşak hâli, spot ışığı
+ * ve çip kenarlıkları hepsi bundan türer.
  */
 :root {
   --hue: 205;
@@ -53,9 +53,9 @@
  * `--hue` kalıtılan bir özel değişken, yani her ara değerde Chromium bütün
  * `.themed` alt ağacının kalıtım haritasını geçersiz kılıp `var(--acc)` /
  * `var(--accSoft)` kullanan her düğümü yeniden boyuyor. Bu kümede tam ekran
- * iki radyal gradyan (Backdrop), kasetin büyük gölgesi ve birkaç parıltı var.
- * 620 ms ≈ 37 kare tam ekran yeniden rasterizasyon demekti ve kategori
- * değiştirmek, konfetiden daha sık yaşanan bir takılma kaynağıydı.
+ * iki radyal gradyan (Backdrop) ve birkaç parıltı var. 620 ms ≈ 37 kare tam
+ * ekran yeniden rasterizasyon demekti ve kategori değiştirmek, konfetiden
+ * daha sık yaşanan bir takılma kaynağıydı.
  */
 .themed {
   --acc: oklch(0.81 0.12 var(--hue));
@@ -188,10 +188,10 @@ button {
  * ⚠️ Bu blok BİLEREK `prefers-reduced-motion` medya sorgusuna bağlı DEĞİL.
  *
  * Medya sorgusuna bağlıyken Windows'ta "Animasyon efektleri" kapalı olan her
- * makinede 11 keyframe'in tamamı ölüyordu ve `!important` yüzünden JS'ten geri
- * açmanın hiçbir yolu yoktu: oyuncu Ayarlar'daki anahtarı açsa bile makara
- * dönmüyor, konfeti patlamıyordu. Artık kaynak tek: Ayarlar'daki anahtar
- * `<html data-motion="reduced">` yazıyor (GameShell).
+ * makinede keyframe'lerin tamamı ölüyordu ve `!important` yüzünden JS'ten geri
+ * açmanın hiçbir yolu yoktu: oyuncu Ayarlar'daki anahtarı açsa bile konfeti
+ * patlamıyordu. Artık kaynak tek: Ayarlar'daki anahtar
+ * `<html data-motion="reduced">` yazıyor (SahneCercevesi).
  */
 :root[data-motion='reduced'] *,
 :root[data-motion='reduced'] *::before,
@@ -209,19 +209,19 @@ button {
  * ölçeklenen eleman eski yerini kaplamaya devam eder, altında kocaman bir
  * boşluk kalır ve kaydırma bozulur. `zoom` düzenin kendisini ölçekler.
  *
- * ⚠️ `min-height` ölçeğe BÖLÜNMELİ. Zoom altında `100vh` da küçülür ve
- * sayfa görünen alanın altında biterdi.
+ * ⚠️ `min-height` ölçeğe BÖLÜNMELİ. Zoom altında `100vh` da ölçeklenir ve
+ * sayfa görünen alanın altında (ya da büyütmede üstünde) biterdi.
  */
 .nk-scale {
   zoom: var(--nk-olcek, 1);
   min-height: calc(100vh / var(--nk-olcek, 1));
 }
 /*
- * Üst bant: marka + kategoriler.
+ * Üst bant: masaüstünde yalnızca marka, mobilde marka + kategori şeridi +
+ * menü düğmesi.
  *
- * Oyun bloğundan ayrı durur ve sayfanın üstüne yakın oturur; sahne aşağıda
- * kalan alanda ortalanır. İkisini ayıran çizgi kenarlarda sönüyor — sert bir
- * kenarlık bandı sayfadan koparır, buradaki iş ayırmak, bölmek değil.
+ * İkisini ayıran çizgi kenarlarda sönüyor — sert bir kenarlık bandı sayfadan
+ * koparır, buradaki iş ayırmak, bölmek değil.
  */
 .nk-top {
   position: relative;
@@ -252,6 +252,21 @@ button {
 }
 
 /*
+ * Masaüstünde kategoriler sol sütunda (`KategoriListesi`); üst banttaki yatay
+ * şerit yalnızca telefonda.
+ *
+ * ⚠️ İki örnek de render ediliyor ve görünürlüğü CSS seçiyor. JS ile tek örnek
+ * seçmek ilk karede yanlış düzeni gösterip sıçrardı; `display: none` öğeyi
+ * erişilebilirlik ağacından da çıkarıyor, yani ekran okuyucu listeyi iki kez
+ * duymuyor.
+ */
+@media (min-width: 900px) {
+  .nk-yalniz-mobil {
+    display: none;
+  }
+}
+
+/*
  * Sahne bloğu, üst bandın altında kalan alanda ortalanır.
  *
  * ⚠️ `margin: auto` — `align-items: center` DEĞİL. Ekran içeriğe göre kısa
@@ -263,8 +278,7 @@ button {
   /*
    * ⚠️ Ayracın ALTINDA nefes. Çizgi `.nk-top::after` ile bandın tam alt
    * kenarında duruyor ve ızgara hemen ardından başlıyordu: kartlar çizgiye
-   * yapışıyordu. Ölçüldü, aradaki boşluk 0 px'ti — üstelik bloğun ALTINDA
-   * 130-175 px boşluk dururken.
+   * yapışıyordu.
    *
    * Boşluk `.nk-top`'ın kendisine verilemez: çizgi onun alt kenarına bağlı,
    * dolayısıyla dolgu çizgiyi de aşağı taşırdı.
@@ -278,37 +292,45 @@ button {
 }
 
 /*
- * Sahne ızgarası: solda ayarlar, ortada oyun, sağda nasıl oynanır.
+ * Sahne ızgarası: solda kategoriler + istatistik, ortada oyun, sağda ayarlar +
+ * nasıl oynanır.
  *
- * Orta sütun `minmax(0, 560px)`: `1fr` verilirse yan kartlar sahneyi ezer.
- * Yan sütunlar sahneyi ORTALAMAK için eşit genişlikte — biri diğerinden kısa
- * olsa bile yer kaplamalı, yoksa kaset ortadan kayar.
+ * ⚠️ YANLARA YAYILIR. Eskiden sütunlar 310 | 560 | 310 ve aralıklar sabit
+ * 150 px'ti; ızgara ekranın ortasında toplanıyor ve genişliğin %27-42'si boş
+ * kalıyordu. Artık sütunlar sabit, kalan genişlik `space-between` ile
+ * ARALIKLARA gidiyor ve `max-width` yayılmanın ne kadar süreceğini sınırlıyor
+ * — sınır olmasa 2K'da kartlar ekranın kenarlarına yapışırdı.
+ *
+ * Orta sütun 760: şarkı sahnesi içinde 560 px'lik blok olarak ortalanıyor,
+ * ünlü sahnesi görsel + kontrolleri yan yana diziyor (~733 px).
+ *
+ * ⚠️ `vw` KULLANILMIYOR. Zoom altında `vw` gerçek görünüm alanına çözülüyor,
+ * yani ölçeklenen sahnede boşluk orantısız büyüyordu.
+ *
+ * ⚠️ Sütun ve dolgu toplamı `useOlcek.ts`'teki `TASARIM_G` ile tutarlı olmalı.
  */
 .nk-stage-grid {
   display: grid;
-  grid-template-columns: 310px minmax(0, 560px) 310px;
   /*
-   * Boşluk songspot ölçüsüne göre: orada yan paneller ekran genişliğinin
-   * ~%20'sinden başlıyor, bizde %23'ten başlıyordu. 150px'lik üst sınır bu
-   * farkı kapatır; `clamp` de ara genişliklerde ızgarayı daraltarak taşmayı
-   * önler — `8vw` tam olarak bu oranı korur.
+   * ⚠️ Yan sütunlar 340 değil 300, yan dolgu 48 değil 88. 16:10 dizüstülerde
+   * (MacBook) ölçeği yükseklik belirliyor ve genişlik görece dar kalıyor:
+   * 340 / 48'de kartlar ekran kenarına 39 px'e kadar yaklaşıyordu. Toplam
+   * (300·2 + 760 + 72·2 + 88·2 = 1680) değişmediği için hiçbir ekranda
+   * ölçek kaybı yok.
    */
-  /*
-   * ⚠️ `vw` DEĞİL sabit px. Ölçek altında `vw` gerçek görünüm alanına
-   * çözülüyor, yani ölçeklenen sahnede boşluk orantısız büyüyordu.
-   */
-  gap: 150px;
+  grid-template-columns: 300px minmax(0, 760px) 300px;
+  column-gap: 72px;
+  justify-content: space-between;
   align-items: start;
-  justify-content: center;
   width: 100%;
-  max-width: 1700px;
+  max-width: 1860px;
   margin: 0 auto;
-  padding: 6px 20px 30px;
+  padding: 6px 88px 30px;
   /*
    * ⚠️ `min-width: 0` ZORUNLU — ızgara bir flex öğesi ve flex öğelerinin
    * varsayılan `min-width: auto`su onları İÇERİKLERİNİN altına indirmez. Bu
-   * satır olmadan 430px'lik bir telefonda kaset, tahmin kutusu ve düğmeler
-   * ekranın dışına taşıyordu; sütun genişliğini daraltmak tek başına yetmiyor.
+   * satır olmadan 430px'lik bir telefonda tahmin kutusu ve düğmeler ekranın
+   * dışına taşıyordu; sütun genişliğini daraltmak tek başına yetmiyor.
    */
   min-width: 0;
 }
@@ -318,8 +340,7 @@ button {
   min-width: 0;
 }
 
-/* Yan kartlar sahneyle birlikte nefes alsın, ekrana yapışmasınlar. */
-/* Sol sütunda iki kart var (ayarlar + istatistik); aralarında nefes olsun. */
+/* Sütundaki kartlar arasında nefes. */
 .nk-stage-grid > .nk-side {
   position: sticky;
   top: 20px;
@@ -332,10 +353,9 @@ button {
  * ⚠️ Eşik 1500 DEĞİL 900.
  *
  * 1500'ken MacBook genişliklerinde ızgara tek sütuna düşüyor ve her şey yer
- * değiştiriyordu. Arada kalan genişlikleri artık orantılı ölçek karşılıyor
- * (bkz. `.nk-scale`): dizilim birebir aynı kalıyor, yalnızca küçülüyor.
- * 900px altında ölçek okunabilirlik sınırına dayanıyor ve mobil düzen
- * devralıyor.
+ * değiştiriyordu. Arada kalan genişlikleri orantılı ölçek karşılıyor
+ * (bkz. `.nk-scale`). 900px altında ölçek okunabilirlik sınırına dayanıyor ve
+ * mobil düzen devralıyor.
  *
  * ⚠️ `zoom` medya sorgularını ETKİLEMEZ — sorgular gerçek görünüm alanına
  * bakar. Bu yüzden eşiği ölçeğe göre ayrıca hesaplamak gerekmiyor.
@@ -346,11 +366,8 @@ button {
      * ⚠️ Tek iz `minmax(0, 1fr)` — sabit ya da yüzdeli bir max DEĞİL.
      *
      * `minmax(0, 560px)` izi her hâlükârda 560px yapar ve 430px'lik bir
-     * telefonda kaset, tahmin kutusu ve düğmeler ekranın dışında kalır.
-     * `min(100%, 560px)` de kurtarmıyor: yüzde, ölçümü yapılmakta olan
-     * kapsayıcıya karşı çözülemediğinde `auto` gibi davranıyor. `1fr` iç
+     * telefonda tahmin kutusu ve düğmeler ekranın dışında kalır. `1fr` iç
      * kutuyu tam doldurur, `0` alt sınırı da içeriğin izi şişirmesini keser.
-     * Genişlik sınırı artık öğelerin kendisinde.
      */
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
@@ -360,13 +377,14 @@ button {
     width: 100%;
     max-width: 560px;
   }
-  /* Kartlar sahnenin ALTINA geçer; ayarlar önce, kurallar sonra. */
-  .nk-stage-grid > .nk-stage {
-    order: 0;
-  }
+  /*
+   * ⚠️ Yan sütunlar telefonda GİZLİ; kartlar menüde (MobilMenu).
+   *
+   * Oyunun altına dizildiklerinde sayfa ~1950 px uzuyordu ve ünlü oyununda
+   * "Geç" hiçbir telefonda ilk ekrana sığmıyordu.
+   */
   .nk-stage-grid > .nk-side {
-    position: static;
-    order: 1;
+    display: none;
   }
 }
 
@@ -496,18 +514,23 @@ button {
  * ⚠️ Satır içi `marginTop` yerine sınıf: satır içi stil CSS'ten `!important`
  * olmadan ezilemiyor ve mobilde bu boşlukları sıkıştırmanın başka yolu yoktu.
  *
- * ⚠️ Çubuk ve kontrol AYNI boşluğa sahip (55/55) ve öyle kalmalı: çubuk,
- * kaset + kademe ikilisini ("ne çalıyor") oynatma kontrollerinden ("ne
- * yapıyorum") ayıran aralığın tam ortasında duruyor.
+ * ⚠️ Çubuk ve kontrol arası değerler BİRLİKTE düşünülmeli: çubuk, kademeyi
+ * çalma kontrollerinden ayıran aralığın içinde duruyor. Kaset kaldırılınca
+ * 55/55'lik aralıklar (kaset + kademe ikilisini kontrollerden ayırmak içindi)
+ * boşluğa dönüştü ve daraltıldı.
  */
 .nk-kademe {
   margin-top: 24px;
 }
+/* Bir bloğun ilk öğesiyse üstünde pay yok: sahnenin tepesi zaten ayrılmış. */
+.nk-stage > .nk-kademe:first-child {
+  margin-top: 0;
+}
 .nk-cubuk {
-  margin-top: 55px;
+  margin-top: 34px;
 }
 .nk-kontrol {
-  margin-top: 55px;
+  margin-top: 40px;
 }
 .nk-giris {
   margin-top: 44px;
@@ -523,9 +546,9 @@ button {
   min-height: var(--nk-liste-y, 0px);
 }
 /*
- * ⚠️ 44px DEĞİL 20px. Tahmin listesi artık üç satırlık yeri baştan ayırıyor
- * (bkz. GuessLog); eski 44px'lik aralık onun üstüne binince giriş kutusuyla
- * düğmeler arası bir deliğe dönüşüyordu. Ayrılan yer zaten ayırıcı işi görüyor.
+ * ⚠️ 44px DEĞİL 20px. Tahmin listesi yerini baştan ayırıyor (bkz. GuessLog);
+ * eski 44px'lik aralık onun üstüne binince giriş kutusuyla düğmeler arası bir
+ * deliğe dönüşüyordu. Ayrılan yer zaten ayırıcı işi görüyor.
  */
 .nk-eylem {
   margin-top: 20px;
@@ -537,9 +560,7 @@ button {
  * Tahmin listesi büyüdüğünde tarayıcı, mutasyonun ALTINDAKİ bir düğümü çıpa
  * seçip `scrollY`'yi kaydırarak onu yerinde tutuyordu. Sonuç tersine dönüyordu:
  * düğmeler yerinde kalıyor, kademe çubuğu ve çal düğmesi 64 px YUKARI kayıyordu
- * — yani "sayfanın tamamı" oynuyordu. 900 px altında yan kartlar sahnenin
- * altına indiği için sayfa uzun oluyor ve çıpa hep aşağıdan seçiliyordu;
- * 1000 px'te sorun hiç görünmüyordu, bu yüzden fark edilmesi zordu.
+ * — yani "sayfanın tamamı" oynuyordu.
  *
  * Kapatınca içerik doğal yönde davranıyor: üsttekiler sabit kalıyor, eklenen
  * satır kendisinden SONRAKİ düğmeleri aşağı itiyor.
@@ -551,23 +572,17 @@ button {
 /*
  * --- MOBİL ---
  *
- * ⚠️ Hedef: kaset, çubuk, çal, tahmin kutusu ve "Geç" KAYDIRMADAN tek ekranda.
- * Ölçüm (390×844): düzenlemeden önce "Geç" düğmesinin altı 871px'teydi, yani
- * görünen alanın dışında kalıyordu — telefonda oynamak için kaydırmak
- * gerekiyordu.
- *
- * Kazanç üç yerden: üst bandın dolgusu, kasetin genişliği ve sahne
- * aralıkları. Yan kartlar oyunun altına iniyor; oraya ulaşmak için kaydırmak
- * sorun değil, oyun alanı için kaydırmak sorundu.
+ * ⚠️ Hedef: çubuk, çal, tahmin kutusu ve "Geç" KAYDIRMADAN tek ekranda.
+ * Yan kartlar menüde; sayfa yalnızca oyundan ibaret.
  */
 @media (max-width: 899px) {
   .nk-top {
     gap: 8px;
     padding: 14px 16px 12px;
   }
-  /* Mobilde ilk ekran zaten dar; nefes var ama ölçülü. */
-  .nk-center {
-    padding-top: 14px;
+  /* Kategori başlığı telefonda gizli: çipler ne olduklarını söylüyor. */
+  .nk-serit-baslik {
+    display: none;
   }
   .nk-kademe {
     margin-top: 12px;
@@ -589,17 +604,12 @@ button {
   }
   /*
    * ⚠️ Mobilde yer AYRILMAZ. Masaüstünde ayırmanın sebebi dikey ortalamanın
-   * yeniden hesaplanmasıydı; mobilde yan kartlar sahnenin altına indiği için
-   * sayfa zaten kaydırılabilir ve o kayma oluşmuyor (kaydırma çıpalaması da
-   * kapalı). Buna karşılık ayrılan 62 px, "oyun alanı tek ekranda" hedefini
-   * bozuyordu: 390x844'te sahne 844'ü 20 px aşıyordu.
+   * yeniden hesaplanmasıydı; mobilde sayfa üstten akıyor ve o kayma oluşmuyor
+   * (kaydırma çıpalaması da kapalı). Buna karşılık ayrılan yer "oyun alanı
+   * tek ekranda" hedefini bozuyordu.
    */
   .nk-tahminler ul {
     min-height: 0;
-  }
-  /* Kaset sahnenin kimliği; küçülüyor ama kaybolmuyor. */
-  .nk-stage-grid > .nk-stage > :first-child {
-    max-width: 300px;
   }
   .nk-center {
     padding-top: 4px;
@@ -611,7 +621,7 @@ button {
 }
 
 /*
- * Yanlış tahminde ünlü görselinin kısa sarsıntısı.
+ * Yanlış tahminde kısa sarsıntı (bkz. `stage/sars.ts`).
  *
  * ⚠️ Yalnızca `transform` — boya özelliği YOK. Bu projede `box-shadow` ve
  * `filter` animasyonları tam da bu yüzden kaldırılmıştı: compositor'dan
@@ -629,52 +639,121 @@ button {
 }
 
 /*
- * Ünlü sahnesinin dikey ritmi.
+ * --- ÜNLÜ SAHNESİ ---
  *
- * ⚠️ Şarkı sahnesinden DAHA SIKI, çünkü burada `Transport` (çal düğmesi +
- * saat) yok — aradaki boşluklar orada iki farklı işlevi ayırıyordu, burada
- * ayıracak bir şey yok.
- *
- * Bu bir estetik tercih değil, ÖLÇÜM sonucu: "Arkadaşınla oyna" düğmesi
- * eklenince sahne 1242 px'e çıktı ve 1366x768'de (maximize) 25 px taşıyordu.
- * Seçenek ya görseli küçültmekti ya aralıkları — görsel oyunun kendisi,
- * aralıklar değil.
- *
- * ⚠️ `.nk-cubuk` kuralı YOK: ünlü sahnesinde şerit göstergesi kaldırıldı.
- * Şarkıda çubuk zorunlu (klibin ne kadarını duyduğunu başka hiçbir şey
- * söylemiyor); burada görselin kendisi kaç şeridin açık olduğunu zaten
- * gösteriyordu, tahmin listesi de yanlışları sayıyordu.
+ * ⚠️ Masaüstünde görsel ve kontroller YAN YANA. Dikey dizilimde 475 px'lik
+ * görsel sayfayı en az 1113 px'e kilitliyordu; iki oyun aynı ölçek bütçesini
+ * paylaştığı için bu, şarkı oyununu da küçültüyordu. Görseli küçültmek yerine
+ * orta sütunun boş genişliği kullanıldı. Telefonda dikey.
  */
-.nk-unlu .nk-giris {
-  margin-top: 40px;
+.nk-unlu-izgara {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.nk-unlu .nk-eylem {
-  margin-top: 16px;
+.nk-unlu-gorsel {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.nk-unlu-kontrol {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/*
+ * ⚠️ 330 değil 285. 3:5 oranında yükseklik genişliğin 1,67 katı: 330 px →
+ * 550 px ve eski dikey düzende 1366x768'i taşırıyordu.
+ */
+.nk-unlu-kare {
+  max-width: 285px;
+}
+@media (min-width: 900px) {
+  /*
+   * ⚠️ Yalnızca masaüstünde. Medya sorgusu dışındayken `.nk-unlu .nk-giris`
+   * özgüllüğüyle mobildeki `.nk-giris` kuralını eziyor ve telefonda 24 px
+   * fazladan boşluk bırakıyordu — "Geç" düğmesi ekran dışında kalıyordu.
+   */
+  .nk-unlu .nk-giris {
+    margin-top: 40px;
+  }
+  .nk-unlu .nk-eylem {
+    margin-top: 16px;
+  }
+  .nk-unlu-izgara {
+    display: grid;
+    grid-template-columns: 285px minmax(0, 400px);
+    column-gap: 48px;
+    align-items: center;
+    justify-content: center;
+  }
+  .nk-unlu-kontrol > .nk-kademe:first-child {
+    margin-top: 0;
+  }
 }
 
 /*
- * Sahne yüksekliği tur bitince DEĞİŞMEZ — ve İKİ OYUNDA AYNIDIR.
+ * İnce havuz ipucu masaüstünde DÜZEN DIŞINDA.
  *
- * ⚠️ Sonuç kartı oyun sahnesinden çok daha kısa. Yükseklik serbest bırakılınca
- * ızgara yeniden ortalanıyor ve SOL/SAĞ KARTLAR DAHİL her şey aşağı kayıyordu.
- * Ölçüldü: ünlüde sahne 925 → 194 px, kartlar 145 px aşağı; şarkıda 851 → 590,
- * 39 px. Oyuncunun gözünde bu, cevabı görmek için ödenen bir "sıçrama".
+ * ⚠️ Normal akışta sahneyi uzatıyordu ve yükseklik havuzun doluluğuna göre
+ * DEĞİŞİYORDU. Ölçek bütçesi tek bir sayı olduğu için bu, ince kategorilerde
+ * taşma demekti. Mutlak konum yüksekliği sabitliyor.
+ */
+.nk-ipucu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  text-align: center;
+}
+
+@media (max-width: 899px) {
+  /*
+   * ⚠️ 195 px: en kısa yaygın telefonda (360×720) "Geç" ilk ekrana sığsın.
+   * 285 px'te 889 px'te, 210 px'te 759 px'te kalıyordu.
+   */
+  .nk-unlu-kare {
+    max-width: 195px;
+  }
+  /*
+   * ⚠️ Telefonda ipucu NORMAL AKIŞTA. Mutlak konumda altındaki "Zorluk"
+   * yazısının üstüne biniyordu; ölçek bütçesi mobilde yok, akışta durmasının
+   * bedeli de yok.
+   */
+  .nk-ipucu {
+    position: static;
+    margin-top: 8px;
+  }
+}
+
+/*
+ * Sahne yüksekliği SABİT: tur bitince ve istatistik kartı belirince değişmez,
+ * iki oyunda aynıdır.
  *
- * ⚠️ TEK DEĞER. Bir ara şarkı 851, ünlü 900 idi. Sahne ızgarası orta bölgede
- * dikey ORTALANDIĞI için 49 px'lik fark ızgarayı 24 px yukarı kaydırıyordu:
- * oyuncu alt şeritten oyun değiştirdiğinde ayarlar, istatistik ve kurallar
- * kartları yer değiştiriyordu. Değer uzun olanın (ünlü) ihtiyacı; şarkı sahnesi
- * `justify-content` ile bu kutunun ortasında duruyor, tepesine yapışmıyor.
+ * ⚠️ Izgara dikey ORTALI; satırın yüksekliği değişen her şey sayfanın tamamını
+ * kaydırıyor. Üç ayrı kaynak yaşandı:
+ *   - sonuç kartı oyun sahnesinden kısa (ünlüde kartlar 145 px aşağı kaydı)
+ *   - iki oyunun sahneleri farklı yükseklikteydi (oyun değiştirince 24 px)
+ *   - İstatistik kartı ilk turdan SONRA çıkıyor ve sol sütunu uzatıyor
+ * Değer bu yüzden sahnelerin değil, EN UZUN SÜTUNUN ölçülmüş yüksekliği.
+ * Ölçüm (ölçek 1): şarkı sol sütunu kategoriler 451 + istatistik 341 + aralık
+ * 16 = 808; sağ 728; şarkı sahnesi 518; ünlü sütunları 616 / 580, sahnesi 475.
+ * Kısa kalan sahne kutunun ortasında durur.
  *
- * ⚠️ Yalnızca 900 px ÜSTÜNDE. Mobilde sayfa zaten uzun ve dikey ortalama
- * devrede değil; orada sabit yükseklik yalnızca ölü boşluk üretirdi.
+ * ⚠️ Kategori listesine satır, sol sütuna kart eklenirse bu değer ve
+ * `useOlcek.ts`'teki `TASARIM_Y` birlikte yeniden ölçülmeli.
  *
- * Değer ölçüldü (ölçek 1, min-height sıfırlanıp içerik toplanarak):
- * şarkı 851, ünlü 867 — uzun olan alındı.
+ * ⚠️ Yalnızca 900 px ÜSTÜNDE. Mobilde sayfa üstten akıyor; sabit yükseklik
+ * orada yalnızca ölü boşluk üretirdi.
  */
 @media (min-width: 900px) {
   .nk-stage {
-    min-height: 867px;
+    min-height: 810px;
     justify-content: center;
   }
 }
@@ -685,26 +764,111 @@ button {
  * `.nk-stage` bir flex sütun; `margin-block: auto` kalan boşluğu üste ve alta
  * eşit dağıtıyor. Üstte kalsaydı altında kocaman bir boşlukla asılı görünürdü.
  */
-/*
- * İnce havuz ipucu DÜZEN DIŞINDA.
- *
- * ⚠️ Normal akışta olduğunda sahneyi 25 px uzatıyordu ve yükseklik havuzun
- * doluluğuna göre DEĞİŞİYORDU: aynı sayfa, bir kategoride 1224 px, diğerinde
- * 1199 px. Ölçek bütçesi tek bir sayı olduğu için bu, ince kategorilerde
- * taşma demekti. Mutlak konum yüksekliği sabitliyor.
- */
-.nk-ipucu {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  margin-top: 6px;
-  text-align: center;
-}
-
 .nk-sonuc {
   width: 100%;
   display: flex;
   justify-content: center;
   margin-block: auto;
+}
+
+/* Footer'daki sayfa bağlantıları: atıf kadar sessiz, ama tıklanabilir olduğu belli. */
+.nk-alt-link {
+  color: #6a7075;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.14);
+  text-underline-offset: 3px;
+}
+.nk-alt-link:hover {
+  color: #b6bbbf;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+}
+
+/*
+ * --- MOBİL MENÜ --- (bkz. MobilMenu.tsx)
+ *
+ * ⚠️ Animasyon yalnızca `transform` ve `opacity`. Azaltılmış animasyon
+ * açıkken genel kural (`data-motion`) süreleri zaten sıfırlıyor.
+ */
+.nk-menu-dugme {
+  display: none;
+}
+@media (max-width: 899px) {
+  .nk-menu-dugme {
+    display: grid;
+    place-content: center;
+    position: absolute;
+    left: 14px;
+    top: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    color: #b6bbbf;
+  }
+}
+.nk-menu-ortu {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(4, 5, 6, 0.62);
+  animation: nk-ortu 0.2s ease-out;
+}
+.nk-menu-panel {
+  width: 100%;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  background: #0e1013;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px 14px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: nk-panel 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nk-menu-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #767c81;
+}
+.nk-menu-kapat {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #b6bbbf;
+  font-size: 13px;
+}
+.nk-menu-icerik {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+@keyframes nk-ortu {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes nk-panel {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
 }

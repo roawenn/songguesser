@@ -10,17 +10,15 @@ import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { chipById, CHIPS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { heardLength, MAX_WRONG, wrongCount  } from '@/game/machine'
-import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
+import { sars } from './stage/sars'
 import { GuessInput } from './guess/GuessInput'
 import { GuessLog } from './guess/GuessLog'
 import { ResultPanel } from './reveal/ResultPanel'
 import { TierStrip } from './shell/Chrome'
 import { SahneCercevesi } from './shell/SahneCercevesi'
-import {
-  SettingsCard, HowToCard, StatsCard, KeyboardCard, LinksCard,
-} from './shell/SidePanels'
+import { SettingsCard, HowToCard, StatsCard } from './shell/SidePanels'
 
 export function GameShell() {
   const round = useRound()
@@ -30,15 +28,23 @@ export function GameShell() {
    * ⚠️ Sistemin `prefers-reduced-motion` tercihi KASITLI olarak okunmuyor.
    *
    * Windows'ta "Animasyon efektleri" kapalı olan makinelerde Chrome bunu
-   * bildiriyor ve makara dönüşü, konfeti, kart patlaması — oyunun bütün geri
-   * bildirimi tek bayrakla ölüyordu. Kısıtlamak isteyen Ayarlar'dan kapatır.
+   * bildiriyor ve oyunun bütün geri bildirimi tek bayrakla ölüyordu.
+   * Kısıtlamak isteyen Ayarlar'dan kapatır.
    */
   const reduce = settings.reduce
 
   // ⚠️ `data-motion` ve `useOlcek` artık `SahneCercevesi`'nde — iki oyunda da
   // aynı olduğu için tek yerde durmalı.
   const router = useRouter()
-  const cassette = useRef<CassetteHandle>(null)
+
+  /**
+   * Yanlış tahminde sarsılan blok: tahmin satırı.
+   *
+   * ⚠️ Eskiden kaset sarsılıyordu. Kaset kaldırıldı — sayfa her ekranda
+   * yüksekliğe takılıyordu ve kaset bütçenin 273 px'ini tek başına alıyordu.
+   * Yanlış tahmin anında göz zaten yazdığı kutuda.
+   */
+  const giris = useRef<HTMLDivElement>(null)
   const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
   const [duelloHata, setDuelloHata] = useState<string | null>(null)
 
@@ -73,11 +79,10 @@ export function GameShell() {
 
   const chip = chipById(settings.category)
 
-  // Yanlış tahminde kaseti sarsan geri çağrıyı kaydet.
   const { onWrong } = round
   useEffect(() => {
-    onWrong(() => cassette.current?.shake())
-  }, [onWrong])
+    onWrong(() => sars(giris.current, reduce))
+  }, [onWrong, reduce])
 
   // Klavye: Boşluk çal.
   const { play } = round
@@ -159,7 +164,8 @@ export function GameShell() {
       secili={settings.category}
       onSecki={(c) => settings.setCategory(c as typeof settings.category)}
       aktifOyun="sarki"
-      sol={
+      sol={<StatsCard />}
+      sag={
         <>
           <SettingsCard
             volume={settings.volume}
@@ -169,25 +175,16 @@ export function GameShell() {
             onReduce={settings.setReduce}
             onEasySearch={settings.setEasySearch}
           />
-          <StatsCard />
-        </>
-      }
-      sag={
-        <>
           <HowToCard />
-          <KeyboardCard />
-          {/* Bağlantılar en altta: sütunun çıkışı, girişi değil. */}
-          <LinksCard />
         </>
       }
       orta={
         <>
             {/*
-             * Sahne dizilimi, aşağı indikçe açılan boşluklarla kuruluyor:
-             * kaset ve kademe sıkı bir ikili (aynı şeyi anlatıyorlar), sonra
-             * çubuk, sonra çalma kontrolleri, en altta tahmin ve çıkışlar.
-             * Tek tip `gap` yerine her adımın kendi payı var — dolayısıyla
-             * `gap: 0` ve öğelerde `marginTop`.
+             * Sahne dizilimi yukarıdan aşağı: kademe ("ne kadar zor"), çubuk
+             * ("ne kadarını duydun"), çalma kontrolü, en altta tahmin ve
+             * çıkışlar. Tek tip `gap` yerine her adımın kendi payı var —
+             * dolayısıyla `gap: 0` ve öğelerde sınıfla verilen `margin-top`.
              */}
             <main
               className="nk-stage"
@@ -198,24 +195,14 @@ export function GameShell() {
                 width: '100%',
               }}
             >
-              <Cassette
-                handleRef={cassette}
-                categoryLabel={chip.label}
-                tapeCode={round.tapeCode}
-                playing={playing}
-                reduce={reduce}
-              />
-
               <div className="nk-kademe">
                 <TierStrip tier={settings.tier} onTier={settings.setTier} />
               </div>
 
               {/*
-                ⚠️ Alttaki blokla AYNI üst boşluğa sahip (55/55) ve öyle kalmalı:
-                çubuk, kaset + kademe ikilisini ("ne çalıyor") oynatma
-                kontrollerinden ("ne yapıyorum") ayıran aralığın tam ortasında
-                duruyor. Biri değişirse diğeri de değişmeli, yoksa çubuk bir
-                tarafa yapışır ve ayırıcı olmaktan çıkar.
+                ⚠️ Çubuk, kademeyi çalma kontrollerinden ayıran aralığın
+                ortasında duruyor (bkz. `.nk-cubuk` / `.nk-kontrol`). Biri
+                değişirse diğeri de değişmeli, yoksa bir tarafa yapışır.
               */}
               <div
                 style={{
@@ -322,7 +309,7 @@ export function GameShell() {
                     onPlay={round.play}
                   />
 
-                  <div className="nk-giris" style={{ width: '100%' }}>
+                  <div ref={giris} className="nk-giris" style={{ width: '100%' }}>
                     <GuessInput
                       index={round.index}
                       suggestions={settings.easySearch}
@@ -333,8 +320,8 @@ export function GameShell() {
                         round.clearAmbiguity()
                         round.guessSong(song)
                       }}
-                    satir={sarkiSatiri}
-                      />
+                      satir={sarkiSatiri}
+                    />
                   </div>
 
                   {/* Yapılan tahminler — üç hakkın nereye gittiği görünsün. */}

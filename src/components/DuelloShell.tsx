@@ -12,9 +12,9 @@ import { DUELLO_TUR } from '@/game/duel'
 import { heardLength, MAX_WRONG, wrongCount } from '@/game/machine'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { Backdrop } from './stage/Backdrop'
-import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
+import { sars } from './stage/sars'
 import { GuessInput } from './guess/GuessInput'
 import { GuessLog } from './guess/GuessLog'
 import {
@@ -25,17 +25,21 @@ import {
  * Düello sahnesi.
  *
  * `GameShell`'in yerine geçmez, yanında durur: tek oyunculu kabuk seçki
- * şeridi, yan kartlar ve kademe seçicisiyle birlikte geliyor — düelloda
+ * listesi, yan kartlar ve kademe seçicisiyle birlikte geliyor — düelloda
  * bunların hiçbiri anlamlı değil (şarkılar ve kademeler sabit). Yaprak
- * bileşenler (kaset, çubuk, çalma kontrolleri, tahmin kutusu) aynen
- * paylaşılıyor, kopyalanmıyor.
+ * bileşenler (çubuk, çalma kontrolleri, tahmin kutusu) aynen paylaşılıyor,
+ * kopyalanmıyor.
+ *
+ * ⚠️ Kaset burada da YOK: ana oyundan kaldırıldı ve iki sahne aynı görünsün diye
+ * düellodan da çıktı. Kaç numaralı şarkıda olunduğunu skor şeridi söylüyor.
  */
 export function DuelloShell({ kod }: { kod: string }) {
   const d = useDuello<Song>(kod)
   const settings = useSettingsStore()
   const reduce = settings.reduce
 
-  const cassette = useRef<CassetteHandle>(null)
+  /** Yanlış tahminde sarsılan tahmin satırı (bkz. `GameShell`). */
+  const giris = useRef<HTMLDivElement>(null)
 
   /**
    * ⚠️ Dizilim yalnızca oynanabilir fazlarda verilir.
@@ -58,8 +62,8 @@ export function DuelloShell({ kod }: { kod: string }) {
 
   const { onWrong } = round
   useEffect(() => {
-    onWrong(() => cassette.current?.shake())
-  }, [onWrong])
+    onWrong(() => sars(giris.current, reduce))
+  }, [onWrong, reduce])
 
   /*
    * Tur bitince sonucu bir kez bildir — hem rakibe (sunucu) hem oyuncunun
@@ -168,7 +172,7 @@ export function DuelloShell({ kod }: { kod: string }) {
               ) : round.state.s === 'error' ? (
                 <CalinamadiKutusu d={d} />
               ) : hazir ? (
-                <Sahne round={round} cassette={cassette} reduce={reduce} d={d} />
+                <Sahne round={round} giris={giris} />
               ) : (
                 <div style={{ ...M, color: '#6a7075' }}>şarkı hazırlanıyor…</div>
               )}
@@ -184,12 +188,10 @@ type Round = ReturnType<typeof useRound>
 type Duello = DuelloApi<Song>
 
 function Sahne({
-  round, cassette, reduce, d,
+  round, giris,
 }: {
   round: Round
-  cassette: React.RefObject<CassetteHandle | null>
-  reduce: boolean
-  d: Duello
+  giris: React.RefObject<HTMLDivElement | null>
 }) {
   const easySearch = useSettingsStore((x) => x.easySearch)
   const { state } = round
@@ -211,15 +213,7 @@ function Sahne({
         maxWidth: 560,
       }}
     >
-      <Cassette
-        handleRef={cassette}
-        categoryLabel={`${d.aktif + 1}. şarkı`}
-        tapeCode={`NK-${String(d.aktif + 1).padStart(3, '0')}`}
-        playing={playing}
-        reduce={reduce}
-      />
-
-      <div style={{ marginTop: 36, width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ marginTop: 8, width: '100%', display: 'flex', justifyContent: 'center' }}>
         <StepIndicator
           attempt={attempt}
           steps={steps}
@@ -241,7 +235,7 @@ function Sahne({
           onPlay={round.play}
         />
 
-        <div style={{ marginTop: 40, width: '100%' }}>
+        <div ref={giris} style={{ marginTop: 40, width: '100%' }}>
           <GuessInput
             index={round.index}
             /*
@@ -257,18 +251,18 @@ function Sahne({
               round.clearAmbiguity()
               round.guessSong(song)
             }}
-          satir={sarkiSatiri}
-                      />
+            satir={sarkiSatiri}
+          />
         </div>
 
         {/* Üç yanlış kuralı düelloda da geçerli; hakların nerede olduğu görünsün. */}
         <div style={{ marginTop: 14, width: '100%' }}>
           <GuessLog
-                    steps={steps}
-                    hakToplam={MAX_WRONG}
-                    hakKalan={MAX_WRONG - wrongCount(steps)}
-                    yakinlikEtiketi="sanatçı doğru"
-                  />
+            steps={steps}
+            hakToplam={MAX_WRONG}
+            hakKalan={MAX_WRONG - wrongCount(steps)}
+            yakinlikEtiketi="sanatçı doğru"
+          />
         </div>
 
         <button
@@ -332,6 +326,3 @@ function CalinamadiKutusu({ d }: { d: Duello }) {
     </div>
   )
 }
-
-
-

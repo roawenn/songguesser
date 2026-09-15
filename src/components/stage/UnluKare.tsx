@@ -3,6 +3,7 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react'
 import { GORSEL_ORAN, SERIT } from '@/data/unlu'
 import { acikKirpma } from '@/app/yonetim/kirpmaMatematigi'
+import { sars as sarsit } from './sars'
 
 /**
  * Ünlü görseli — beş eşit yatay şerit, yukarıdan aşağı açılır.
@@ -21,6 +22,9 @@ import { acikKirpma } from '@/app/yonetim/kirpmaMatematigi'
  * ⚠️ Kapalı bölge SAYDAM DEĞİL. Arka plan gradyanı görünseydi oyuncu
  * "görsel yüklenmedi mi?" diye düşünürdü; ince tarama deseni "burası henüz
  * kapalı" diyor.
+ *
+ * ⚠️ Azami genişlik CSS'te (`.nk-unlu-kare`): masaüstünde ve telefonda farklı,
+ * satır içi stil medya sorgusuyla ezilemiyordu.
  */
 
 export interface UnluKareHandle {
@@ -43,14 +47,7 @@ export const UnluKare = forwardRef<UnluKareHandle, Props>(function UnluKare(
   const kutu = useRef<HTMLDivElement>(null)
 
   useImperativeHandle(ref, () => ({
-    sars() {
-      const el = kutu.current
-      if (!el || reduce) return
-      el.classList.remove('nk-sars')
-      // Yeniden akış zorla — sınıf hemen geri eklenirse animasyon tekrar başlamaz.
-      void el.offsetWidth
-      el.classList.add('nk-sars')
-    },
+    sars: () => sarsit(kutu.current, reduce),
   }))
 
   const gorunur = bitti ? SERIT : acilan
@@ -58,16 +55,10 @@ export const UnluKare = forwardRef<UnluKareHandle, Props>(function UnluKare(
   return (
     <div
       ref={kutu}
+      className="nk-unlu-kare"
       style={{
         position: 'relative',
         width: '100%',
-        /*
-         * ⚠️ 330 değil 285. 3:5 oranında genişlik yüksekliği 1,67 katıyla
-         * çarpıyor: 330 px → 550 px. Ölçüldü, sahne 1366x768'de (maximize,
-         * ~700 px kullanılabilir) ölçeğin alt sınırına dayanıp 14 px taşıyordu.
-         * 285 px → 475 px ve her yaygın çözünürlükte sığıyor.
-         */
-        maxWidth: 285,
         // ⚠️ Oran SABİT: görsel inmeden de şerit sınırları tam beşte bir kalsın
         // ve düzen kaymasın.
         aspectRatio: GORSEL_ORAN,

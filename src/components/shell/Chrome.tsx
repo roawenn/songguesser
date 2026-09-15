@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import Link from 'next/link'
 
 import { CHIPS, TIERS, type ChipId, type Difficulty } from '@/data/categories'
 
@@ -18,9 +19,8 @@ const STRIP_TITLE = { ...MONO_CAPTION, fontSize: 10, color: '#767c81' }
 /**
  * Marka.
  *
- * Hamburger kaldırıldı: ayarlar ve kurallar artık sahnenin iki yanında kalıcı
- * kartlar olarak duruyor (bkz. SidePanels). Menü arkasına saklanacak bir şey
- * kalmadı.
+ * Masaüstünde üst bandın TEK öğesi. Mobilde solunda menü düğmesi duruyor
+ * (bkz. MobilMenu): ayarlar ve kurallar orada, masaüstünde yan sütunlarda.
  */
 export function Header() {
   return (
@@ -75,7 +75,7 @@ function StripCaption({ children }: { children: React.ReactNode }) {
  * Koşulsuz uygulandığında, şerit tam sığdığı hâlde sondaki çip kırpılmış
  * gibi duruyordu.
  *
- * ⚠️ Ayrı kanca: alt oyun şeridi de aynı davranışı kullanacak.
+ * ⚠️ Ayrı kanca: alt oyun şeridi de aynı davranışı kullanıyor.
  */
 export function useKaydirilabilir(ref: React.RefObject<HTMLElement | null>): void {
   useEffect(() => {
@@ -93,7 +93,7 @@ export function useKaydirilabilir(ref: React.RefObject<HTMLElement | null>): voi
 
 /**
  * ⚠️ Çipler DIŞARIDAN geliyor, `CHIPS` doğrudan import edilmiyor: ikinci
- * oyunun (ünlü tanıma) kendi seçkileri var ve şerit ikisinde de aynı.
+ * oyunun (ünlü tanıma) kendi seçkileri var ve liste ikisinde de aynı.
  *
  * Kimlik tipi jenerik: şarkı `ChipId`, ünlü `UnluChipId` geçirir ve
  * `onCategory` her ikisinde de doğru tiple gelir.
@@ -106,15 +106,12 @@ interface CategoryProps<Id extends string> {
 }
 
 /**
- * Seçki şeridi — sayfanın en üstündeki ana seçim.
+ * Seçki şeridi — YALNIZCA MOBİLDE, markanın altında.
  *
- * Başlıklı ve belirgin: oyuncunun ilk yaptığı iş burada, dolayısıyla en görünür
- * eleman olmalı. Seçili çip sahne rengini alır, böylece kasetin ve vurguların
- * rengiyle aynı şeyi anlattığı anlaşılır.
+ * Masaüstünde kategoriler sol sütunda dikey liste (`KategoriListesi`). Telefonda
+ * sütun yok ve yatay kaydırılan şerit en az dikey yer kaplayan biçim.
  *
- * ⚠️ Tasarımda 8 çip vardı ve zorlukla aynı satıra sığıyordu. Bizde 11 çip var;
- * aynı satırda kalsalar sondaki üçü sessizce kırpılıyordu — bu yüzden kendi
- * satırında ve dar ekranda yatay kayıyor.
+ * ⚠️ Bizde 11 çip var; tek satıra sığmıyor, bu yüzden yatay kayıyor.
  */
 export function CategoryStrip<Id extends string>({
   category,
@@ -136,7 +133,11 @@ export function CategoryStrip<Id extends string>({
         gap: 13,
       }}
     >
-      <StripCaption>{baslik}</StripCaption>
+      {/* Başlık telefonda gizli (globals.css): çipler ne olduklarını söylüyor,
+          ilk ekranda 21 px "Geç" düğmesine lazımdı. */}
+      <div className="nk-serit-baslik">
+        <StripCaption>{baslik}</StripCaption>
+      </div>
 
       <nav
         ref={stripRef}
@@ -195,18 +196,117 @@ export function CategoryStrip<Id extends string>({
   )
 }
 
+/**
+ * Kategoriler — masaüstünde SOL SÜTUNUN başında dikey liste.
+ *
+ * ⚠️ Üst banttaki yatay şerit masaüstünden kaldırıldı. Sayfa her ekranda
+ * yüksekliğe takılıyor ve bant tek başına bütçenin 83 px'ini alıyordu; bu
+ * doğrudan küçük metin demekti (1080p'de 13 px → 10 px). Songspot'un zorluk
+ * listesi gibi sütunda duruyor.
+ *
+ * ⚠️ Satır yüksekliği 32 px bir BÜTÇE değeri: şarkıda 11 kategori var ve liste
+ * İstatistik kartıyla aynı sütunu paylaşıyor. Satırlar büyürse sol sütun
+ * sahnenin ayrılmış yüksekliğini aşar ve ilk tur bitince (istatistik kartı
+ * belirince) sayfa yeniden ortalanıp kayar — bkz. `.nk-stage`, globals.css.
+ *
+ * Her satırdaki nokta kategorinin kendi rengi: seçilince sahnenin alacağı renk
+ * önceden görünüyor.
+ */
+export function KategoriListesi<Id extends string>({
+  category,
+  onCategory,
+  chips,
+  baslik = 'Kategoriler',
+}: CategoryProps<Id>) {
+  return (
+    <nav
+      aria-label="Seçki"
+      style={{
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 8,
+        background: 'rgba(255,255,255,0.018)',
+        padding: '16px 14px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+      }}
+    >
+      <div
+        style={{
+          ...MONO_CAPTION,
+          padding: '0 6px 10px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        {baslik}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {chips.map((c) => {
+          const on = c.id === category
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => onCategory(c.id)}
+              aria-pressed={on}
+              className="nk-kategori"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                width: '100%',
+                height: 32,
+                padding: '0 12px',
+                border: `1px solid ${on ? 'var(--acc)' : 'transparent'}`,
+                borderRadius: 5,
+                background: on ? 'oklch(0.81 0.12 var(--hue) / 0.12)' : 'transparent',
+                color: on ? 'var(--acc)' : '#8d9398',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                letterSpacing: '.03em',
+                textAlign: 'left',
+                whiteSpace: 'nowrap',
+                transition: 'color .15s ease, border-color .15s ease, background .15s ease',
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  flex: 'none',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: `oklch(0.78 0.11 ${c.hue})`,
+                  opacity: on ? 1 : 0.55,
+                }}
+              />
+              {c.label}
+            </button>
+          )
+        })}
+      </div>
+
+      <style>{`
+        .nk-kategori:hover[aria-pressed='false'] {
+          background: rgba(255,255,255,0.04) !important;
+          color: #cfd3d6 !important;
+        }
+      `}</style>
+    </nav>
+  )
+}
+
 interface TierProps {
   tier: Difficulty
   onTier: (t: Difficulty) => void
 }
 
 /**
- * Zorluk kademesi — kasetle ilerleme çubuğu arasında.
+ * Zorluk kademesi — sahnenin içinde, ilerleme çubuğunun üstünde.
  *
- * Kategoriyle birlikte üst bantta dururken iki seçim aynı blokta eziliyordu.
- * Zorluk aslında "şu an ne çalınacak" sorusunun parçası, o yüzden sahnenin
- * içinde: kaset neyi çaldığını, hemen altındaki kademe de ne kadar zor
- * olduğunu söylüyor.
+ * Kategoriyle aynı blokta dururken iki seçim eziliyordu. Zorluk "şu an ne
+ * çalınacak" sorusunun parçası, o yüzden oyunun kendisiyle birlikte duruyor.
  *
  * ⚠️ Her kademe kendi rengini taşır ama bu renk SAHNEYİ sürmez — sahne rengi
  * kategoriden gelir. İki bilgi de renkle okunur, çakışmaz.
@@ -268,23 +368,11 @@ export function TierStrip({ tier, onTier }: TierProps) {
 }
 
 /**
- * İnce künye şeridi.
+ * Sayfa altı: oyun şeridi, atıf ve sayfa bağlantıları.
  *
- * "Nasıl oynanır" bağlantısı kaldırıldı: kurallar artık sahnenin sağındaki
- * kalıcı kartta duruyor, aynı şeyi iki yere koymanın anlamı yok.
- */
-/**
- * Sayfa altı.
- *
- * ⚠️ Seçki ve zorluk KALDIRILDI: ikisi de sahnede zaten görünüyor (çip
- * şeridi ve kademe seçici), altta tekrar etmeleri bilgi değil gürültüydü.
- * Yerine Apple atfı geldi — zorunlu bir metin ve yeri burası; yan kartın
- * içinde kaybolduğu yerden alındı.
- */
-/**
  * ⚠️ Atıf OYUNA GÖRE. Apple metni ToS gereği zorunlu ama YALNIZCA ses
  * önizlemesi kullanan oyun için; ünlü sayfasında hiçbir Apple içeriği yok ve
- * orada durması hem yanıltıcı hem gereksiz bir iddia olurdu.
+ * orada durması yanıltıcı bir iddia olurdu.
  */
 export function Footer({
   oyunlar,
@@ -298,16 +386,7 @@ export function Footer({
       style={{
         padding: '0 20px 18px',
         display: 'flex',
-        /*
-         * ⚠️ Oyun seçici artık ATIF YAZISININ ÜSTÜNDE, kendi satırında.
-         *
-         * Bir ara ikisi aynı satırdaydı: o zaman şerit tek kelimelik bir etiket
-         * taşıyordu ("Şarkı" / "Ünlü") ve kendi satırı ölçek bütçesine 38 px
-         * ekliyordu. Şerit ikon + ad + açıklama taşıyan kartlara dönüşünce yan
-         * yana dizilim hem atfı kenara itti hem de dar ekranda sarmalanıp
-         * yüksekliği zaten ikiye katladı; kendi satırı artık daha ucuz.
-         * Eklenen yükseklik `TASARIM_Y`'ye ÖLÇÜLEREK yansıtıldı.
-         */
+        // Oyun seçici atıf satırının ÜSTÜNDE, kendi satırında.
         flexDirection: 'column',
         alignItems: 'center',
         gap: 12,
@@ -319,7 +398,32 @@ export function Footer({
       }}
     >
       {oyunlar}
-      <span>{atif}</span>
+
+      {/*
+        ⚠️ Bağlantılar atıfla AYNI SATIRDA. Eskiden sağ sütunun dibinde kendi
+        kartlarındaydılar; kategoriler sol sütuna geçince sağ sütun yükseklik
+        bütçesini aşıyordu. Aynı satırda footer'ın yüksekliği değişmiyor; dar
+        ekranda sarmalanıyor.
+      */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          alignItems: 'baseline',
+          gap: '4px 22px',
+        }}
+      >
+        <span>{atif}</span>
+        <span style={{ display: 'inline-flex', gap: 16 }}>
+          <Link href="/nasil-oynanir" className="nk-alt-link">
+            Tüm kurallar
+          </Link>
+          <Link href="/hakkinda" className="nk-alt-link">
+            Hakkında
+          </Link>
+        </span>
+      </div>
     </footer>
   )
 }

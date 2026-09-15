@@ -75,7 +75,7 @@ const faq = [
   },
   {
     q: 'Klavyeden oynayabilir miyim?',
-    a: 'Boşluk tuşu klibi çalar. Tahmin kutusuna yazarken ya da bir düğmeye odaklanmışken boşluk normal işini görür.',
+    a: 'Evet. Şarkı oyununda Boşluk tuşu klibi çalar; tahmin kutusuna yazarken ya da bir düğmeye odaklanmışken boşluk normal işini görür. İki oyunda da Enter tahmini gönderir, ↑ ve ↓ öneri listesinde gezdirir. Ünlü oyununda çalınacak bir şey olmadığı için Boşluk\'un özel bir görevi yok.',
   },
 ]
 

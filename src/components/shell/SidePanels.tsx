@@ -7,13 +7,11 @@ import { TIER_LABELS, type Difficulty } from '@/data/categories'
 import { useStatsStore } from '@/store/useStatsStore'
 
 /**
- * Sahnenin iki yanındaki kartlar.
+ * Şarkı oyununun yan kartları.
  *
- * Eskiden ikisi de hamburger arkasındaki bir modaldaydı. Masaüstünde sayfanın
- * alt yarısı bomboş dururken ayarları bir menünün arkasına saklamak yer
- * kazandırmıyor, sadece tıklama ekliyordu; artık ikisi de görünür ve sahneyi
- * ortalıyor. Dar ekranda ızgara tek sütuna düşer ve kartlar sahnenin altına
- * geçer (bkz. `.nk-stage-grid`, globals.css).
+ * Masaüstünde sahnenin iki yanında kalıcı: solda istatistik (kategori
+ * listesinin altında), sağda ayarlar ve nasıl oynanır. 900 px altında sütunlar
+ * gizli ve aynı kartlar mobil menüde açılıyor (bkz. MobilMenu).
  */
 
 const CAPTION = {
@@ -34,34 +32,6 @@ const CARD = {
   gap: 24,
 }
 
-
-/** Kart içindeki bağlantı düğmesi. */
-const KART_DUGME = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '10px 8px',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: 5,
-  fontFamily: 'var(--font-mono)',
-  fontSize: 10.5,
-  letterSpacing: '.06em',
-  color: '#a9aeb3',
-  textAlign: 'center' as const,
-}
-
-const KBD = {
-  flex: 'none' as const,
-  minWidth: 58,
-  textAlign: 'center' as const,
-  padding: '4px 8px',
-  borderRadius: 4,
-  border: '1px solid rgba(255,255,255,0.12)',
-  background: 'rgba(255,255,255,0.03)',
-  color: '#b6bbbf',
-  fontFamily: 'var(--font-mono)',
-  fontSize: 10.5,
-}
 function CardTitle({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -525,72 +495,10 @@ export function HowToCard() {
   )
 }
 
-/**
- * Klavye kısayolları — KENDİ kartı, İKİ oyunda da aynı yerde.
+/*
+ * ⚠️ Klavye ve Bağlantılar kartları KALDIRILDI.
  *
- * Önce "Nasıl oynanır"ın dibinde, ayıraçla bölünmüş bir bölümdü. Kart üç ayrı
- * konuyu (adımlar, bağlantılar, kısayollar) tek çerçevede taşıyınca hiçbiri
- * kendi başlığıyla okunmuyordu; ayrı kart, listedeki diğer kartlarla aynı
- * dilde konuşuyor.
- *
- * ⚠️ Satırlar PROP, kart KOPYALANMIYOR. Ünlü oyununda "Boşluk → klibi çal"
- * satırı yok (çalınacak bir şey yok) ama kartın kendisi orada da duruyor:
- * sağ sütunun ikinci kartı iki oyunda da bu, yoksa "Bağlantılar" kartı iki
- * sayfada iki farklı yükseklikte başlıyor ve oyunlar arası geçişte sütun
- * gözle görülür biçimde zıplıyordu.
+ * Kategoriler sol sütuna geçince sağ sütun (Ayarlar + Nasıl oynanır + Klavye +
+ * Bağlantılar) ~1000 px'e çıkıyordu; hedef ~800. Kısayollar "Tüm kurallar"
+ * sayfasında anlatılıyor, iki bağlantı footer'ın atıf satırına indi.
  */
-const SARKI_KISAYOLLARI = [
-  { key: 'Boşluk', what: 'klibi çal' },
-  { key: 'Enter', what: 'tahmini gönder' },
-  { key: '↑ ↓', what: 'önerilerde gez' },
-] as const
-
-export function KeyboardCard({
-  kisayollar = SARKI_KISAYOLLARI,
-}: {
-  kisayollar?: ReadonlyArray<{ key: string; what: string }>
-}) {
-  return (
-    <section style={CARD} aria-label="Klavye kısayolları">
-      <CardTitle>Klavye</CardTitle>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {kisayollar.map((k) => (
-          <div
-            key={k.key}
-            style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12 }}
-          >
-            <kbd style={KBD}>{k.key}</kbd>
-            <span style={{ color: '#7b8186' }}>{k.what}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-
-/**
- * Sayfa bağlantıları — sütunun EN ALTINDA, kendi kartında.
- *
- * ⚠️ İki bağlantı, aynı yeri BÖLEN iki düğme. Küçük metin bağlantıları olarak
- * yan yana dururken tıklanabilir oldukları belli olmuyordu; eşit bölünmüş iki
- * düğme hem hedefi büyütüyor hem de ikisinin eş değerde olduğunu gösteriyor.
- *
- * Başlık yok: iki düğme ne olduklarını zaten söylüyor, üstlerine bir etiket
- * koymak kartı içeriğinden çok çerçevesiyle büyütürdü.
- */
-export function LinksCard() {
-  return (
-    <nav style={{ ...CARD, padding: 14, gap: 0 }} aria-label="Sayfalar">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <a href="/nasil-oynanir" className="nk-kart-dugme" style={KART_DUGME}>
-          Tüm kurallar
-        </a>
-        <a href="/hakkinda" className="nk-kart-dugme" style={KART_DUGME}>
-          Hakkında
-        </a>
-      </div>
-    </nav>
-  )
-}
