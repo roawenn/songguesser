@@ -630,11 +630,16 @@ button {
   .nk-unlu .nk-unlu-kontrol .nk-giris {
     margin-top: 28px;
   }
+  /*
+   * Çal düğmesinin ÜSTÜNDE ve ALTINDA nefes (kullanıcı isteği): 18 / 16'da
+   * çubuk, çal düğmesi ve tahmin kutusu birbirine yapışık duruyordu. En uzun
+   * hâlde (iki yanlış tahmin listelenmişken) bile sayfada yer vardı.
+   */
   .nk-kontrol {
-    margin-top: 18px;
+    margin-top: 28px;
   }
   .nk-giris {
-    margin-top: 16px;
+    margin-top: 26px;
   }
   .nk-eylem {
     margin-top: 14px;
