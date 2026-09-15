@@ -74,6 +74,10 @@ const faq = [
     a: 'Hayır, ayrı. Şarkıda "Uzman" seviyesindeysen ünlü oyununa "Kolay"dan başlarsın; isabet yüzden, serin ve kademe dağılımın da her oyun için ayrı tutulur. "Kolay arama" ve "azaltılmış animasyon" ise ortak tercihlerdir.',
   },
   {
+    q: 'Kapaktan Albüm nasıl oynanır?',
+    a: 'Bir albüm kapağı 8×8 pikselle başlar. Yanlış tahmin ya da pas kapağı bir adım netleştirir (16, 32, 64 piksel, sonra tam kapak); beşinci adımda tur biter, yani dört tahmin hakkın var. Kolay mod açıkken sanatçının adını yazman da yeter; kapalıyken albümün adı gerekir. "- Single" gibi ekleri yazman gerekmez.',
+  },
+  {
     q: 'Yalnızca bir sanatçının şarkılarıyla oynayabilir miyim?',
     a: 'Evet. Sanatçı sayfalarından (tahmin.net/sanatci) birini seçip "ile oyna" dersen tur yalnızca o sanatçının şarkılarından kurulur. Seçki ayarın değişmez; sol üstteki ✕ ile moddan çıkınca kendi seçkine dönersin. Sanatçı modunda düello kurulamaz.',
   },

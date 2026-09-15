@@ -92,6 +92,12 @@ function toRow(cat: CategoryId, item: Incoming) {
     norm_title: cleanKey(t.title),
     norm_artist: cleanKey(t.artist),
     accept_keys: buildKeys({ title: t.title, artist: t.artist }),
+    /*
+     * ⚠️ Anahtar HER satırda olmalı (değer `null` olsa bile): PostgREST toplu
+     * eklemede bütün nesnelerin aynı anahtarları taşımasını istiyor. `null`
+     * kalan satırları albüm doldurma betiği sonradan tamamlıyor.
+     */
+    album: t.album ?? null,
   }
 }
 

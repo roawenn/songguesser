@@ -22,6 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily' as const,
       priority: 0.9,
     },
+    {
+      url: `${SITE_URL}/kapak`,
+      lastModified: now,
+      changeFrequency: 'daily' as const,
+      priority: 0.9,
+    },
     ...CHIPS.map((c) => ({
       url: `${SITE_URL}/seckiler/${c.id}`,
       lastModified: now,

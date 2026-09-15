@@ -37,6 +37,8 @@ export interface FoundTrack {
   preview: string
   storeUrl: string
   year: number
+  /** iTunes albüm adı, HAM hâliyle — Kapaktan Albüm oyunu (bkz. `schema.sql`). */
+  album?: string
   /**
    * Aracın önerdiği zorluk kademesi (yalnızca sanatçı taramasında dolu).
    *
@@ -76,6 +78,7 @@ function toFound(t: ITunesResult): FoundTrack {
     storeUrl: t.trackViewUrl!,
     // ⚠️ Bu tarih çoğu zaman yeniden basımın tarihidir; panelde düzeltilebilir.
     year: t.releaseDate ? new Date(t.releaseDate).getUTCFullYear() : 0,
+    album: t.collectionName,
   }
 }
 

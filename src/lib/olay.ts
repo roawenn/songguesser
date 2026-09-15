@@ -17,7 +17,7 @@
  * ⚠️ Olay adı en fazla 50 karakter (Umami sınırı).
  */
 
-export type OyunAdi = 'sarki' | 'unlu'
+export type OyunAdi = 'sarki' | 'unlu' | 'kapak'
 
 interface OlayKatalogu {
   /** Bir tur bitti — tek oyunculu ya da düello. */

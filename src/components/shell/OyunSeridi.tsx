@@ -59,6 +59,22 @@ function YuzIkonu() {
   )
 }
 
+/** Kapak: pikselden netleşen kare — oyunun kendi mekaniği. */
+function KapakIkonu() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M3.5 9.2h5.7V3.5M9.2 9.2v5.6h5.6v5.7M14.8 14.8h5.7"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity=".7"
+      />
+    </svg>
+  )
+}
+
 export const OYUNLAR = [
   {
     id: 'sarki',
@@ -73,6 +89,13 @@ export const OYUNLAR = [
     ad: 'Ünlü Bilmece',
     aciklama: 'Yalnızca saçından tanı',
     Ikon: YuzIkonu,
+  },
+  {
+    id: 'kapak',
+    yol: '/kapak',
+    ad: 'Kapaktan Albüm',
+    aciklama: 'Pikselden netleşen kapağı tanı',
+    Ikon: KapakIkonu,
   },
 ] as const
 

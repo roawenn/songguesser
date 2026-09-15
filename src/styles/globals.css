@@ -787,6 +787,23 @@ button {
 .nk-unlu-kare {
   max-width: 285px;
 }
+/*
+ * Kapak oyununun karesi. Ünlü görseliyle aynı genişlik: iki oyun arasında
+ * geçen oyuncu sahneyi aynı yerde görsün. Kare 3:5'ten kısa olduğu için
+ * yükseklik bütçesine dokunmuyor.
+ */
+.nk-kapak-kare {
+  max-width: 285px;
+}
+/* Yeni netlik kademesi inerken yumuşak beliriş — yalnızca opaklık (compositor). */
+@keyframes nk-kapak-gelis {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
 @media (min-width: 900px) {
   /*
    * ⚠️ Yalnızca masaüstünde. Medya sorgusu dışındayken `.nk-unlu .nk-giris`
@@ -835,6 +852,10 @@ button {
    */
   .nk-unlu-kare {
     max-width: 165px;
+  }
+  /* Kare ünlü görselinden kısa: aynı ilk-ekran bütçesinde daha geniş sığıyor. */
+  .nk-kapak-kare {
+    max-width: 230px;
   }
   /*
    * ⚠️ Telefonda ipucu NORMAL AKIŞTA. Mutlak konumda altındaki "Zorluk"

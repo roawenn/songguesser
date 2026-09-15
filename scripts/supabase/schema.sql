@@ -431,3 +431,15 @@ returns table (id text, tier smallint) language sql stable as $secunlu$
     and (p_kategori is null or u.category = p_kategori)
   order by u.tier, random()
 $secunlu$;
+
+-- ---------------------------------------------------------------------------
+-- Kapaktan Albüm oyunu
+-- ---------------------------------------------------------------------------
+-- Albüm adı: iTunes `collectionName` HAM hâliyle ("… - Single", "(Deluxe)").
+-- Temizleme kodda (`src/text/album.ts`); ham veri saklanıyor ki temizleme
+-- kuralı değişince 15 bin şarkıyı Apple'a yeniden sormak gerekmesin.
+--
+-- ⚠️ `null` = henüz sorulmadı · `''` = Apple'da bulunamadı (mağazadan kalkmış).
+-- Ayrım doldurma betiğinin yeniden çalıştırılabilir olması için şart:
+-- `null` olanlar tekrar sorulur, `''` olanlar sorulmaz ve oyuna girmez.
+alter table public.songs add column if not exists album text;

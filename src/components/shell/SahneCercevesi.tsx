@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from 'react'
 import { Backdrop } from '../stage/Backdrop'
 import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
 import { MobilMenu } from './MobilMenu'
-import { OyunSeridi } from './OyunSeridi'
+import { OyunSeridi, type OyunId } from './OyunSeridi'
 import { useOlcek } from './useOlcek'
 import { olay } from '@/lib/olay'
 
@@ -46,8 +46,8 @@ interface Props {
   /** Sağ sütun: ayarlar + nasıl oynanır. */
   sag: ReactNode
 
-  /** Alt şeritte hangi oyun seçili. */
-  aktifOyun: 'sarki' | 'unlu'
+  /** Oyun seçicide hangi oyun seçili. */
+  aktifOyun: OyunId
   /**
    * Sanatçı modu (yalnızca şarkı oyunu). Masaüstünde kategori listesinin başlık
    * satırında, telefonda kategori şeridinin üstünde gösterilir; ✕ ile çıkılır.
