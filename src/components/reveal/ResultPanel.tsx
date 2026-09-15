@@ -10,6 +10,7 @@ import { encodeShare, marksOf, type Mark } from '@/game/share'
 import { isabet } from '@/game/stats'
 import { useShallow } from 'zustand/react/shallow'
 import { useStatsStore } from '@/store/useStatsStore'
+import { olay } from '@/lib/olay'
 import { Confetti } from './Confetti'
 
 interface Props {
@@ -435,6 +436,7 @@ export function ResultPanel({
         */}
         <a
           href={kare}
+          onClick={() => olay('story_indirildi', { oyun: 'sarki' })}
           download="tahmin-net.png"
           target="_blank"
           rel="noreferrer"

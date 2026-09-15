@@ -55,6 +55,20 @@ export default function HakkindaPage() {
         </section>
 
         <section>
+          <h2 className="mb-2 text-lg font-semibold text-ink-0">Çerezler ve veriler</h2>
+          <p>
+            Çerez kullanmıyoruz; hesap da yok. İstatistiklerin (isabet, seri, kademe
+            dağılımı) yalnızca kendi tarayıcında durur, bize gönderilmez.
+          </p>
+          <p className="mt-3">
+            Sitenin hangi bölümlerinin oynandığını görmek için çerezsiz ve kişiyi
+            tanımlamayan <strong className="text-ink-0">Umami</strong> analitiği kullanıyoruz.
+            Gönderilen yalnızca toplu bilgiler: hangi seçki ve zorluk oynandı, tur bilindi mi.
+            Yazdığın tahminler ve düello kodları gönderilmez.
+          </p>
+        </section>
+
+        <section>
           <h2 className="mb-2 text-lg font-semibold text-ink-0">
             İçerik kaldırma ve telif
           </h2>

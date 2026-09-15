@@ -7,6 +7,7 @@ import { useDuello, type DuelloApi } from '@/hooks/useDuello'
 import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useStatsStore } from '@/store/useStatsStore'
+import { olayBirKez } from '@/lib/olay'
 import { chipById, type ChipId } from '@/data/categories'
 import { DUELLO_TUR } from '@/game/duel'
 import { heardLength, MAX_WRONG, wrongCount } from '@/game/machine'
@@ -82,13 +83,22 @@ export function DuelloShell({ kod }: { kod: string }) {
      * kullanıyor, o yüzden ikisi ayrı yazılıyor.
      */
     cevapGonder({ won: state.s === 'won', maliyet: duyulan, ikincil: state.listens })
-    kaydet(`${state.track.id}:${state.s}:${state.steps.length}:${state.listens}`, {
+    const turId = `${state.track.id}:${state.s}:${state.steps.length}:${state.listens}`
+    kaydet(turId, {
       won: state.s === 'won',
       heardSeconds: duyulan,
       listens: state.listens,
       tier: state.track.d,
     })
-  }, [state, cevapGonder, kaydet])
+    olayBirKez(`duello-sarki:${turId}`, 'tur_bitti', {
+      oyun: 'sarki',
+      secki: d.chip ?? '',
+      zorluk: state.track.d,
+      sonuc: state.s === 'won' ? 'kazandi' : 'kaybetti',
+      adim: state.steps.length,
+      duello: true,
+    })
+  }, [state, cevapGonder, kaydet, d.chip])
 
   /*
    * ⚠️ Sahne rengi LOBİNİN çipinden, yerel ayardan DEĞİL.

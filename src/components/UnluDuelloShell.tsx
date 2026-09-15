@@ -9,6 +9,7 @@ import { useDuello } from '@/hooks/useDuello'
 import { useUnluTur } from '@/hooks/useUnluTur'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useUnluStatsStore } from '@/store/useUnluStatsStore'
+import { olayBirKez } from '@/lib/olay'
 import { GuessInput } from './guess/GuessInput'
 import { GuessLog } from './guess/GuessLog'
 import { Backdrop } from './stage/Backdrop'
@@ -63,12 +64,21 @@ export function UnluDuelloShell({ kod }: { kod: string }) {
      * ne ise burada bu. `ikincil` ünlüde kullanılmıyor.
      */
     cevapGonder({ won: durum.s === 'won', maliyet: durum.acilan, ikincil: 0 })
-    kaydet(`${durum.kisi.id}:${durum.s}:${durum.acilan}`, {
+    const turId = `${durum.kisi.id}:${durum.s}:${durum.acilan}`
+    kaydet(turId, {
       won: durum.s === 'won',
       tier: durum.kisi.d,
       acilan: durum.acilan,
     })
-  }, [durum, cevapGonder, kaydet])
+    olayBirKez(`duello-unlu:${turId}`, 'tur_bitti', {
+      oyun: 'unlu',
+      secki: d.chip ?? '',
+      zorluk: durum.kisi.d,
+      sonuc: durum.s === 'won' ? 'kazandi' : 'kaybetti',
+      adim: durum.acilan,
+      duello: true,
+    })
+  }, [durum, cevapGonder, kaydet, d.chip])
 
   // ⚠️ Sahne rengi LOBİNİN çipinden — yerel ayardan değil.
   const chip = unluChipById((d.chip as UnluChipId | null) ?? 'unlu-karisik')

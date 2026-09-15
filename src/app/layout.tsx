@@ -1,7 +1,23 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import { Instrument_Serif, IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google'
 import '../styles/globals.css'
 import { SITE_URL } from '@/lib/siteUrl'
+
+/** Umami Cloud site kimliği — tanımsızsa analitik hiç yüklenmez (bkz. `lib/olay.ts`). */
+const UMAMI_ID = process.env.NEXT_PUBLIC_UMAMI_ID
+
+/**
+ * Umami'ye gitmeden önce her yükü süzen işlev (`data-before-send`).
+ *
+ * - Yönetim paneli hiç sayılmaz: tek kişinin çalışma trafiği oyuncu verisini bozar.
+ * - Düello ve paylaşım kodları TEK kalıba indirilir. Düello kodu bir lobiye giriş
+ *   bileti; analitik paneline binlerce ayrı URL olarak düşmesi hem gürültü hem
+ *   gereksiz bir sızıntı olurdu.
+ *
+ * ⚠️ Satır içi betik: CSP `script-src 'unsafe-inline'` zaten açık (bkz. next.config).
+ */
+const UMAMI_SUZGEC = `window.nkUmamiSuzgec=function(t,p){if(!p||typeof p.url!=='string')return p;if(p.url.indexOf('/yonetim')===0)return false;p.url=p.url.replace(/^\\/duello\\/[^/?#]+/,'/duello/[kod]').replace(/^\\/paylas\\/[^/?#]+/,'/paylas/[kod]');return p}`
 
 // ⚠️ 'latin-ext' ZORUNLU. Yalnızca 'latin' ile ğ, ş, İ, ı, Ş, Ğ sessizce düşer
 // ve tam da en önemli kelimelerde yedek font karmaşası oluşur.
@@ -93,7 +109,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="" />
         )}
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/*
+          Çerezsiz analitik — yalnızca üretimde ve kimlik tanımlıysa.
+          `data-domains`: önizleme dağıtımları ve yerel üretim derlemeleri
+          canlı veriyi kirletmesin. `data-exclude-search`: sorgu dizeleri
+          (ör. `?secki=`) sayfa sayısını parçalamasın; seçki zaten olayda var.
+        */}
+        {process.env.NODE_ENV === 'production' && UMAMI_ID && (
+          <>
+            <Script id="nk-umami-suzgec" strategy="afterInteractive">
+              {UMAMI_SUZGEC}
+            </Script>
+            <Script
+              src="/u/s.js"
+              strategy="afterInteractive"
+              data-website-id={UMAMI_ID}
+              data-host-url="/u"
+              data-domains={new URL(SITE_URL).hostname}
+              data-exclude-search="true"
+              data-before-send="nkUmamiSuzgec"
+            />
+          </>
+        )}
+      </body>
     </html>
   )
 }

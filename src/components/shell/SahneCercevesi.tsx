@@ -6,6 +6,7 @@ import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
 import { MobilMenu } from './MobilMenu'
 import { OyunSeridi } from './OyunSeridi'
 import { useOlcek } from './useOlcek'
+import { olay } from '@/lib/olay'
 
 /**
  * İki oyunun paylaştığı dış iskelet.
@@ -81,6 +82,15 @@ export function SahneCercevesi({
   // sayfanın tamamı büyüyüp küçülüyor.
   useOlcek()
 
+  /*
+   * Seçki değişimi TEK yerden geçiyor (liste ve mobil şerit ikisi de burayı
+   * çağırıyor); analitik de burada. Zaten seçili çipe tekrar dokunmak sayılmaz.
+   */
+  const seckiSec = (id: string) => {
+    if (id !== secili) olay('secki_degisti', { oyun: aktifOyun, secki: id })
+    onSecki(id)
+  }
+
   return (
     <div
       className="themed"
@@ -147,7 +157,7 @@ export function SahneCercevesi({
             <OyunSeridi aktif={aktifOyun} />
           </div>
           <div className="nk-yalniz-mobil" style={{ width: '100%' }}>
-            <CategoryStrip chips={cipler} category={secili} onCategory={onSecki} />
+            <CategoryStrip chips={cipler} category={secili} onCategory={seckiSec} />
           </div>
         </div>
 
@@ -161,7 +171,7 @@ export function SahneCercevesi({
             {/* Üç sütun: kategoriler + istatistik · sahne · ayarlar + kurallar. */}
             <div className="nk-stage-grid">
               <div className="nk-side">
-                <KategoriListesi chips={cipler} category={secili} onCategory={onSecki} />
+                <KategoriListesi chips={cipler} category={secili} onCategory={seckiSec} />
                 {sol}
               </div>
               {orta}

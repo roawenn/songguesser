@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { anahtarYaz } from '@/lib/duelloAnahtar'
+import { olay, olayBirKez } from '@/lib/olay'
 import { UNLU_CHIPS, unluChipById, type UnluChipId } from '@/data/categories'
 import { SERIT, unluSatiri } from '@/data/unlu'
 import { kalanHak, turBitti, turIcinde } from '@/game/unluMachine'
@@ -67,6 +68,7 @@ export function UnluShell() {
       const d = (await res.json()) as { kod?: string; gizli?: string; error?: string }
       if (!res.ok || !d.kod || !d.gizli) throw new Error(d.error ?? 'Lobi kurulamadı.')
       anahtarYaz(d.kod, d.gizli)
+      olay('duello_kuruldu', { oyun: 'unlu', secki: kategori })
       router.push(`/duello/${d.kod}`)
     } catch (e) {
       setDuelloHata((e as Error).message)
@@ -81,12 +83,22 @@ export function UnluShell() {
   // Biten turu istatistiğe yaz. Çift kayıt koruması depoda.
   useEffect(() => {
     if (!turBitti(durum)) return
-    kaydet(`${durum.kisi.id}:${durum.s}:${durum.acilan}`, {
+    const turId = `${durum.kisi.id}:${durum.s}:${durum.acilan}`
+    kaydet(turId, {
       won: durum.s === 'won',
       tier: durum.kisi.d,
       acilan: durum.acilan,
     })
-  }, [durum, kaydet])
+    // Zorluk: oyuncunun SEÇTİĞİ kademe — "hangi zorluk oynanıyor" sorusu bu.
+    olayBirKez(`unlu:${turId}`, 'tur_bitti', {
+      oyun: 'unlu',
+      secki: kategori,
+      zorluk: kademe,
+      sonuc: durum.s === 'won' ? 'kazandi' : 'kaybetti',
+      adim: durum.acilan,
+      duello: false,
+    })
+  }, [durum, kaydet, kategori, kademe])
 
   const chip = unluChipById(kategori)
   const steps = 'steps' in durum ? durum.steps : []

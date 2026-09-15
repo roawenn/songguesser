@@ -51,6 +51,24 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  /**
+   * Umami analitiği KENDİ alan adımızdan geçiyor.
+   *
+   * ⚠️ Doğrudan yüklenseydi CSP'ye iki dış alan adı eklemek gerekirdi ve
+   * reklam engelleyiciler `umami` adresini tanıyıp istekleri keserdi.
+   * Aracı yönlendirmeyle betik ve veri `'self'` sayılıyor, CSP değişmiyor.
+   *
+   * ⚠️ Toplama ucu `cloud.umami.is` DEĞİL `gateway.umami.is`: bulut betiğinin
+   * içinde gömülü adres o (betik indirilip doğrulandı). Betik `data-host-url`
+   * ile `/u`'ya yönlendiriliyor, `/u/api/send` de buraya düşüyor.
+   */
+  async rewrites() {
+    return [
+      { source: '/u/s.js', destination: 'https://cloud.umami.is/script.js' },
+      { source: '/u/api/send', destination: 'https://gateway.umami.is/api/send' },
+    ]
+  },
+
   async headers() {
     return [
       {

@@ -7,6 +7,7 @@ import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useStatsStore } from '@/store/useStatsStore'
 import { anahtarYaz } from '@/lib/duelloAnahtar'
+import { olay, olayBirKez } from '@/lib/olay'
 import { chipById, CHIPS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { heardLength, MAX_WRONG, wrongCount  } from '@/game/machine'
@@ -63,6 +64,7 @@ export function GameShell() {
       const d = (await res.json()) as { kod?: string; gizli?: string; error?: string }
       if (!res.ok || !d.kod || !d.gizli) throw new Error(d.error ?? 'Lobi kurulamadı.')
       anahtarYaz(d.kod, d.gizli)
+      olay('duello_kuruldu', { oyun: 'sarki', secki: settings.category })
       router.push(`/duello/${d.kod}`)
     } catch (e) {
       setDuelloHata((e as Error).message)
@@ -122,13 +124,23 @@ export function GameShell() {
   const kaydet = useStatsStore((s) => s.kaydet)
   useEffect(() => {
     if (state.s !== 'won' && state.s !== 'lost') return
-    kaydet(`${state.track.id}:${state.s}:${state.steps.length}:${state.listens}`, {
+    const turId = `${state.track.id}:${state.s}:${state.steps.length}:${state.listens}`
+    kaydet(turId, {
       won: state.s === 'won',
       tier: settings.tier,
       heardSeconds: heardLength(state.heardIndex, state.ladder),
       listens: state.listens,
     })
-  }, [state, settings.tier, kaydet])
+    // Aynı anahtar: kademe yükselip etki yeniden çalışınca tur İKİ KEZ sayılmasın.
+    olayBirKez(`sarki:${turId}`, 'tur_bitti', {
+      oyun: 'sarki',
+      secki: settings.category,
+      zorluk: settings.tier,
+      sonuc: state.s === 'won' ? 'kazandi' : 'kaybetti',
+      adim: state.steps.length,
+      duello: false,
+    })
+  }, [state, settings.tier, settings.category, kaydet])
 
   /**
    * Ekran okuyucu için tur anlatımı.
