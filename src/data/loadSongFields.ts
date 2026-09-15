@@ -43,10 +43,38 @@ export async function alanlariAl(id: string): Promise<CalinabilirAlanlar | null>
   return onbellek.get(id) ?? null
 }
 
-/** Sıradaki şarkı için arka planda doldur — sonucu beklenmez. */
-export function alanlariIsit(id: string): void {
-  if (onbellek.has(id) || ucusta.has(id)) return
-  void alanlariAl(id).catch(() => undefined)
+/**
+ * Verilen kimlikleri arka planda doldurur — sonucu beklenmez.
+ *
+ * ⚠️ TEK istek atılır: tur kurulumunda iki aday ısıtılıyor (aynı kademe ve bir
+ * üst kademe, bkz. `useRound`) ve ikisi için ayrı istek atmak, kazanılan
+ * gidiş-dönüşün yarısını geri verirdi.
+ *
+ * ⚠️ Uçuştaki söz HER kimliğe ayrı ayrı bağlanmalı: yalnızca ilkine bağlansaydı
+ * hemen ardından gelen `alanlariAl(ikinci)` çağrısı ikinci bir istek atardı.
+ */
+export function alanlariIsit(ids: string | string[]): void {
+  const liste = (typeof ids === 'string' ? [ids] : ids).filter(
+    (id) => !onbellek.has(id) && !ucusta.has(id),
+  )
+  if (liste.length === 0) return
+
+  const soz = getir(liste).finally(() => {
+    for (const id of liste) ucusta.delete(id)
+  })
+  soz.catch(() => undefined)
+  for (const id of liste) ucusta.set(id, soz)
+}
+
+/**
+ * Önbellekten SENKRON okur; ağa gitmez, yoksa `null`.
+ *
+ * ⚠️ Bunun senkron olması şart: "Sıradaki şarkı" dokunuşunun içinde, hiçbir
+ * `await` olmadan indirmeyi başlatmak için kullanılıyor (iOS medya baytlarını
+ * yalnızca gesture içinde çekiyor — bkz. `audio/context.ts`).
+ */
+export function alanlarOnbellekten(id: string): CalinabilirAlanlar | null {
+  return onbellek.get(id) ?? null
 }
 
 /** Şarkıyı alanlarıyla birleştirir. Alanlar yoksa şarkı olduğu gibi döner. */

@@ -104,6 +104,17 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
 
   const oynanan = useRef<Set<string>>(new Set())
   const sonraki = useRef<Unlu | null>(null)
+  /**
+   * BİR ÜST kademenin adayı — oyuncu bilirse kademe oraya yükseliyor.
+   *
+   * ⚠️ Şarkı oyunundaki hatanın aynısı buradaydı: `filterByTier` tam kademe
+   * eşleşmesi yaptığı için kazanınca önyüklenen kişi her seferinde eleniyor ve
+   * indirilen görsel çöpe gidiyordu (bkz. `useRound`). Görsel ancak tur
+   * kazanıldığı anda indirilir; kaybedilen turlarda boşa veri harcanmaz.
+   */
+  const sonrakiUst = useRef<Unlu | null>(null)
+  /** Sonuç belli olunca çivilenen aday — `pickNext` onu ezmesin. */
+  const sabitAday = useRef<Unlu | null>(null)
   const turToken = useRef(0)
   const yanlisHandler = useRef<(() => void) | null>(null)
 
@@ -120,6 +131,8 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
     dispatch({ type: 'RESET' })
     oynanan.current = new Set()
     sonraki.current = null
+    sonrakiUst.current = null
+    sabitAday.current = null
 
     void loadUnluChip(kategori)
       .then((liste) => {
@@ -143,6 +156,19 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
   const dizilimIndex = opts?.index ?? 0
 
   const suzulmus = useMemo(() => filterByTier(havuz, kademe), [havuz, kademe])
+
+  /**
+   * Kazanılırsa oynanacak kademenin havuzu.
+   *
+   * ⚠️ `turBaslat` bağımlılıksız bir `useCallback`; liste bu yüzden ref
+   * üzerinden okunuyor, yoksa kimliği değişince tur iki kez kurulurdu.
+   */
+  const ustListe = useMemo(
+    () => (kademe < 5 ? filterByTier(havuz, (kademe + 1) as Difficulty) : []),
+    [havuz, kademe],
+  )
+  const ustListeRef = useRef<Unlu[]>([])
+  ustListeRef.current = ustListe
   /*
    * ⚠️ Bu ENGEL DEĞİL, yalnızca uyarı — ve bir zamanlar engeldi:
    * `suzulmus.length < MIN_PLAYABLE` ise oyun "Bu zorlukta oynanacak kadar
@@ -193,7 +219,8 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
         return
       }
 
-      let kisi = zorlanan ?? sonraki.current
+      let kisi = zorlanan ?? sabitAday.current ?? sonraki.current
+      sabitAday.current = null
       sonraki.current = null
       if (!kisi || !liste.some((u) => u.id === kisi!.id)) {
         const sec = pickNext(liste, oynanan.current)
@@ -239,6 +266,16 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
         sonraki.current = aday
         void gorselHazirla(storagePublicUrlIstemci(unluGorselYolu(aday)))
       }
+
+      // Kazanılırsa oynanacak aday; görseli ancak kazanıldığı anda indirilir.
+      sonrakiUst.current = zorlanan
+        ? null
+        : (() => {
+            const liste2 = ustListeRef.current
+            if (liste2.length === 0) return null
+            const a = pickNext(liste2, oynanan.current)
+            return a && !a.recycled ? a.song : null
+          })()
     },
     [],
   )
@@ -258,6 +295,17 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
   }, [suzulmus, yukleniyor, turBaslat, dizilim, dizilimIndex])
 
   // --- eylemler ---
+  /**
+   * Tur KAZANILDI: sıradaki turun adayını üst kademeninkiyle değiştir ve
+   * görselini indirmeye başla. Oyuncu sonuç kartını okurken yetişiyor.
+   */
+  const hedefleAday = useCallback(() => {
+    const ust = sonrakiUst.current
+    if (!ust) return
+    sabitAday.current = ust
+    void gorselHazirla(storagePublicUrlIstemci(unluGorselYolu(ust)))
+  }, [])
+
   const yanlisIsle = useCallback((text: string) => {
     dispatch({ type: 'WRONG', text })
     yanlisHandler.current?.()
@@ -267,21 +315,26 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
     (raw: string): Verdict<Unlu> => {
       if (!turIcinde(durum)) return { kind: 'empty' }
       const v = judgeGuess(raw, durum.kisi, evren, { easySearch })
-      if (v.kind === 'correct') dispatch({ type: 'CORRECT' })
+      if (v.kind === 'correct') {
+        dispatch({ type: 'CORRECT' })
+        hedefleAday()
+      }
       else if (v.kind === 'wrong') yanlisIsle(raw)
       else if (v.kind === 'ambiguous') setBelirsiz(v.candidates)
       return v
     },
-    [durum, evren, easySearch, yanlisIsle],
+    [durum, evren, easySearch, yanlisIsle, hedefleAday],
   )
 
   const kisiSec = useCallback(
     (u: Unlu) => {
       if (!turIcinde(durum)) return
-      if (u.id === durum.kisi.id) dispatch({ type: 'CORRECT' })
-      else yanlisIsle(u.ad)
+      if (u.id === durum.kisi.id) {
+        dispatch({ type: 'CORRECT' })
+        hedefleAday()
+      } else yanlisIsle(u.ad)
     },
-    [durum, yanlisIsle],
+    [durum, yanlisIsle, hedefleAday],
   )
 
   const pas = useCallback(() => {

@@ -13,7 +13,8 @@
  */
 import { getGraph, isUnlocked, unlock } from './context'
 import { getLanes, loadSource, type Lane } from './deck'
-import { FADE_IN, FADE_OUT, TAIL, planClip, MAX_CLIP, previewIsLongEnough } from './envelope'
+import { seritSec } from './seritler'
+import { armPenceresi, FADE_IN, FADE_OUT, TAIL, planClip, MAX_CLIP, previewIsLongEnough } from './envelope'
 import { MAX_STEP } from '@/game/ladder'
 
 export type ArmResult = 'ready' | 'stalled' | 'dead-url' | 'unsupported'
@@ -36,6 +37,15 @@ export interface PlayerSnapshot {
 }
 
 const ARM_TIMEOUT_MS = 8000
+
+/**
+ * Uzun kademede çalmadan önce arabelleğin dolması için beklenecek en uzun süre.
+ *
+ * ⚠️ Kısa tutuldu: bu süre boyunca düğme "çalıyor" görünüyor ama ses yok.
+ * Beklemek yerine takılma mesajı göstermek daha kötüydü; sonsuza kadar
+ * beklemek ise en kötüsü olurdu.
+ */
+const PLAY_BUFFER_TIMEOUT_MS = 1500
 
 /** Zarf omuzlarının dışında kalan payı da içeren ölü adam şalteri. */
 const DEADMAN_EXTRA_MS = 500
@@ -145,12 +155,19 @@ class ClipPlayer {
     this.armed = track
     this.emit('arming', 0)
 
-    const lane = lanes[this.active]!
+    const lane = this.ensureLane(track.url)
     const plan = planClip(track.clipStart, MAX_CLIP)
 
     try {
       loadSource(lane, track.url)
-      await waitForEvent(lane.el, 'loadedmetadata', ARM_TIMEOUT_MS, signal)
+      /*
+       * ⚠️ Beklemeler KOŞULLU: `loadSource` aynı URL'de arabelleği koruyup
+       * `load()` çağırmıyor (bkz. `deck.ts`). O durumda `loadedmetadata`
+       * bir daha ASLA tetiklenmez ve koşulsuz bekleme 8 saniye askıda kalırdı.
+       */
+      if (lane.el.readyState < 1) {
+        await waitForEvent(lane.el, 'loadedmetadata', ARM_TIMEOUT_MS, signal)
+      }
 
       /**
        * Gerçek süreyi öğrendik; merdiveni taşıyamıyorsa reddet.
@@ -170,12 +187,21 @@ class ClipPlayer {
         return 'dead-url'
       }
 
-      lane.el.currentTime = plan.seekTo
-      await waitForEvent(lane.el, 'seeked', ARM_TIMEOUT_MS, signal)
+      if (Math.abs(lane.el.currentTime - plan.seekTo) > 0.01) {
+        lane.el.currentTime = plan.seekTo
+        await waitForEvent(lane.el, 'seeked', ARM_TIMEOUT_MS, signal)
+      }
 
-      // Buffer kapısı: `canplaythrough` motorlar arası tutarsız tetiklenir,
-      // bu yüzden gerçekten arabelleklenmiş aralığı doğruluyoruz.
-      await waitForBuffer(lane.el, plan.seekTo, Math.min(plan.clipStart + MAX_CLIP, duration), ARM_TIMEOUT_MS, signal)
+      /*
+       * Buffer kapısı: `canplaythrough` motorlar arası tutarsız tetiklenir,
+       * bu yüzden gerçekten arabelleklenmiş aralığı doğruluyoruz.
+       *
+       * ⚠️ Kapı `ARM_BUFFER` kadar (bkz. `envelope.ts`), merdivenin tavanı
+       * kadar DEĞİL: tur, ilk kademeyi çalmaya yetecek veri inince açılıyor.
+       * Uzun kademeler gerekirse `play()` içinde bekliyor.
+       */
+      const pencere = armPenceresi(track.clipStart, duration)
+      await waitForBuffer(lane.el, pencere.from, pencere.to, ARM_TIMEOUT_MS, signal)
 
       this.emit('ready', 0)
       return 'ready'
@@ -187,7 +213,27 @@ class ClipPlayer {
     }
   }
 
-  /** Sıradaki şarkıyı arka şeride önyükler (iOS için gesture içinden çağrılmalı). */
+  /**
+   * Etkin şeridi seçer: URL'i zaten tutan şerit varsa o, yoksa boştaki.
+   *
+   * ⚠️ `swapLanes()`'in yerine geçti. Körlemesine takas, çağıranın boştaki
+   * şeritte doğru şarkının durduğunu VARSAYMASI demekti; kazanınca kademe
+   * yükseldiği ve aday değiştiği için varsayım tutmuyordu. Ayrıca ikinci bir
+   * tıklama takası geri alıp hazır arabelleği çöpe atıyordu.
+   */
+  private ensureLane(url: string): Lane {
+    const lanes = getLanes()
+    if (!lanes) throw new Error('şerit yok')
+    const secim = seritSec(
+      this.active,
+      lanes.map((l) => ({ kaynak: l.kaynak, hataVar: l.el.error !== null, duraklamis: l.el.paused })),
+      url,
+    )
+    this.active = secim
+    return lanes[secim]!
+  }
+
+  /** Sıradaki şarkıyı boştaki şeride önyükler. */
   prefetch(track: ArmTrack): void {
     const lanes = getLanes()
     if (!lanes) return
@@ -195,9 +241,31 @@ class ClipPlayer {
     loadSource(idle, track.url)
   }
 
-  /** Sonraki tura geçerken şeritleri takas eder. */
-  swapLanes(): void {
-    this.active = this.active === 0 ? 1 : 0
+  /**
+   * İndirmeyi KULLANICI DOKUNUŞUNUN İÇİNDE başlatır.
+   *
+   * ⚠️ iOS `preload="auto"`yu yok sayıyor ve medya baytlarını ancak bir
+   * gesture içinde çekmeye başlıyor (bkz. `context.ts`). Tur kurulumu bir
+   * efektten çağrıldığı için indirme dokunuşun dışında kalıyordu; burada
+   * "Sıradaki şarkı" tıklamasının içinden, `await` olmadan başlatılıyor.
+   *
+   * ⚠️ `pause()` SENKRON: `play().then(() => pause())` yazılırsa duraklatma
+   * bir mikro-göreve ertelenip asıl klibi ortasından keser ("The play() request
+   * was interrupted") ve kullanıcı bunu "bağlantı takıldı" sanır.
+   */
+  primeFromGesture(track: ArmTrack): void {
+    if (this.snapshot.status === 'playing') return
+    const lanes = getLanes()
+    if (!lanes) return
+    const lane = this.ensureLane(track.url)
+    loadSource(lane, track.url)
+    try {
+      const p = lane.el.play() as Promise<void> | undefined
+      lane.el.pause()
+      p?.catch(() => undefined)
+    } catch {
+      // Tarayıcı izin vermediyse tur kurulumu yine de indirmeyi başlatır.
+    }
   }
 
   // ---------- çalma ----------
@@ -217,6 +285,26 @@ class ClipPlayer {
     this.emit('playing', length)
 
     try {
+      /*
+       * Uzun kademe için veri yetmiyorsa KISA bir bekleme.
+       *
+       * Kurulum yalnızca `ARM_BUFFER` kadar ses bekliyor; 5 ve 10 saniyelik
+       * kademelerde yavaş bir hatta klip ortasında veri bitebilir. Gözcü bunu
+       * takılma sayıp kademeyi tüketmiyor ama oyuncuya "bağlantı takıldı"
+       * yazıyordu — oysa beklemek çoğu zaman birkaç yüz milisaniye.
+       *
+       * ⚠️ Yalnızca senkron ön kontrol başarısızsa bekleniyor: arabellek
+       * doluysa hiç `await` yok, iOS'ta `play()` kullanıcı dokunuşunun
+       * içinde kalıyor. Zaman aşımında yine çalınıyor, gözcü koruması yerinde.
+       */
+      const gereken = Math.min(plan.clipStart + plan.totalAfterStart, this.armed.duration)
+      if (!bufferedCovers(lane.el, plan.seekTo, gereken)) {
+        try {
+          await waitForBuffer(lane.el, plan.seekTo, gereken, PLAY_BUFFER_TIMEOUT_MS, new AbortController().signal)
+        } catch {
+          // Yetişmedi: yine de çal, gözcü gerekirse takılma der.
+        }
+      }
       // Her kademe aynı noktadan başlar: kademeler İÇ İÇE olmalı, yoksa
       // oyuncu bilgi biriktiremez ve kademeli açılım fikri çöker.
       lane.el.currentTime = plan.seekTo

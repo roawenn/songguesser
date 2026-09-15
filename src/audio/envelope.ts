@@ -54,6 +54,20 @@ export const DEFAULT_CLIP_START = 0.325
 /** Merdivenin çıkabileceği en uzun klip. */
 export const MAX_CLIP = MAX_STEP
 
+/**
+ * Turu AÇMAK için yeterli arabellek (sn) — merdivenin TAVANI DEĞİL.
+ *
+ * ⚠️ Kurulum eskiden {@link MAX_CLIP} (10 sn) kadar kesintisiz ses beklerdi.
+ * Ölçüldü: önizlemeler ~285 kbit/s, yani kapı ≈358 KB — oysa ilk kademe 0,5 sn
+ * (≈18 KB) çalıyor. 800 kbit/s'lik bir hatta bu tek başına 3,6 sn, 350 kbit/s'de
+ * 8,2 sn sürüyordu; ikincisi `ARM_TIMEOUT_MS`'i aşıp oyuncuya kendi ağını
+ * suçlayan "Bağlantı takıldı" ekranını gösteriyordu.
+ *
+ * 2,5 sn ilk üç kademeyi (0,5 · 1 · 2) kuyruğuyla birlikte karşılıyor. Daha
+ * uzun kademeler için `play()` gerekirse kısa süre bekliyor (bkz. ClipPlayer).
+ */
+export const ARM_BUFFER = 2.5
+
 export interface ClipWindow {
   /** Elemanın seek edileceği medya zamanı. */
   seekTo: number
@@ -73,6 +87,18 @@ export function planClip(clipStart: number, length: number): ClipWindow {
     length,
     totalAfterStart: length + FADE_OUT + TAIL,
   }
+}
+
+/**
+ * Kurulumda arabelleklenmesi beklenen medya aralığı.
+ *
+ * ⚠️ `previewIsLongEnough` bundan BAĞIMSIZ ve hâlâ {@link MAX_CLIP} ile
+ * çağrılıyor: o kontrol medyanın UZUNLUĞU hakkında. Düşürülürse kısa
+ * önizlemeli parçalar son kademede medyanın sonuna koşar (bkz. ClipPlayer).
+ */
+export function armPenceresi(clipStart: number, duration: number): { from: number; to: number } {
+  const p = planClip(clipStart, ARM_BUFFER)
+  return { from: p.seekTo, to: Math.min(p.clipStart + ARM_BUFFER, duration) }
 }
 
 /** Bir şarkının preview süresi bu merdiveni taşıyabiliyor mu? */

@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { SERIT } from '@/data/unlu'
 import { useUnluStatsStore } from '@/store/useUnluStatsStore'
 import { Confetti } from './Confetti'
+import { useSonrakiKilit } from './sonrakiKilit'
 
 /**
  * Ünlü turunun sonuç kartı.
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function UnluSonucPanel({ ad, gorselUrl, kazandi, acilan, reduce, onSonraki }: Props) {
+  const sonraki = useSonrakiKilit(onSonraki)
   const kaynak = useRef<HTMLDivElement>(null)
   const { oynanan, kazanilan, seri } = useUnluStatsStore(
     useShallow((s) => ({ oynanan: s.oynanan, kazanilan: s.kazanilan, seri: s.seri })),
@@ -105,8 +107,14 @@ export function UnluSonucPanel({ ad, gorselUrl, kazandi, acilan, reduce, onSonra
         <span>{seri} seri</span>
       </div>
 
-      <button type="button" onClick={onSonraki} autoFocus className="nk-sonraki" style={SONRAKI}>
-        Sıradaki ünlü
+      <button
+        type="button"
+        autoFocus
+        className="nk-sonraki"
+        {...sonraki.ozellikler}
+        style={{ ...SONRAKI, minWidth: 170, opacity: sonraki.basildi ? 0.72 : 1 }}
+      >
+        {sonraki.basildi ? 'yükleniyor…' : 'Sıradaki ünlü'}
       </button>
 
       <style>{`

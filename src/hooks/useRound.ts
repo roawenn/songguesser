@@ -1,12 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { clipPlayer } from '@/audio/ClipPlayer'
 import { installResumeHandlers } from '@/audio/context'
 import { loadChip } from '@/data/loadPool'
-import { alanlariAl, birlestir } from '@/data/loadSongFields'
+import { alanlariAl, alanlariIsit, alanlarOnbellekten, birlestir } from '@/data/loadSongFields'
 import type { Song } from '@/data/schema'
-import { MIN_PLAYABLE } from '@/data/categories'
+import { MIN_PLAYABLE, type Difficulty } from '@/data/categories'
 import { gameReducer, canPlay, currentClipLength, type GameState } from '@/game/machine'
 import { STEPS } from '@/game/ladder'
 import { pickNext, filterByTier } from '@/game/select'
@@ -110,8 +110,29 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
   const [stalled, setStalled] = useState(false)
   const played = useRef(new Set<string>())
   const wrongHandler = useRef<(() => void) | null>(null)
-  /** Sıradaki tur için önceden seçilip sesi önyüklenmiş şarkı. */
+  /** Sıradaki tur için önceden seçilip sesi önyüklenmiş şarkı (AYNI kademe). */
   const nextUp = useRef<Song | null>(null)
+  /**
+   * BİR ÜST kademenin adayı — oyuncu bilirse kademe oraya yükseliyor.
+   *
+   * ⚠️ İki aday tutmanın sebebi: `filterByTier` tam kademe eşleşmesi yapıyor ve
+   * havuzlar büyük olduğu için `filtered(tier)` ile `filtered(tier+1)` AYRIK.
+   * Tek aday tutulurken KAZANAN oyuncunun adayı her seferinde eleniyor, sesi ve
+   * alanları çöpe gidiyordu — "bildikten sonra sıradaki şarkı geç geliyor"
+   * şikâyetinin kökü buydu. Bu adayın alanları baştan ısıtılıyor (~200 bayt),
+   * sesi ise ancak tur kazanıldığı anda indirilmeye başlıyor.
+   */
+  const nextUpUst = useRef<Song | null>(null)
+  /** Sonuç belli olunca çivilenen aday — `pickNext` onu ezmesin. */
+  const sabitAday = useRef<Song | null>(null)
+  /**
+   * Kurulum sürerken "Sıradaki şarkı" yeniden tetiklenmesin.
+   *
+   * ⚠️ Düğme `autoFocus`: Enter'a basılı tutmak da tekrar tıklama üretiyor ve
+   * her tekrar `roundToken`'ı artırıp süren `arm()`'ı iptal ediyor, kurulum
+   * baştan başlıyordu — yani gecikmeyi kullanıcının kendisi ikiye katlıyordu.
+   */
+  const kilit = useRef(false)
   /**
    * ⚠️ `startRound` bağımlılıksız bir `useCallback`; kimlik değişirse tur
    * başlatma etkisi yeniden tetiklenir ve tur iki kez kurulur. Dizilim bu
@@ -155,6 +176,8 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
         if (cancelled) return
         played.current = new Set()
         nextUp.current = null
+        nextUpUst.current = null
+        sabitAday.current = null
         setPool(songs)
         setLoading(false)
       })
@@ -185,6 +208,20 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
   const filtered = useMemo(() => filterByTier(sanatciHavuzu, tier), [sanatciHavuzu, tier])
 
   /**
+   * Kazanılırsa oynanacak kademenin havuzu.
+   *
+   * ⚠️ `startRound` bağımlılıksız bir `useCallback`; bu yüzden liste ref
+   * üzerinden okunuyor. Bağımlılık olsaydı kimliği her değiştiğinde tur kurulum
+   * etkisi yeniden tetiklenir ve tur iki kez kurulurdu.
+   */
+  const ustListe = useMemo(
+    () => (tier < 5 ? filterByTier(sanatciHavuzu, (tier + 1) as Difficulty) : []),
+    [sanatciHavuzu, tier],
+  )
+  const ustListeRef = useRef<Song[]>([])
+  ustListeRef.current = ustListe
+
+  /**
    * Metin eşleştirmenin gördüğü havuz.
    *
    * ⚠️ Düelloda `filtered`'ın YANINA dizilimin tamamı eklenir. Düello şarkıları
@@ -201,9 +238,17 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
   }, [filtered, sequence])
 
   // Öneri listesi ve belirsizlik koruması yalnızca oynanabilir havuzu görmeli.
+  /*
+   * ⚠️ İndeks ERTELENİYOR. `buildIndex` (uFuzzy + binlerce şarkı) kademe
+   * yükselince tıklama karesinde senkron çalışıyordu; mobil işlemcide
+   * "Sıradaki şarkı" ile turun kurulması arasındaki en görünür senkron kalemdi.
+   * `filtered` acil kaldığı için TUR KURULUMU GECİKMEZ; yalnızca öneri listesi
+   * bir kare sonra hazırlanır ve tahmin kutusu o sırada zaten kapalı.
+   */
+  const ertelenmisEvren = useDeferredValue(universe)
   const index = useMemo(
-    () => (universe.length > 0 ? buildIndex(universe, sarkiSamanligi) : null),
-    [universe],
+    () => (ertelenmisEvren.length > 0 ? buildIndex(ertelenmisEvren, sarkiSamanligi) : null),
+    [ertelenmisEvren],
   )
 
   /**
@@ -229,7 +274,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
 
   // --- tur başlatma ---
   const startRound = useCallback(
-    async (songs: Song[], rungs: number[], tried = 0, forced?: Song) => {
+    async (songs: Song[], rungs: number[], tried = 0, forced?: Song, tekrarlanan?: Song) => {
       const token = ++roundToken.current
       if (tried >= DEAD_URL_LIMIT) {
         dispatch({ type: 'ARM_FAIL', reason: 'offline' })
@@ -244,11 +289,16 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
        * sağlam kalır ve sonraki turda `swapLanes()` onu devralır — iki
        * şeritli deck'in avantajı korunur.
        */
-      let song = forced ?? null
+      let song = forced ?? tekrarlanan ?? null
       if (!song) {
-        // Önceki turda seçilip sesi boştaki şeride yüklenmiş aday varsa onu kullan.
-        // Seçki ya da kademe değiştiyse aday artık geçerli değildir.
-        song = nextUp.current
+        /*
+         * Önce ÇİVİLENEN aday: tur biterken sonucuna göre seçilmiş ve sesi
+         * indirilmeye başlanmış şarkı (bkz. `hedefleAday`, `next`). Yoksa
+         * önceki turda seçilen aynı kademe adayı. Seçki ya da kademe değiştiyse
+         * aşağıdaki liste kontrolü ikisini de eler.
+         */
+        song = sabitAday.current ?? nextUp.current
+        sabitAday.current = null
         nextUp.current = null
         if (!song || !songs.some((s) => s.id === song!.id)) {
           const pick = pickNext(songs, played.current)
@@ -319,29 +369,46 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
               const p = pickNext(songs, played.current)
               return p && !p.recycled ? p.song : null
             })()
+
+        /*
+         * İKİNCİ aday: oyuncu bilirse kademe yükselecek ve `upcoming` o havuzda
+         * olmayacak (bkz. `nextUpUst`). Sesi burada indirilmez — tur
+         * kazanıldığı anda başlar; oyuncu sonuç panelini okurken yetişiyor.
+         */
+        const ustAday = forced
+          ? null
+          : (() => {
+              const liste = ustListeRef.current
+              if (liste.length === 0) return null
+              const p = pickNext(liste, played.current)
+              return p && !p.recycled ? p.song : null
+            })()
+
+        nextUp.current = upcoming
+        nextUpUst.current = ustAday
+
+        /*
+         * ⚠️ İki adayın ALANLARI da şimdiden, TEK istekte çekilir. Bu olmadan
+         * her tur başlangıcı ~200 baytlık bir istek beklerdi; ayrı ayrı
+         * istenseydi kazanılan gidiş-dönüşün yarısı geri verilirdi.
+         */
+        const isitilacak = [upcoming, ustAday]
+          .filter((s): s is Song => Boolean(s) && !s!.p)
+          .map((s) => s.id)
+        if (isitilacak.length > 0) alanlariIsit(isitilacak)
+
         if (upcoming) {
-          nextUp.current = upcoming
-          /*
-           * ⚠️ Sıradaki şarkının ALANLARI da şimdiden çekilir. Bu olmadan her
-           * tur başlangıcı ~200 baytlık bir istek beklerdi; böylece yalnızca
-           * oturumun ilk turu bekliyor.
-           */
-          if (upcoming.p) {
+          const sesiIndir = (url: string) =>
             clipPlayer.prefetch({
               id: upcoming.id,
-              url: upcoming.p,
+              url,
               clipStart: upcoming.cs,
               duration: upcoming.du,
             })
-          } else {
+          if (upcoming.p) sesiIndir(upcoming.p)
+          else {
             void alanlariAl(upcoming.id).then((alan) => {
-              if (!alan) return
-              clipPlayer.prefetch({
-                id: upcoming.id,
-                url: alan.p,
-                clipStart: upcoming.cs,
-                duration: upcoming.du,
-              })
+              if (alan) sesiIndir(alan.p)
             })
           }
         }
@@ -357,6 +424,14 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
         }
         // Ölü URL: bu şarkıyı atla, oyuncuya hiç göstermeden sonrakine geç.
         void startRound(songs, rungs, tried + 1)
+      } else if (result === 'stalled' && !forced && !tekrarlanan) {
+        /*
+         * ⚠️ Takılma bir kez YENİDEN DENENİR (ölü URL 6 kez deneniyordu, takılma
+         * hiç). Arabellek kapısı küçüldükten sonra tek bir tökezleme, aynı şarkı
+         * ve korunan arabellekle çoğu zaman anında toparlanıyor; oyuncuya tam
+         * ekran "bağlantı takıldı" göstermek bunun yanında pahalı bir yalandı.
+         */
+        void startRound(songs, rungs, tried, undefined, song)
       } else {
         dispatch({ type: 'ARM_FAIL', reason: result === 'unsupported' ? 'audio' : 'offline' })
       }
@@ -404,6 +479,23 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     wrongHandler.current?.()
   }, [])
 
+  /**
+   * Tur KAZANILDI: sıradaki turun adayını üst kademeninkiyle değiştir ve sesini
+   * indirmeye başla.
+   *
+   * ⚠️ Zamanlaması önemli: oyuncu bundan sonra sonuç panelini okuyor (tipik
+   * 1,5-4 sn). İndirme o pencerede ilerlediği için "Sıradaki şarkı"ya basıldığında
+   * ses çoğu zaman hazır oluyor. Daha erken indirmek, kaybedilen turlarda boşa
+   * giden mobil veri demekti.
+   */
+  const hedefleAday = useCallback(() => {
+    const ust = nextUpUst.current
+    if (!ust) return
+    sabitAday.current = ust
+    const url = ust.p ?? alanlarOnbellekten(ust.id)?.p
+    if (url) clipPlayer.prefetch({ id: ust.id, url, clipStart: ust.cs, duration: ust.du })
+  }, [])
+
   const guess = useCallback(
     (raw: string): Verdict => {
       if (state.s !== 'ready' && state.s !== 'playing') return { kind: 'empty' }
@@ -414,6 +506,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
         clipPlayer.stop()
         dispatch({ type: 'CORRECT' })
         setAmbiguous(null)
+        hedefleAday()
       } else if (verdict.kind === 'ambiguous') {
         // Hak TÜKETİLMEZ — kullanıcı hangisini kastettiğini seçsin.
         setAmbiguous(verdict.candidates)
@@ -422,7 +515,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       }
       return verdict
     },
-    [state, universe, easySearch, markWrong],
+    [state, universe, easySearch, markWrong, hedefleAday],
   )
 
   /** Kolay modu: şıktan seçim. Metin eşleştirmesine gerek yok, id yeter. */
@@ -433,11 +526,12 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
         clipPlayer.stop()
         dispatch({ type: 'CORRECT' })
         setAmbiguous(null)
+        hedefleAday()
       } else {
         markWrong(song.t, song.nA === state.track.nA)
       }
     },
-    [state, markWrong],
+    [state, markWrong, hedefleAday],
   )
 
   const skip = useCallback(() => {
@@ -470,14 +564,17 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     // iOS: önyükleme bir gesture içinde başlamalı — bu tıklama o gesture.
     clipPlayer.unlockFromGesture()
     clipPlayer.stop()
-    clipPlayer.swapLanes()
+    // ⚠️ `swapLanes()` YOK: şeridi artık `arm()` veriye göre seçiyor (bkz.
+    // `ClipPlayer.ensureLane`). Körlemesine takas, hazır arabelleği çöpe atıyordu.
     void startRound(filtered, ladder)
   }, [filtered, ladder, startRound])
 
   const next = useCallback(() => {
+    // ⚠️ Kurulum sürerken gelen ikinci çağrı YUTULUR: yoksa `roundToken` artıp
+    // süren `arm()` iptal olur ve bekleme ikiye katlanır.
+    if (kilit.current || state.s === 'arming') return
     // iOS: önyükleme bir gesture içinde başlamalı — "Sıradaki" tıklaması bu.
     clipPlayer.unlockFromGesture()
-    clipPlayer.swapLanes()
 
     /**
      * ⚠️ Düelloda `next()` tur KURMAZ ve kademe YÜKSELTMEZ.
@@ -490,6 +587,26 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
 
     // Bildiyse bir üst kademeye çık; İmkansız'da (5) tavan.
     const climbed = state.s === 'won' ? Math.min(5, tier + 1) : tier
+
+    /*
+     * ⚠️ İNDİRME BU DOKUNUŞUN İÇİNDE, ilk `await`ten önce başlıyor: iOS
+     * `preload="auto"`yu yok sayıyor ve medya baytlarını yalnızca bir gesture
+     * içinde çekiyor (bkz. `audio/context.ts`). Tur kurulumu bir efektten
+     * çağrıldığı için indirme eskiden dokunuşun dışında kalıyordu.
+     *
+     * Aday ÇİVİLENİYOR; aksi hâlde `pickNext` başka bir şarkı seçer ve burada
+     * başlattığımız indirme çöpe gider.
+     */
+    const aday = (climbed !== tier ? nextUpUst.current : nextUp.current) ?? sabitAday.current
+    if (aday) {
+      sabitAday.current = aday
+      const url = aday.p ?? alanlarOnbellekten(aday.id)?.p
+      if (url) {
+        clipPlayer.primeFromGesture({ id: aday.id, url, clipStart: aday.cs, duration: aday.du })
+      }
+    }
+
+    kilit.current = true
     if (climbed !== tier) {
       // Kademe değişince `filtered` yenilenir ve turu o etki başlatır;
       // burada ayrıca startRound çağırmak turu iki kez kurardı.
@@ -498,6 +615,11 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     }
     void startRound(filtered, ladder)
   }, [state, tier, setTier, filtered, ladder, startRound, sequence])
+
+  /** Kurulum bitince (ya da hata verince) kilit açılır. */
+  useEffect(() => {
+    if (state.s !== 'arming' && state.s !== 'booting') kilit.current = false
+  }, [state.s])
 
   const clearAmbiguity = useCallback(() => setAmbiguous(null), [])
   const onWrong = useCallback((fn: () => void) => {

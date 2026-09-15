@@ -6,6 +6,7 @@ import { artworkAt } from '@/data/schema'
 import { KAPAK_ADIM, KAPAK_BOYUTLARI } from '@/data/kapak'
 import { useKapakStatsStore } from '@/store/useKapakStatsStore'
 import { Confetti } from './Confetti'
+import { useSonrakiKilit } from './sonrakiKilit'
 
 /**
  * Kapak turunun sonuç kartı — `UnluSonucPanel`'in kardeşi.
@@ -32,6 +33,7 @@ interface Props {
 export function KapakSonucPanel({
   album, sanatci, yil, ar, magaza, kazandi, adim, reduce, onSonraki,
 }: Props) {
+  const sonraki = useSonrakiKilit(onSonraki)
   const kaynak = useRef<HTMLDivElement>(null)
   const { oynanan, kazanilan, seri } = useKapakStatsStore(
     useShallow((s) => ({ oynanan: s.oynanan, kazanilan: s.kazanilan, seri: s.seri })),
@@ -113,8 +115,14 @@ export function KapakSonucPanel({
       </div>
 
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 22, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <button type="button" onClick={onSonraki} autoFocus className="nk-sonraki" style={SONRAKI}>
-          Sıradaki albüm
+        <button
+          type="button"
+          autoFocus
+          className="nk-sonraki"
+          {...sonraki.ozellikler}
+          style={{ ...SONRAKI, minWidth: 176, opacity: sonraki.basildi ? 0.72 : 1 }}
+        >
+          {sonraki.basildi ? 'yükleniyor…' : 'Sıradaki albüm'}
         </button>
         {magaza && (
           <a

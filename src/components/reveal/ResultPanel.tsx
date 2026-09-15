@@ -12,6 +12,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useStatsStore } from '@/store/useStatsStore'
 import { olay } from '@/lib/olay'
 import { Confetti } from './Confetti'
+import { useSonrakiKilit } from './sonrakiKilit'
 
 interface Props {
   song: Song
@@ -129,6 +130,7 @@ export function ResultPanel({
   reduce,
   onNext,
 }: Props) {
+  const sonraki = useSonrakiKilit(onNext)
   const cardRef = useRef<HTMLDivElement>(null)
   const grid = marksOf(steps, won)
   const heardSeconds = heardLength(heardIndex, ladder)
@@ -398,10 +400,12 @@ export function ResultPanel({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             type="button"
-            onClick={onNext}
             autoFocus
             className="nk-next"
+            {...sonraki.ozellikler}
             style={{
+              // ⚠️ Genişlik SABİT: metin "yükleniyor…" olunca düğme zıplamasın.
+              minWidth: 186,
               padding: '14px 30px',
               border: '1px solid var(--acc)',
               borderRadius: 5,
@@ -409,9 +413,11 @@ export function ResultPanel({
               color: '#0a0c0e',
               fontWeight: 600,
               fontSize: 14,
+              opacity: sonraki.basildi ? 0.72 : 1,
+              cursor: sonraki.basildi ? 'progress' : 'pointer',
             }}
           >
-            Sıradaki şarkı
+            {sonraki.basildi ? 'yükleniyor…' : 'Sıradaki şarkı'}
           </button>
 
           {/* Apple ToS: parçaya doğrudan mağaza bağlantısı ZORUNLU. */}
