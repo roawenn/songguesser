@@ -6,7 +6,7 @@ import type { ChipId } from '@/data/categories'
 import { anahtarOku, anahtarYaz } from '@/lib/duelloAnahtar'
 import {
   BEKLEME_SINIRI_MS, DUELLO_TUR, kazanan, skorla,
-  type DuelloCevap, type DuelloSkor, type DuelloSonuc,
+  type DuelloCevap, type DuelloOyun, type DuelloSkor, type DuelloSonuc,
 } from '@/game/duel'
 
 /**
@@ -39,8 +39,10 @@ export type DuelloFaz =
  */
 interface Durum<T> {
   /** Hangi oyun — sunucudan gelir, kabuk seçimini o belirler. */
-  oyun: 'sarki' | 'unlu'
+  oyun: DuelloOyun
   chip: ChipId
+  /** Kapak düellosunun kabul kuralı; diğer oyunlarda null. */
+  kolay: boolean | null
   status: 'bekliyor' | 'oynaniyor' | 'bitti'
   startedAt: string | null
   /** Sunucunun o anki saati — istemci saatindeki kaymayı ölçmek için. */
@@ -59,6 +61,11 @@ export interface DuelloApi<T> {
   songs: T[]
   /** Lobinin oyunu — sahne rengi ve kabuk bunu kullanır. */
   chip: ChipId | null
+  /**
+   * Kapak düellosunda sanatçı adı da kabul mü — LOBİNİN kuralı, oyuncunun
+   * kendi ayarı değil. Durum gelmeden ya da diğer oyunlarda null.
+   */
+  kolay: boolean | null
   /** Şu an oynanan şarkının sırası (0..4). */
   aktif: number
   benim: DuelloSkor
@@ -378,6 +385,7 @@ export function useDuello<T extends { id: string }>(kod: string): DuelloApi<T> {
     // rengini yerel ayardan alıyordu, yani davet linkine tıklayan arkadaş
     // düello başka seçkide olsa bile KENDİ son seçkisinin rengini görüyordu.
     chip: durum?.chip ?? null,
+    kolay: durum?.kolay ?? null,
     aktif: Math.min(aktif, DUELLO_TUR - 1),
     benim,
     rakip,

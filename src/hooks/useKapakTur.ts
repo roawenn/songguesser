@@ -29,6 +29,21 @@ import { useSettingsStore } from '@/store/useSettingsStore'
  * "belirsiz" ya da "yanlış" sayılırdı.
  */
 
+/**
+ * Düello kipi: tur sırası ve kabul kuralı DIŞARIDAN sürülür.
+ *
+ * ⚠️ `kolay` LOBİDEN gelir, oyuncunun ayarından değil: iki oyuncuya aynı kural.
+ *
+ * ⚠️ Kabuk bunu oyunun HER fazında geçirmeli (lobide boş dizilimle). Geçmezse
+ * kanca tek oyunculu kipe düşer ve lobi beklenirken arka planda rastgele turlar
+ * kurup kapak indirir.
+ */
+export interface KapakDizilimOpts {
+  dizilim: Kapak[]
+  index: number
+  kolay: boolean
+}
+
 /** Ölü kapakta art arda en fazla kaç albüm denenir. */
 const OLU_KAPAK_SINIR = 6
 /** `img.decode()` askıda kalırsa tur sonsuza kadar beklemesin. */
@@ -72,7 +87,7 @@ async function gorselHazirla(url: string): Promise<'ready' | 'dead'> {
   }
 }
 
-export function useKapakTur(): KapakTurApi {
+export function useKapakTur(opts?: KapakDizilimOpts): KapakTurApi {
   const [durum, dispatch] = useReducer(kapakReducer, { s: 'booting' } as KapakDurum)
   const [havuz, setHavuz] = useState<Kapak[]>([])
   const [yukleniyor, setYukleniyor] = useState(true)
@@ -81,9 +96,14 @@ export function useKapakTur(): KapakTurApi {
 
   const kategori = useSettingsStore((s) => s.kapakCategory)
   const kademe = useSettingsStore((s) => s.kapakTier)
-  const kolay = useSettingsStore((s) => s.kapakKolay)
+  const ayarKolay = useSettingsStore((s) => s.kapakKolay)
   const easySearch = useSettingsStore((s) => s.easySearch)
   const setKademe = useSettingsStore((s) => s.setKapakTier)
+
+  const dizilim = opts?.dizilim
+  const dizilimIndex = opts?.index ?? 0
+  // Düelloda lobinin kuralı; tek başına oynarken oyuncunun ayarı.
+  const kolay = opts ? opts.kolay : ayarKolay
 
   const oynanan = useRef<Set<string>>(new Set())
   const turToken = useRef(0)
@@ -94,8 +114,11 @@ export function useKapakTur(): KapakTurApi {
     let iptal = false
     setYukleniyor(true)
     // ⚠️ Seçki değişince ESKİ TUR HEMEN DÜŞER: eski kapak ekranda kalıp tahmin edilmesin.
-    dispatch({ type: 'RESET' })
-    setAlan(null)
+    // Düelloda seçki ayarı değişmiyor; havuz yalnızca otomatik tamamlama için.
+    if (!dizilim) {
+      dispatch({ type: 'RESET' })
+      setAlan(null)
+    }
     oynanan.current = new Set()
 
     void loadKapakChip(kategori)
@@ -108,12 +131,13 @@ export function useKapakTur(): KapakTurApi {
         if (iptal) return
         setHavuz([])
         setYukleniyor(false)
-        dispatch({ type: 'ARM_FAIL', reason: 'pool' })
+        if (!dizilim) dispatch({ type: 'ARM_FAIL', reason: 'pool' })
       })
 
     return () => {
       iptal = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kategori])
 
   const suzulmus = useMemo(() => filterByTier(havuz, kademe), [havuz, kademe])
@@ -122,16 +146,24 @@ export function useKapakTur(): KapakTurApi {
    * Otomatik tamamlama ve eşleştirme evreni — kolay moda göre anahtarlanmış.
    *
    * ⚠️ Oynanan albüm süzgeç dışında kalabilir (kademe genişletmesi); evrende
-   * olmazsa "Kolay arama" açık oyuncu doğru cevabı öneride göremez.
+   * olmazsa "Kolay arama" açık oyuncu doğru cevabı öneride göremez. Düelloda
+   * dizilimin tamamı da eklenir — `useUnluTur`'daki aynı gerekçe.
    */
   const evren = useMemo(() => {
-    const taban =
-      (kapakTurIcinde(durum) || durum.s === 'won' || durum.s === 'lost') &&
-      !suzulmus.some((k) => k.id === durum.kapak.id)
-        ? [...suzulmus, durum.kapak]
-        : suzulmus
+    const ekler = [
+      ...(dizilim ?? []),
+      ...(kapakTurIcinde(durum) || durum.s === 'won' || durum.s === 'lost' ? [durum.kapak] : []),
+    ]
+    const varOlan = new Set(suzulmus.map((k) => k.id))
+    const taban = [...suzulmus]
+    for (const k of ekler) {
+      if (!varOlan.has(k.id)) {
+        varOlan.add(k.id)
+        taban.push(k)
+      }
+    }
     return taban.map((k) => kolayAnahtarlar(k, kolay))
-  }, [suzulmus, durum, kolay])
+  }, [suzulmus, durum, kolay, dizilim])
 
   const index = useMemo(
     () => (evren.length > 0 ? buildIndex(evren, kapakSamanligi(kolay)) : null),
@@ -139,20 +171,23 @@ export function useKapakTur(): KapakTurApi {
   )
 
   // --- tur kurulumu ---
-  const turBaslat = useCallback(async (liste: Kapak[], denendi = 0) => {
+  const turBaslat = useCallback(async (liste: Kapak[], denendi = 0, zorlanan?: Kapak) => {
     const token = ++turToken.current
     if (denendi >= OLU_KAPAK_SINIR) {
       dispatch({ type: 'ARM_FAIL', reason: 'offline' })
       return
     }
 
-    const sec = pickNext(liste, oynanan.current)
-    if (!sec) {
-      dispatch({ type: 'EMPTY_POOL' })
-      return
+    let kapak = zorlanan ?? null
+    if (!kapak) {
+      const sec = pickNext(liste, oynanan.current)
+      if (!sec) {
+        dispatch({ type: 'EMPTY_POOL' })
+        return
+      }
+      if (sec.recycled) oynanan.current = new Set()
+      kapak = sec.song
     }
-    if (sec.recycled) oynanan.current = new Set()
-    const kapak = sec.song
     oynanan.current.add(kapak.id)
     setBelirsiz(null)
     // ⚠️ Önceki kapağın adresi kurulum boyunca ekranda KALMAMALI.
@@ -161,15 +196,17 @@ export function useKapakTur(): KapakTurApi {
 
     const bilgi = await alanlariAl(kapak.sid)
     if (token !== turToken.current) return
-    if (!bilgi?.ar) {
-      void turBaslat(liste, denendi + 1)
-      return
-    }
-
-    const ilk = await gorselHazirla(artworkAt(bilgi.ar, KAPAK_BOYUTLARI[0]))
+    const ilk = bilgi?.ar ? await gorselHazirla(artworkAt(bilgi.ar, KAPAK_BOYUTLARI[0])) : 'dead'
     // ⚠️ Her `await` sonrası token kontrolü: bu arada yeni tur kurulduysa sonuç yutulur.
     if (token !== turToken.current) return
-    if (ilk === 'dead') {
+
+    if (!bilgi?.ar || ilk === 'dead') {
+      // ⚠️ Sabit (düello) albüm açılamıyorsa başka albüm denenmez: iki oyuncu
+      // aynı albümü oynamalı. Kabuk "Bu turu geç" kaçış kapısını gösterir.
+      if (zorlanan) {
+        dispatch({ type: 'ARM_FAIL', reason: 'image' })
+        return
+      }
       void turBaslat(liste, denendi + 1)
       return
     }
@@ -178,14 +215,30 @@ export function useKapakTur(): KapakTurApi {
     dispatch({ type: 'ARM_OK' })
   }, [])
 
+  // Tek oyunculu tur.
   useEffect(() => {
+    if (dizilim) return
     if (yukleniyor) return
     if (suzulmus.length === 0) {
       dispatch({ type: 'EMPTY_POOL' })
       return
     }
     void turBaslat(suzulmus)
-  }, [suzulmus, yukleniyor, turBaslat])
+  }, [suzulmus, yukleniyor, turBaslat, dizilim])
+
+  /*
+   * Düello turu — AYRI etki.
+   *
+   * ⚠️ Havuz bağımlılıkları (`suzulmus`, `yukleniyor`) burada YOK: otomatik
+   * tamamlama havuzu tur başladıktan sonra inerse, ortak bir etki oynanan turu
+   * baştan kurar ve açılmış adımları sıfırlardı.
+   */
+  const zorlananKapak = dizilim?.[dizilimIndex]
+  useEffect(() => {
+    if (!dizilim || !zorlananKapak) return
+    void turBaslat(dizilim, 0, zorlananKapak)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zorlananKapak?.id, turBaslat])
 
   // Bir SONRAKİ netlik kademesini önden indir — yalnızca o (bkz. dosya başı).
   const adim = kapakTurIcinde(durum) ? durum.adim : 0
@@ -230,10 +283,14 @@ export function useKapakTur(): KapakTurApi {
   }, [durum])
 
   const degistir = useCallback(() => {
+    // Düelloda albüm sabit; değiştirmek rakiple farklı albüm oynamak olurdu.
+    if (dizilim) return
     void turBaslat(suzulmus)
-  }, [suzulmus, turBaslat])
+  }, [suzulmus, turBaslat, dizilim])
 
   const sonrakiTur = useCallback(() => {
+    // ⚠️ Düelloda tur KURULMAZ ve kademe YÜKSELMEZ — sırayı düello sayfası sürüyor.
+    if (dizilim) return
     // Bildiyse bir üst kademeye çık; İmkansız'da (5) tavan.
     const cikilan = durum.s === 'won' ? (Math.min(5, kademe + 1) as Difficulty) : kademe
     if (cikilan !== kademe) {
@@ -242,7 +299,7 @@ export function useKapakTur(): KapakTurApi {
       return
     }
     void turBaslat(suzulmus)
-  }, [durum, kademe, setKademe, suzulmus, turBaslat])
+  }, [durum, kademe, setKademe, suzulmus, turBaslat, dizilim])
 
   const belirsizligiTemizle = useCallback(() => setBelirsiz(null), [])
   const onYanlis = useCallback((fn: () => void) => {

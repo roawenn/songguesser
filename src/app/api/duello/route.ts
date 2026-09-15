@@ -31,8 +31,13 @@ export async function POST(req: Request) {
    * ⚠️ `oyun` varsayılanı 'sarki': eski istemciler (açık sekmeler) gövdeye
    * bu alanı koymuyor ve onları kırmanın anlamı yok.
    */
-  const oyun = body.oyun === 'unlu' ? 'unlu' : 'sarki'
+  const oyun = body.oyun === 'unlu' ? 'unlu' : body.oyun === 'kapak' ? 'kapak' : 'sarki'
   const chip = body.chip as ChipId | UnluChipId
+  /*
+   * ⚠️ Kolay mod LOBİYE yazılır, oyuncuların kendi ayarından okunmaz: iki
+   * oyuncuya aynı kabul kuralı uygulanmalı. Kural kuranın o anki tercihi.
+   */
+  const kolay = oyun === 'kapak' ? body.kolay === true : null
 
   const gecerli =
     oyun === 'unlu'
@@ -50,13 +55,15 @@ export async function POST(req: Request) {
         error:
           oyun === 'unlu'
             ? 'Bu seçkide her zorluktan ünlü yok; başka bir seçki dene.'
-            : 'Bu seçkide her zorluktan şarkı yok; başka bir seçki dene.',
+            : oyun === 'kapak'
+              ? 'Bu seçkide her zorluktan albüm yok; başka bir seçki dene.'
+              : 'Bu seçkide her zorluktan şarkı yok; başka bir seçki dene.',
       },
       { status: 409 },
     )
   }
 
-  const kurulan = await duelloKur(oyun, chip, songIds)
+  const kurulan = await duelloKur(oyun, chip, songIds, kolay)
   if (!kurulan) {
     return NextResponse.json({ error: 'Lobi kurulamadı, tekrar dene.' }, { status: 502 })
   }

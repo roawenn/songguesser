@@ -3,6 +3,7 @@ import { DUELLO_TUR, kodGecerli } from '@/game/duel'
 import { cevaplar, duelloOku, oyuncular, slotDogrula } from '@/lib/duelStore'
 import { loadSongsByIds } from '@/lib/duelSongs'
 import { loadUnlulerByIds } from '@/lib/duelUnluler'
+import { loadKapaklarByIds } from '@/lib/kapakHavuzSunucu'
 
 /**
  * Düellonun durumu — istemci bunu ~1,5 saniyede bir yoklar.
@@ -64,7 +65,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ kod: string }> 
   const ogeler = slot
     ? duel.oyun === 'unlu'
       ? await loadUnlulerByIds(gorunurIds)
-      : await loadSongsByIds(gorunurIds)
+      : duel.oyun === 'kapak'
+        ? await loadKapaklarByIds(gorunurIds)
+        : await loadSongsByIds(gorunurIds)
     : null
 
   return NextResponse.json({
@@ -72,6 +75,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ kod: string }> 
     // ⚠️ İstemci hangi kabuğu açacağını buradan öğreniyor.
     oyun: duel.oyun,
     chip: duel.chip,
+    // Kapak düellosunun kabul kuralı — iki oyuncuya da aynı (bkz. `api/duello`).
+    kolay: duel.kolay ?? null,
     status: duel.status,
     startedAt: duel.started_at,
     /*

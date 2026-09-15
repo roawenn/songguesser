@@ -443,3 +443,15 @@ $secunlu$;
 -- Ayrım doldurma betiğinin yeniden çalıştırılabilir olması için şart:
 -- `null` olanlar tekrar sorulur, `''` olanlar sorulmaz ve oyuna girmez.
 alter table public.songs add column if not exists album text;
+
+-- Kapaktan Albüm düellosu.
+--
+-- ⚠️ `song_ids` bu oyunda `kapak:<albüm kimliği>` taşıyor (bkz. `lib/kapakHavuzSunucu.ts`).
+-- Albüm tablosu yok; albüm kaydı şarkı satırlarından türetiliyor.
+alter table public.duels drop constraint if exists duels_oyun_chk;
+alter table public.duels add constraint duels_oyun_chk check (oyun in ('sarki', 'unlu', 'kapak'));
+
+-- Lobiyi kuranın Kolay mod tercihi: iki oyuncuya AYNI kabul kuralı uygulanır.
+-- Her oyuncu kendi ayarıyla oynasaydı biri sanatçı adıyla, diğeri yalnızca
+-- albüm adıyla bilebilirdi. Diğer oyunlarda `null`.
+alter table public.duels add column if not exists kolay boolean;

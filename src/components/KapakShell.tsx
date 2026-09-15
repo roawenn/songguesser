@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { CHIPS, chipById, type ChipId } from '@/data/categories'
 import { KAPAK_ADIM, kapakSatiri } from '@/data/kapak'
 import { kapakKalanHak, kapakTurBitti, kapakTurIcinde } from '@/game/kapakMachine'
 import { useKapakTur } from '@/hooks/useKapakTur'
-import { olayBirKez } from '@/lib/olay'
+import { olay, olayBirKez } from '@/lib/olay'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useKapakStatsStore } from '@/store/useKapakStatsStore'
 import { GuessInput } from './guess/GuessInput'
@@ -23,8 +25,7 @@ import { KapakKare, type KapakKareHandle } from './stage/KapakKare'
  * Dış iskelet (`SahneCercevesi`), yan yana sahne düzeni (`.nk-unlu-izgara`),
  * tahmin kutusu ve tahmin listesi paylaşılıyor.
  *
- * ⚠️ Düello YOK (bu fazın kapsamı dışında): lobi tablosu oyun türünü
- * `duels_oyun_chk` ile yalnızca şarkı ve ünlüye kısıtlıyor.
+ * Düello `KapakDuelloShell`'de; buradan yalnızca lobi kuruluyor.
  */
 
 export function KapakShell() {
@@ -40,6 +41,38 @@ export function KapakShell() {
 
   const kare = useRef<KapakKareHandle>(null)
   const { durum, onYanlis } = tur
+  const router = useRouter()
+  const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
+  const [duelloHata, setDuelloHata] = useState<string | null>(null)
+
+  /**
+   * Lobi kur ve oraya git.
+   *
+   * ⚠️ Kolay mod LOBİYE yazılıyor: iki oyuncuya kuranın o anki kuralı uygulanır
+   * (bkz. `KapakDuelloShell`).
+   *
+   * ⚠️ Gizli anahtar navigasyondan ÖNCE yazılıyor ve `router.push` kullanılıyor
+   * — `UnluShell`'deki gerekçenin aynısı.
+   */
+  const duelloBaslat = async () => {
+    setDuelloKuruluyor(true)
+    setDuelloHata(null)
+    try {
+      const res = await fetch('/api/duello', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oyun: 'kapak', chip: kategori, kolay }),
+      })
+      const d = (await res.json()) as { kod?: string; gizli?: string; error?: string }
+      if (!res.ok || !d.kod || !d.gizli) throw new Error(d.error ?? 'Lobi kurulamadı.')
+      anahtarYaz(d.kod, d.gizli)
+      olay('duello_kuruldu', { oyun: 'kapak', secki: kategori })
+      router.push(`/duello/${d.kod}`)
+    } catch (e) {
+      setDuelloHata((e as Error).message)
+      setDuelloKuruluyor(false)
+    }
+  }
 
   useEffect(() => {
     onYanlis(() => kare.current?.sars())
@@ -196,6 +229,44 @@ export function KapakShell() {
                   >
                     ↻ Albümü değiştir
                   </button>
+                </div>
+
+                {/* Düello — `UnluShell` ile aynı yer ve görünüm. */}
+                <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => void duelloBaslat()}
+                    disabled={duelloKuruluyor}
+                    className="nk-duello"
+                    title={
+                      kolay
+                        ? 'Arkadaşınla aynı 5 albüm — sanatçı adı da kabul (Kolay mod açık)'
+                        : 'Arkadaşınla aynı 5 albüm — yalnızca albüm adı (Kolay mod kapalı)'
+                    }
+                    style={{
+                      ...GHOST,
+                      border: '1px solid var(--acc)',
+                      color: 'var(--acc)',
+                      background: 'oklch(0.81 0.12 var(--hue) / 0.08)',
+                      opacity: duelloKuruluyor ? 0.5 : 1,
+                    }}
+                  >
+                    ⚔ {duelloKuruluyor ? 'Lobi kuruluyor…' : 'Arkadaşınla oyna'}
+                  </button>
+                  {duelloHata && (
+                    <div
+                      role="alert"
+                      style={{
+                        marginTop: 14,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11.5,
+                        color: '#d09a9a',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {duelloHata}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

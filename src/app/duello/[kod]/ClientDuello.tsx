@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import type { DuelloOyun } from '@/game/duel'
 
 /**
  * ⚠️ `ssr: false` bir İSTEMCİ bileşeninde olmak zorunda — Next 15'te sunucu
@@ -35,6 +36,13 @@ const UnluDuelloShell = dynamic(
   { ssr: false, loading: () => <Iskelet /> },
 )
 
-export function ClientDuello({ kod, oyun }: { kod: string; oyun: 'sarki' | 'unlu' }) {
-  return oyun === 'unlu' ? <UnluDuelloShell kod={kod} /> : <DuelloShell kod={kod} />
+const KapakDuelloShell = dynamic(
+  () => import('@/components/KapakDuelloShell').then((m) => m.KapakDuelloShell),
+  { ssr: false, loading: () => <Iskelet /> },
+)
+
+export function ClientDuello({ kod, oyun }: { kod: string; oyun: DuelloOyun }) {
+  if (oyun === 'unlu') return <UnluDuelloShell kod={kod} />
+  if (oyun === 'kapak') return <KapakDuelloShell kod={kod} />
+  return <DuelloShell kod={kod} />
 }

@@ -45,7 +45,7 @@ export function kodUret(rastgele: (n: number) => Uint8Array): string {
 }
 
 /** Düellonun hangi oyunu oynadığı. */
-export type DuelloOyun = 'sarki' | 'unlu'
+export type DuelloOyun = 'sarki' | 'unlu' | 'kapak'
 
 /**
  * Bir oyuncunun tek turdaki sonucu.

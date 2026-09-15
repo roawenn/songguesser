@@ -3,6 +3,7 @@ import { randomBytes, randomUUID } from 'node:crypto'
 import { chipById, unluChipById, type ChipId, type UnluChipId } from '@/data/categories'
 import { restUrl, restHeaders } from '@/lib/supabase'
 import { DUELLO_TUR, kodUret, type DuelloOyun } from '@/game/duel'
+import { kapakTurleriSec } from '@/lib/kapakHavuzSunucu'
 
 /**
  * Düello veri katmanı — yalnızca SUNUCUDA.
@@ -18,6 +19,8 @@ export interface DuelRow {
   /** Şarkıda `ChipId`, ünlüde `UnluChipId`. */
   chip: ChipId | UnluChipId
   song_ids: string[]
+  /** Yalnızca kapak düellosu: lobiyi kuranın Kolay mod tercihi. Diğerlerinde null. */
+  kolay: boolean | null
   status: 'bekliyor' | 'oynaniyor' | 'bitti'
   created_at: string
   started_at: string | null
@@ -61,6 +64,10 @@ export async function turleriSec(
    * kategori. Tek bir RPC'ye sıkıştırmak dinamik tablo adı demekti; o da
    * `distinct on (tier)` planını ve `stable` işaretini kaybettirirdi.
    */
+  // Kapakta albüm kaydı veritabanında değil, şarkı satırlarından türetiliyor —
+  // seçim de o yüzden SQL fonksiyonunda değil `grupla` üzerinden.
+  if (oyun === 'kapak') return kapakTurleriSec(chip as ChipId)
+
   if (oyun === 'unlu') {
     const c = unluChipById(chip as UnluChipId)
     const r = await rest('rpc/duello_sec_unlu', {
@@ -109,6 +116,7 @@ export async function duelloKur(
   oyun: DuelloOyun,
   chip: ChipId | UnluChipId,
   songIds: string[],
+  kolay: boolean | null = null,
 ): Promise<{ code: string; secret: string } | null> {
   // ⚠️ Çakışma ihtimali düşük ama sıfır değil; birkaç kez dene.
   for (let deneme = 0; deneme < 5; deneme++) {
@@ -116,7 +124,7 @@ export async function duelloKur(
     const res = await rest('duels', {
       method: 'POST',
       headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ code, oyun, chip, song_ids: songIds }),
+      body: JSON.stringify({ code, oyun, chip, song_ids: songIds, kolay }),
     })
     if (res.status === 409) continue // kod tutulmuş
     if (!res.ok) return null
