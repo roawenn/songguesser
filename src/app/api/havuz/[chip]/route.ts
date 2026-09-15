@@ -1,11 +1,11 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { NextResponse } from 'next/server'
 import { chipById, CHIPS, CATEGORY_IDS, type ChipId } from '@/data/categories'
 import type { Pool, Song } from '@/data/schema'
 import {
   POOL_COLUMNS, restHeaders, restTumSatirlar, toSong, supabaseReady, type SongRow,
 } from '@/lib/supabase'
+import { sikistirilmisJson } from '@/lib/sikistir'
 
 /**
  * Oyunun şarkı havuzu — Supabase'den canlı okunur.
@@ -113,43 +113,50 @@ async function fromSupabase(chip: ChipId): Promise<Song[]> {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ chip: string }> },
 ) {
   const { chip: raw } = await ctx.params
   const chip = (CHIPS.find((c) => c.id === raw)?.id ?? 'karisik') as ChipId
 
-  let songs: Song[] = []
-  let kaynak: 'supabase' | 'yedek' = 'supabase'
+  /*
+   * ⚠️ Gövde TEMBEL: yalnızca sıkıştırma önbelleği soğukken üretiliyor.
+   * İsteği okumak rotayı dinamik yaptığı için her istek 16 sayfalık Supabase
+   * okumasına dönüşüyordu (bkz. `lib/sikistir`).
+   */
+  return sikistirilmisJson(
+    req,
+    `havuz:${chip}`,
+    async () => {
+      let songs: Song[] = []
+      let kaynak: 'supabase' | 'yedek' = 'supabase'
 
-  if (supabaseReady) {
-    try {
-      songs = await fromSupabase(chip)
-    } catch {
-      kaynak = 'yedek'
-    }
-  } else {
-    kaynak = 'yedek'
-  }
+      if (supabaseReady) {
+        try {
+          songs = await fromSupabase(chip)
+        } catch {
+          kaynak = 'yedek'
+        }
+      } else {
+        kaynak = 'yedek'
+      }
 
-  // Supabase boş döndüyse de yedeğe düş: yeni kurulumda tablo boş olabilir.
-  if (songs.length === 0) {
-    songs = fallbackFromDisk(chip)
-    if (songs.length > 0) kaynak = 'yedek'
-  }
+      // Supabase boş döndüyse de yedeğe düş: yeni kurulumda tablo boş olabilir.
+      if (songs.length === 0) {
+        songs = fallbackFromDisk(chip)
+        if (songs.length > 0) kaynak = 'yedek'
+      }
 
-  return NextResponse.json(
-    { chip, kaynak, songs },
+      return { chip, kaynak, songs }
+    },
     {
-      headers: {
         // Tarayıcı ve CDN de bir süre tutsun.
         /*
          * ⚠️ `max-age` ŞART. `s-maxage` yalnızca paylaşımlı önbellekleri
          * bağlar; onsuz tarayıcı için tazelik ömrü tanımsız kalıyor ve her
          * sayfa yüklemesi en az bir koşullu gidiş-dönüş ödüyordu.
          */
-        'Cache-Control': `public, max-age=${REVALIDATE_SECONDS}, s-maxage=${REVALIDATE_SECONDS}, stale-while-revalidate=600`,
-      },
+      'Cache-Control': `public, max-age=${REVALIDATE_SECONDS}, s-maxage=${REVALIDATE_SECONDS}, stale-while-revalidate=600`,
     },
   )
 }

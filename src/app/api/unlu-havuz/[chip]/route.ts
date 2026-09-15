@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
 import {
   UNLU_CHIPS, unluChipById, type UnluCategoryId, type UnluChipId, type Difficulty,
 } from '@/data/categories'
 import { UNLU_HAVUZ_SURUM, type Unlu } from '@/data/unlu'
 import { restHeaders, restTumSatirlar, supabaseReady } from '@/lib/supabase'
+import { sikistirilmisJson } from '@/lib/sikistir'
 
 /**
  * Ünlü havuzu — `api/havuz/[chip]`'in kardeşi.
@@ -75,29 +75,31 @@ async function supabasedenAl(chip: UnluChipId): Promise<Unlu[]> {
   return rows.map(toUnlu)
 }
 
-export async function GET(_req: Request, ctx: { params: Promise<{ chip: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ chip: string }> }) {
   const { chip: raw } = await ctx.params
   const chip = (UNLU_CHIPS.find((c) => c.id === raw)?.id ?? 'unlu-karisik') as UnluChipId
 
-  let unluler: Unlu[] = []
-  let kaynak: 'supabase' | 'yok' = 'supabase'
+  return sikistirilmisJson(
+    req,
+    `unlu-havuz:${chip}`,
+    async () => {
+      let unluler: Unlu[] = []
+      let kaynak: 'supabase' | 'yok' = 'supabase'
 
-  if (supabaseReady) {
-    try {
-      unluler = await supabasedenAl(chip)
-    } catch {
-      kaynak = 'yok'
-    }
-  } else {
-    kaynak = 'yok'
-  }
+      if (supabaseReady) {
+        try {
+          unluler = await supabasedenAl(chip)
+        } catch {
+          kaynak = 'yok'
+        }
+      } else {
+        kaynak = 'yok'
+      }
 
-  return NextResponse.json(
-    { v: UNLU_HAVUZ_SURUM, chip, kaynak, unluler },
+      return { v: UNLU_HAVUZ_SURUM, chip, kaynak, unluler }
+    },
     {
-      headers: {
-        'Cache-Control': `public, max-age=${ISTEMCI_TAZE}, s-maxage=${ISTEMCI_TAZE}, stale-while-revalidate=600`,
-      },
+      'Cache-Control': `public, max-age=${ISTEMCI_TAZE}, s-maxage=${ISTEMCI_TAZE}, stale-while-revalidate=600`,
     },
   )
 }

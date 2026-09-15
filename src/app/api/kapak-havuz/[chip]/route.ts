@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
 import { CHIPS, type ChipId } from '@/data/categories'
 import type { Kapak } from '@/data/kapak'
 import { grupla } from '@/lib/kapakHavuz'
 import { kapakSatirlari } from '@/lib/kapakHavuzSunucu'
 import { supabaseReady } from '@/lib/supabase'
+import { sikistirilmisJson } from '@/lib/sikistir'
 
 /**
  * Kapaktan Albüm oyununun havuzu — ALBÜM başına tek kayıt (bkz. `lib/kapakHavuz`).
@@ -21,28 +21,30 @@ export function generateStaticParams() {
   return CHIPS.map((c) => ({ chip: c.id }))
 }
 
-export async function GET(_req: Request, ctx: { params: Promise<{ chip: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ chip: string }> }) {
   const { chip: raw } = await ctx.params
   const chip = (CHIPS.find((c) => c.id === raw)?.id ?? 'karisik') as ChipId
 
-  let kapaklar: Kapak[] = []
-  let kaynak: 'supabase' | 'yok' = 'supabase'
-  if (supabaseReady) {
-    try {
-      kapaklar = grupla(await kapakSatirlari(chip))
-    } catch {
-      kaynak = 'yok'
-    }
-  } else {
-    kaynak = 'yok'
-  }
+  return sikistirilmisJson(
+    req,
+    `kapak-havuz:${chip}`,
+    async () => {
+      let kapaklar: Kapak[] = []
+      let kaynak: 'supabase' | 'yok' = 'supabase'
+      if (supabaseReady) {
+        try {
+          kapaklar = grupla(await kapakSatirlari(chip))
+        } catch {
+          kaynak = 'yok'
+        }
+      } else {
+        kaynak = 'yok'
+      }
 
-  return NextResponse.json(
-    { chip, kaynak, kapaklar },
+      return { chip, kaynak, kapaklar }
+    },
     {
-      headers: {
-        'Cache-Control': `public, max-age=${REVALIDATE_SECONDS}, s-maxage=${REVALIDATE_SECONDS}, stale-while-revalidate=600`,
-      },
+      'Cache-Control': `public, max-age=${REVALIDATE_SECONDS}, s-maxage=${REVALIDATE_SECONDS}, stale-while-revalidate=600`,
     },
   )
 }
