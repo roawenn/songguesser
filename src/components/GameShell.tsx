@@ -18,7 +18,6 @@ import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
-import { GuessLog } from './guess/GuessLog'
 import { ResultPanel } from './reveal/ResultPanel'
 import { TierStrip } from './shell/Chrome'
 import { SahneCercevesi } from './shell/SahneCercevesi'
@@ -275,6 +274,8 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                   clipLength={round.clipLength}
                   heardIndex={heardIndex}
                   roundKey={'track' in state ? state.track.id : 'yok'}
+                  hakKalan={MAX_WRONG - wrongCount(steps)}
+                  hakToplam={MAX_WRONG}
                 />
               </div>
 
@@ -380,14 +381,12 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                     />
                   </div>
 
-                  {/* Yapılan tahminler — üç hakkın nereye gittiği görünsün. */}
-                  <GuessLog
-                    steps={steps}
-                    hakToplam={MAX_WRONG}
-                    hakKalan={MAX_WRONG - wrongCount(steps)}
-                    yakinlikEtiketi="sanatçı doğru"
-                  />
-
+                  {/*
+                    ⚠️ Tahmin listesi YOK: yapılan tahmin kademe çubuğundaki
+                    kırmızı kutunun baloncuğunda, kalan hak çubuğun sağ üstünde
+                    (bkz. `StepIndicator`). `nk-eylem-listesiz` listenin ayırdığı
+                    boşluğun yerini dolduruyor.
+                  */}
                   <div
                     style={{
                       display: 'flex',
@@ -396,7 +395,7 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                       gap: 10,
                       flexWrap: 'wrap',
                     }}
-                    className="nk-eylem"
+                    className="nk-eylem nk-eylem-listesiz"
                   >
                     {/*
                       Geç, yanındaki "Şarkıyı değiştir"den farklı olarak BİR HAK

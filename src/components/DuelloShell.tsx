@@ -17,7 +17,6 @@ import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
 import { GuessInput } from './guess/GuessInput'
-import { GuessLog } from './guess/GuessLog'
 import {
   Bitis, GeriSayim, Im, KART, Kutu, Lobi, M, Marka, Skor, SonBekleme,
 } from './duello/Parcalar'
@@ -237,6 +236,8 @@ function Sahne({
           clipLength={round.clipLength}
           heardIndex={heardIndex}
           roundKey={'track' in state ? state.track.id : 'yok'}
+          hakKalan={MAX_WRONG - wrongCount(steps)}
+          hakToplam={MAX_WRONG}
         />
       </div>
 
@@ -271,16 +272,10 @@ function Sahne({
                       />
         </div>
 
-        {/* Üç yanlış kuralı düelloda da geçerli; hakların nerede olduğu görünsün. */}
-        <div style={{ marginTop: 14, width: '100%' }}>
-          <GuessLog
-                    steps={steps}
-                    hakToplam={MAX_WRONG}
-                    hakKalan={MAX_WRONG - wrongCount(steps)}
-                    yakinlikEtiketi="sanatçı doğru"
-                  />
-        </div>
-
+        {/*
+          Tahmin listesi yok — tek oyunculu kabukla aynı: tahmin kademe
+          çubuğunun baloncuğunda, kalan hak çubuğun sağ üstünde.
+        */}
         <button
           type="button"
           onClick={round.skip}

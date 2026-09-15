@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { clipPlayer } from '@/audio/ClipPlayer'
-import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
+import { ATTEMPTS, STEPS } from '@/game/ladder'
 import type { Step } from '@/game/machine'
 
 interface Props {
@@ -15,6 +15,10 @@ interface Props {
   heardIndex: number
   /** Şarkı kimliği — değişince "duyulan" işareti sıfırlanır. */
   roundKey: string
+  /** Kalan tahmin hakkı — çubuğun sağ üstünde yazar. */
+  hakKalan: number
+  /** Turdaki toplam tahmin hakkı. */
+  hakToplam: number
 }
 
 /**
@@ -28,6 +32,11 @@ interface Props {
  * ⚠️ Dolgu rAF ile doğrudan DOM'a yazılır ve `clipPlayer.plateauStart`'ı
  * bekler — yani sesin gerçekten duyulmaya başladığı anı. Tıklama anında
  * başlatılsaydı çubuk sesten önde giderdi.
+ *
+ * ⚠️ Tahmin listesi YOK (kullanıcı kararı): yapılan tahmin, kutunun üstüne
+ * gelince (telefonda dokununca) baloncukta görünür; kalan hak çubuğun sağ
+ * üstünde yazar. İkisi de MUTLAK konumlu — çubuğun ve sahnenin yüksekliği
+ * değişmez, tahmin yapıldıkça hiçbir şey yerinden oynamaz.
  */
 /** Segment kutuları arasındaki boşluk (px). */
 const BOSLUK = 4
@@ -51,6 +60,14 @@ function hedefGenislik(tierIndex: number): string {
   return `calc((100% - ${toplam}px) * ${oran} + ${i * BOSLUK}px)`
 }
 
+/** Kutunun baloncuk metni; boş kutuda baloncuk yok. */
+function baloncuk(step: Step | undefined): string | null {
+  if (!step) return null
+  if (step.kind === 'wrong') return `Tahmin: ${step.text}${step.sameArtist ? ' · sanatçı doğru' : ''}`
+  if (step.kind === 'skip') return 'Pas geçildi'
+  return 'İpucu alındı'
+}
+
 export function StepIndicator({
   attempt,
   steps,
@@ -58,6 +75,8 @@ export function StepIndicator({
   clipLength,
   heardIndex,
   roundKey,
+  hakKalan,
+  hakToplam,
 }: Props) {
   const sweepRef = useRef<HTMLDivElement>(null)
 
@@ -118,12 +137,19 @@ export function StepIndicator({
     flex: 'none' as const,
   }
 
+  const yanlisVar = steps.some((s) => s.kind === 'wrong')
+
   return (
     <div
-      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', maxWidth: 430 }}
+      style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12, width: '100%', maxWidth: 430 }}
       role="group"
-      aria-label="Kalan haklar"
+      aria-label="Kademeler ve kalan haklar"
     >
+      {/* Kalan hak — çubuğun sağ üstünde, mutlak: çubuğun yerini oynatmaz. */}
+      <span className="nk-hak" style={{ color: hakKalan === 0 ? '#c08a8a' : undefined }}>
+        {yanlisVar ? `${hakKalan} hak kaldı` : `${hakToplam} yanlış hakkın var`}
+      </span>
+
       <div style={hole} />
 
       <div style={{ position: 'relative', flex: 1, height: 9 }}>
@@ -146,21 +172,18 @@ export function StepIndicator({
 
         {/* Segment kutuları — dolgunun ÜSTÜNDE, işaretler görünür kalsın. */}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', gap: BOSLUK }}>
-          {STEPS.map((len, i) => {
+          {STEPS.map((_, i) => {
             const step = steps[i]
+            const metin = baloncuk(step)
             return (
               <div
                 key={i}
-                title={
-                  step?.kind === 'wrong'
-                    ? `Yanlış: ${step.text}`
-                    : step?.kind === 'skip'
-                      ? 'Pas geçildi'
-                      : step?.kind === 'hint'
-                        ? 'İpucu alındı'
-                        : `${tr(len)} saniye`
-                }
+                className={metin ? 'nk-kutu nk-kutu-dolu' : 'nk-kutu'}
+                // ⚠️ Odaklanabilir: telefonda üzerine gelmek yok, dokunmak odaklıyor.
+                tabIndex={metin ? 0 : undefined}
+                aria-label={metin ?? undefined}
                 style={{
+                  position: 'relative',
                   flex: 1,
                   borderRadius: 2,
                   border: `1px solid ${
@@ -177,7 +200,13 @@ export function StepIndicator({
                           ? 'rgba(150,140,210,0.5)'
                           : 'transparent',
                 }}
-              />
+              >
+                {metin && (
+                  <span role="tooltip" className="nk-baloncuk">
+                    {metin}
+                  </span>
+                )}
+              </div>
             )
           })}
         </div>
