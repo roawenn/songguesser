@@ -333,8 +333,24 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       if (token !== roundToken.current) return
 
       if (!tam.p) {
-        // Alanlar çekilemedi: ölü URL ile aynı muamele.
-        dispatch({ type: 'ARM_FAIL', reason: 'offline' })
+        /*
+         * Alanlar gelmedi — ölü URL ile AYNI muamele: başka şarkı denenir.
+         *
+         * ⚠️ Eskiden burada doğrudan hata ekranına gidiliyordu ("Şarkı
+         * yüklenemedi" + "Tekrar dene"). Oysa bu, ağ tökezlemesinin yanı sıra
+         * tamamen olağan bir durumda da oluyor: küratör şarkıyı kapatmışsa ya da
+         * havuz eski bir kopyadan geldiyse `/api/sarki` o kimlik için boş döner
+         * (ölçüldü). Tek bir ölü kayıt yüzünden oyunu durdurmak yerine sıradaki
+         * şarkıya geçiliyor; sınır `DEAD_URL_LIMIT`.
+         *
+         * ⚠️ Sabit şarkıda (düello) değiştirme YOK: iki oyuncu aynı parçayı
+         * oynamak zorunda.
+         */
+        if (forced) {
+          dispatch({ type: 'ARM_FAIL', reason: 'offline' })
+          return
+        }
+        void startRound(songs, rungs, tried + 1)
         return
       }
 
@@ -492,8 +508,26 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     const ust = nextUpUst.current
     if (!ust) return
     sabitAday.current = ust
-    const url = ust.p ?? alanlarOnbellekten(ust.id)?.p
-    if (url) clipPlayer.prefetch({ id: ust.id, url, clipStart: ust.cs, duration: ust.du })
+
+    const indir = (url: string) =>
+      clipPlayer.prefetch({ id: ust.id, url, clipStart: ust.cs, duration: ust.du })
+
+    const hazir = ust.p ?? alanlarOnbellekten(ust.id)?.p
+    if (hazir) {
+      indir(hazir)
+      return
+    }
+    /*
+     * ⚠️ Alanlar HENÜZ gelmediyse beklenip indirme yine de başlatılıyor.
+     * Şarkıyı çabuk bilen oyuncuda (tur birkaç saniye sürüyor) ısıtma isteği
+     * hâlâ uçuşta olabiliyor; bu dal olmadan indirme ancak "Sıradaki şarkı"
+     * tıklamasında başlıyor ve yavaş hatta 2,5 saniyeye mal oluyordu (ölçüldü).
+     * Ek istek yok: `alanlariAl` uçuştaki toplu isteğe katılıyor.
+     */
+    void alanlariAl(ust.id).then((alan) => {
+      // Bu arada tur değişmişse (seçki, kademe, "şarkıyı değiştir") vazgeç.
+      if (alan && sabitAday.current?.id === ust.id) indir(alan.p)
+    })
   }, [])
 
   const guess = useCallback(

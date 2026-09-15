@@ -66,7 +66,7 @@ export const MAX_CLIP = MAX_STEP
  * 2,5 sn ilk üç kademeyi (0,5 · 1 · 2) kuyruğuyla birlikte karşılıyor. Daha
  * uzun kademeler için `play()` gerekirse kısa süre bekliyor (bkz. ClipPlayer).
  */
-export const ARM_BUFFER = 2.5
+export const ARM_BUFFER = 1.25
 
 export interface ClipWindow {
   /** Elemanın seek edileceği medya zamanı. */

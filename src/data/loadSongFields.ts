@@ -22,11 +22,21 @@ const onbellek = new Map<string, CalinabilirAlanlar>()
 /** Uçuştaki istekler — aynı id için ikinci istek atılmasın. */
 const ucusta = new Map<string, Promise<void>>()
 
+/**
+ * ⚠️ ASLA REDDETMEZ. Ağ hatasında sözün reddi `alanlariAl`'a, oradan tur
+ * kurulumuna sıçrıyordu: kurulum yarıda kesiliyor, `ARM` hiç gönderilmiyor ve
+ * ekran sonsuza kadar "yükleniyor…" yazısında asılı kalıyordu (ölçüldü).
+ * Sessiz dönüş, çağıranın "alan yok" dalını çalıştırmasını sağlıyor.
+ */
 async function getir(ids: string[]): Promise<void> {
-  const res = await fetch(`/api/sarki?ids=${encodeURIComponent(ids.join(','))}`)
-  if (!res.ok) return
-  const d = (await res.json()) as { sarkilar?: Record<string, CalinabilirAlanlar> }
-  for (const [id, alan] of Object.entries(d.sarkilar ?? {})) onbellek.set(id, alan)
+  try {
+    const res = await fetch(`/api/sarki?ids=${encodeURIComponent(ids.join(','))}`)
+    if (!res.ok) return
+    const d = (await res.json()) as { sarkilar?: Record<string, CalinabilirAlanlar> }
+    for (const [id, alan] of Object.entries(d.sarkilar ?? {})) onbellek.set(id, alan)
+  } catch {
+    // Ağ hatası: önbellek boş kalır, çağıran başka şarkı dener.
+  }
 }
 
 /** Önbellekte varsa anında döner; yoksa çeker. Hata hâlinde `null`. */
@@ -39,7 +49,11 @@ export async function alanlariAl(id: string): Promise<CalinabilirAlanlar | null>
     bekleyen = getir([id]).finally(() => ucusta.delete(id))
     ucusta.set(id, bekleyen)
   }
-  await bekleyen
+  try {
+    await bekleyen
+  } catch {
+    // Paylaşılan söz reddedilmiş olabilir; "alan yok" ile aynı muamele.
+  }
   return onbellek.get(id) ?? null
 }
 
