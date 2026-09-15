@@ -3,6 +3,7 @@
 import { sarkiSatiri } from '@/data/schema'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useRound } from '@/hooks/useRound'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useStatsStore } from '@/store/useStatsStore'
@@ -504,7 +505,19 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                     sanatçıdan değil — rakip bambaşka şarkılarla oynardı.
                   */}
                   {!sanatci && (
-                  <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
+                  <div className="nk-sosyal" style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 10 }}>
+                  {/*
+                    ⚠️ Yazı BÖLÜNMEZ: telefonda iki düğme daralıp etiketleri iki
+                    satıra kırıyordu. Mobilde dolgu ve harf aralığı daralıyor;
+                    yine sığmazsa düğmeler alt alta geçer.
+                  */}
+                  <style>{`
+                    .nk-sosyal > * { white-space: nowrap; }
+                    @media (max-width: 899px) {
+                      .nk-sosyal { gap: 8px !important; }
+                      .nk-sosyal > * { padding: 11px 12px !important; letter-spacing: .05em !important; }
+                    }
+                  `}</style>
                   {/*
                     Düello: aynı seçkiden 5 şarkı, kolaydan zora, iki kişi.
                     Paylaşım düğmeleri kaldırıldığı için oyunun tek sosyal
@@ -528,6 +541,18 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                     <span aria-hidden style={{ fontSize: 13 }}>⚔</span>{' '}
                     {duelloKuruluyor ? 'lobi kuruluyor…' : 'Arkadaşınla oyna'}
                   </button>
+                  {/*
+                    Yayıncı modu da bir sosyal çıkış: aynı satırda, ama ikincil
+                    görünümde — tek oyunculu oyuncunun asıl çıkışı düello.
+                  */}
+                  <Link
+                    href="/yayin"
+                    className="nk-skip"
+                    title="Twitch ya da Kick sohbetinle oyna"
+                    style={{ ...GHOST, textDecoration: 'none' }}
+                  >
+                    <span aria-hidden style={{ fontSize: 9, color: '#e0645f' }}>●</span> Yayıncı modu
+                  </Link>
                   </div>
                   )}
 
