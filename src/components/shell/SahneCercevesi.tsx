@@ -138,6 +138,8 @@ export function SahneCercevesi({
             {sol}
           </MobilMenu>
           <Header />
+          {/* Oyun seçici logonun altında: önce "hangi oyun", sonra oyunun kendisi. */}
+          <OyunSeridi aktif={aktifOyun} />
           <div className="nk-yalniz-mobil" style={{ width: '100%' }}>
             <CategoryStrip chips={cipler} category={secili} onCategory={onSecki} />
           </div>
@@ -162,7 +164,7 @@ export function SahneCercevesi({
           </div>
         </div>
 
-        <Footer oyunlar={<OyunSeridi aktif={aktifOyun} />} atif={atif} />
+        <Footer atif={atif} />
       </div>
     </div>
   )

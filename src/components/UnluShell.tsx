@@ -15,6 +15,7 @@ import { UnluSonucPanel } from './reveal/UnluSonucPanel'
 import { SahneCercevesi } from './shell/SahneCercevesi'
 import { TierStrip } from './shell/Chrome'
 import { UnluAyarKarti, UnluIstatistikKarti, UnluNasilKarti } from './shell/UnluPanels'
+import { LinksCard } from './shell/SidePanels'
 import { UnluKare, type UnluKareHandle } from './stage/UnluKare'
 
 /**
@@ -117,6 +118,7 @@ export function UnluShell() {
         <>
           <UnluAyarKarti />
           <UnluNasilKarti />
+          <LinksCard />
         </>
       }
       orta={

@@ -10,15 +10,15 @@ import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { chipById, CHIPS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
 import { heardLength, MAX_WRONG, wrongCount  } from '@/game/machine'
+import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
-import { sars } from './stage/sars'
 import { GuessInput } from './guess/GuessInput'
 import { GuessLog } from './guess/GuessLog'
 import { ResultPanel } from './reveal/ResultPanel'
 import { TierStrip } from './shell/Chrome'
 import { SahneCercevesi } from './shell/SahneCercevesi'
-import { SettingsCard, HowToCard, StatsCard } from './shell/SidePanels'
+import { SettingsCard, HowToCard, StatsCard, LinksCard } from './shell/SidePanels'
 
 export function GameShell() {
   const round = useRound()
@@ -37,14 +37,7 @@ export function GameShell() {
   // aynı olduğu için tek yerde durmalı.
   const router = useRouter()
 
-  /**
-   * Yanlış tahminde sarsılan blok: tahmin satırı.
-   *
-   * ⚠️ Eskiden kaset sarsılıyordu. Kaset kaldırıldı — sayfa her ekranda
-   * yüksekliğe takılıyordu ve kaset bütçenin 273 px'ini tek başına alıyordu.
-   * Yanlış tahmin anında göz zaten yazdığı kutuda.
-   */
-  const giris = useRef<HTMLDivElement>(null)
+  const cassette = useRef<CassetteHandle>(null)
   const [duelloKuruluyor, setDuelloKuruluyor] = useState(false)
   const [duelloHata, setDuelloHata] = useState<string | null>(null)
 
@@ -79,10 +72,11 @@ export function GameShell() {
 
   const chip = chipById(settings.category)
 
+  // Yanlış tahminde kaseti sarsan geri çağrıyı kaydet.
   const { onWrong } = round
   useEffect(() => {
-    onWrong(() => sars(giris.current, reduce))
-  }, [onWrong, reduce])
+    onWrong(() => cassette.current?.shake())
+  }, [onWrong])
 
   // Klavye: Boşluk çal.
   const { play } = round
@@ -176,15 +170,18 @@ export function GameShell() {
             onEasySearch={settings.setEasySearch}
           />
           <HowToCard />
+          {/* Bağlantılar en altta: sütunun çıkışı, girişi değil. */}
+          <LinksCard />
         </>
       }
       orta={
         <>
             {/*
-             * Sahne dizilimi yukarıdan aşağı: kademe ("ne kadar zor"), çubuk
-             * ("ne kadarını duydun"), çalma kontrolü, en altta tahmin ve
-             * çıkışlar. Tek tip `gap` yerine her adımın kendi payı var —
-             * dolayısıyla `gap: 0` ve öğelerde sınıfla verilen `margin-top`.
+             * Sahne dizilimi yukarıdan aşağı: kaset ve kademe sıkı bir ikili
+             * (aynı şeyi anlatıyorlar), sonra çubuk, sonra çalma kontrolü, en
+             * altta tahmin ve çıkışlar. Tek tip `gap` yerine her adımın kendi
+             * payı var — dolayısıyla `gap: 0` ve öğelerde sınıfla verilen
+             * `margin-top`.
              */}
             <main
               className="nk-stage"
@@ -195,6 +192,20 @@ export function GameShell() {
                 width: '100%',
               }}
             >
+              {/*
+                ⚠️ Kaset bir ara kaldırılmıştı (yükseklik bütçesi için) ve geri
+                geldi: kategoriler sol sütuna geçince sayfa yüksekliğini sahne
+                değil en uzun yan sütun belirlemeye başladı, kasetli sahne
+                (815 px) o sütunun (827 px) altında kalıyor.
+              */}
+              <Cassette
+                handleRef={cassette}
+                categoryLabel={chip.label}
+                tapeCode={round.tapeCode}
+                playing={playing}
+                reduce={reduce}
+              />
+
               <div className="nk-kademe">
                 <TierStrip tier={settings.tier} onTier={settings.setTier} />
               </div>
@@ -309,7 +320,7 @@ export function GameShell() {
                     onPlay={round.play}
                   />
 
-                  <div ref={giris} className="nk-giris" style={{ width: '100%' }}>
+                  <div className="nk-giris" style={{ width: '100%' }}>
                     <GuessInput
                       index={round.index}
                       suggestions={settings.easySearch}

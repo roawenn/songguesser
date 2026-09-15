@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import Link from 'next/link'
 
 import { CHIPS, TIERS, type ChipId, type Difficulty } from '@/data/categories'
 
@@ -368,17 +367,17 @@ export function TierStrip({ tier, onTier }: TierProps) {
 }
 
 /**
- * Sayfa altı: oyun şeridi, atıf ve sayfa bağlantıları.
+ * Sayfa altı: yalnızca atıf.
+ *
+ * Oyun seçici logonun altına, sayfa bağlantıları sağ sütundaki kartına döndü.
  *
  * ⚠️ Atıf OYUNA GÖRE. Apple metni ToS gereği zorunlu ama YALNIZCA ses
  * önizlemesi kullanan oyun için; ünlü sayfasında hiçbir Apple içeriği yok ve
  * orada durması yanıltıcı bir iddia olurdu.
  */
 export function Footer({
-  oyunlar,
   atif = 'Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.',
 }: {
-  oyunlar?: React.ReactNode
   atif?: React.ReactNode
 }) {
   return (
@@ -386,10 +385,7 @@ export function Footer({
       style={{
         padding: '0 20px 18px',
         display: 'flex',
-        // Oyun seçici atıf satırının ÜSTÜNDE, kendi satırında.
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 12,
+        justifyContent: 'center',
         fontFamily: 'var(--font-mono)',
         fontSize: 10.5,
         lineHeight: 1.6,
@@ -397,33 +393,7 @@ export function Footer({
         color: '#4e5459',
       }}
     >
-      {oyunlar}
-
-      {/*
-        ⚠️ Bağlantılar atıfla AYNI SATIRDA. Eskiden sağ sütunun dibinde kendi
-        kartlarındaydılar; kategoriler sol sütuna geçince sağ sütun yükseklik
-        bütçesini aşıyordu. Aynı satırda footer'ın yüksekliği değişmiyor; dar
-        ekranda sarmalanıyor.
-      */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          alignItems: 'baseline',
-          gap: '4px 22px',
-        }}
-      >
-        <span>{atif}</span>
-        <span style={{ display: 'inline-flex', gap: 16 }}>
-          <Link href="/nasil-oynanir" className="nk-alt-link">
-            Tüm kurallar
-          </Link>
-          <Link href="/hakkinda" className="nk-alt-link">
-            Hakkında
-          </Link>
-        </span>
-      </div>
+      <span>{atif}</span>
     </footer>
   )
 }

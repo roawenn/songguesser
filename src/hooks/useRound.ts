@@ -38,6 +38,8 @@ export interface RoundApi {
   /** Son tahmin belirsizse adaylar burada — hak tüketilmedi. */
   ambiguous: Song[] | null
   stalled: boolean
+  /** Etiketteki kayıt numarası, örn. "NK-014". */
+  tapeCode: string
 
   play: () => void
   guess: (raw: string) => Verdict
@@ -47,7 +49,7 @@ export interface RoundApi {
   reroll: () => void
   next: () => void
   clearAmbiguity: () => void
-  /** Yanlış tahminde sahneye geri bildirim (sarsıntı) için kayıt olunur. */
+  /** Yanlış tahminde kaseti sarsmak için kayıt olunur. */
   onWrong: (fn: () => void) => void
 }
 
@@ -461,8 +463,14 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
     wrongHandler.current = fn
   }, [])
 
+  const tapeCode = useMemo(() => {
+    if (state.s === 'booting' || state.s === 'empty' || state.s === 'error') return 'NK-000'
+    const i = pool.findIndex((s) => s.id === state.track.id)
+    return `NK-${String(i + 1).padStart(3, '0')}`
+  }, [state, pool])
+
   return {
-    state, pool, filtered, tooNarrow, index, clipLength, loading, ambiguous, stalled,
+    state, pool, filtered, tooNarrow, index, clipLength, loading, ambiguous, stalled, tapeCode,
     canPlay: canPlay(state),
     play, guess, guessSong, skip, reroll, next, clearAmbiguity, onWrong,
   }

@@ -312,20 +312,27 @@ button {
 .nk-stage-grid {
   display: grid;
   /*
-   * ⚠️ Yan sütunlar 340 değil 300, yan dolgu 48 değil 88. 16:10 dizüstülerde
-   * (MacBook) ölçeği yükseklik belirliyor ve genişlik görece dar kalıyor:
-   * 340 / 48'de kartlar ekran kenarına 39 px'e kadar yaklaşıyordu. Toplam
-   * (300·2 + 760 + 72·2 + 88·2 = 1680) değişmediği için hiçbir ekranda
-   * ölçek kaybı yok.
+   * ⚠️ Kenar payı İKİ yerden geliyor ve ikisi de "kenarlara çok yakın"
+   * geri bildirimiyle büyüdü:
+   *   - yan dolgu 48 → 88 → 110: genişliğin sınırladığı dar ekranlarda
+   *     (MacBook, iPad) tek pay bu. Oralarda ölçeği yükseklik belirlediği için
+   *     büyütmenin ölçeğe maliyeti yok; yalnızca iPad yatayda ~%3.
+   *   - `max-width` 1860 → 1760: geniş ekranlarda (1080p, 2K) yayılmayı
+   *     sınırlıyor; kalan genişlik ekran kenarında pay olarak kalıyor.
+   * Asgari genişlik = 300·2 + 760 + 72·2 + 110·2 = 1724 = `TASARIM_G`.
+   *
+   * ⚠️ `max-width` bu asgari genişliğin ALTINA inemez. Bir ara 1640 yazıldı:
+   * taşma olmadı ama `minmax(0, 760px)` orta sütun sessizce 676'ya sıkıştı ve
+   * ünlü sahnesinde "Zorluk" yazısı kademe düğmelerinin üstüne kaydı.
    */
   grid-template-columns: 300px minmax(0, 760px) 300px;
   column-gap: 72px;
   justify-content: space-between;
   align-items: start;
   width: 100%;
-  max-width: 1860px;
+  max-width: 1760px;
   margin: 0 auto;
-  padding: 6px 88px 30px;
+  padding: 6px 110px 30px;
   /*
    * ⚠️ `min-width: 0` ZORUNLU — ızgara bir flex öğesi ve flex öğelerinin
    * varsayılan `min-width: auto`su onları İÇERİKLERİNİN altına indirmez. Bu
@@ -515,9 +522,9 @@ button {
  * olmadan ezilemiyor ve mobilde bu boşlukları sıkıştırmanın başka yolu yoktu.
  *
  * ⚠️ Çubuk ve kontrol arası değerler BİRLİKTE düşünülmeli: çubuk, kademeyi
- * çalma kontrollerinden ayıran aralığın içinde duruyor. Kaset kaldırılınca
- * 55/55'lik aralıklar (kaset + kademe ikilisini kontrollerden ayırmak içindi)
- * boşluğa dönüştü ve daraltıldı.
+ * çalma kontrollerinden ayıran aralığın içinde duruyor. Eskiden 55/55'ti;
+ * 34/40'ta kasetli şarkı sahnesi 815 px ve yan sütunların altında kalıyor —
+ * 55/55'te 851 px olup ölçek bütçesini büyütüyordu.
  */
 .nk-kademe {
   margin-top: 24px;
@@ -578,7 +585,22 @@ button {
 @media (max-width: 899px) {
   .nk-top {
     gap: 8px;
-    padding: 14px 16px 12px;
+    padding: 14px 24px 12px;
+  }
+  /* Telefonda oyun seçicinin açıklama satırı gizli: ilk ekran oyuna lazım. */
+  .nk-oyun-aciklama {
+    display: none;
+  }
+  /*
+   * Telefonda segmentler de sıkı: logonun altına taşınınca ünlü oyununda
+   * "Geç" ilk ekranın dışına düşüyordu. ⚠️ `!important`: ölçüler satır içi.
+   */
+  .nk-oyun {
+    padding: 3px 12px 3px 3px !important;
+  }
+  .nk-oyun > span:first-child {
+    width: 26px !important;
+    height: 26px !important;
   }
   /* Kategori başlığı telefonda gizli: çipler ne olduklarını söylüyor. */
   .nk-serit-baslik {
@@ -614,8 +636,20 @@ button {
   .nk-center {
     padding-top: 4px;
   }
+  /*
+   * Kaset sahnenin kimliği; telefonda küçülüyor ama kaybolmuyor.
+   *
+   * ⚠️ `!important` ŞART: kasetin kökünde satır içi `maxWidth: 440` var ve
+   * satır içi stil onsuz ezilmiyor — eski kural bu yüzden hiç çalışmamıştı.
+   * ⚠️ `:not(.nk-unlu)`: ünlü sahnesinin ilk çocuğu görsel + kontrol düzeni;
+   * bu sınır tahmin kutusunu da daraltırdı.
+   */
+  .nk-stage:not(.nk-unlu) > :first-child {
+    max-width: 250px !important;
+  }
+  /* "Kenarlara yapışık" geri bildirimi: 16 → 24 px. */
   .nk-stage-grid {
-    padding: 4px 16px 24px;
+    padding: 4px 24px 24px;
     gap: 16px;
   }
 }
@@ -714,11 +748,12 @@ button {
 
 @media (max-width: 899px) {
   /*
-   * ⚠️ 195 px: en kısa yaygın telefonda (360×720) "Geç" ilk ekrana sığsın.
-   * 285 px'te 889 px'te, 210 px'te 759 px'te kalıyordu.
+   * ⚠️ 165 px: en kısa yaygın telefonda (360×720) "Geç" ilk ekrana sığsın.
+   * 285 px'te 889'da kalıyordu; oyun seçici logonun altına gelince 195 px de
+   * yetmedi (768).
    */
   .nk-unlu-kare {
-    max-width: 195px;
+    max-width: 165px;
   }
   /*
    * ⚠️ Telefonda ipucu NORMAL AKIŞTA. Mutlak konumda altındaki "Zorluk"
@@ -741,8 +776,9 @@ button {
  *   - iki oyunun sahneleri farklı yükseklikteydi (oyun değiştirince 24 px)
  *   - İstatistik kartı ilk turdan SONRA çıkıyor ve sol sütunu uzatıyor
  * Değer bu yüzden sahnelerin değil, EN UZUN SÜTUNUN ölçülmüş yüksekliği.
- * Ölçüm (ölçek 1): şarkı sol sütunu kategoriler 451 + istatistik 341 + aralık
- * 16 = 808; sağ 728; şarkı sahnesi 518; ünlü sütunları 616 / 580, sahnesi 475.
+ * Ölçüm (ölçek 1): şarkı sağ sütunu ayarlar 285 + nasıl oynanır 443 +
+ * bağlantılar 68 + aralıklar 32 = 827; sol 808; kasetli şarkı sahnesi 815;
+ * ünlü sütunları 616 / 699, sahnesi 475.
  * Kısa kalan sahne kutunun ortasında durur.
  *
  * ⚠️ Kategori listesine satır, sol sütuna kart eklenirse bu değer ve
@@ -753,7 +789,7 @@ button {
  */
 @media (min-width: 900px) {
   .nk-stage {
-    min-height: 810px;
+    min-height: 830px;
     justify-content: center;
   }
 }
@@ -797,7 +833,7 @@ button {
     display: grid;
     place-content: center;
     position: absolute;
-    left: 14px;
+    left: 20px;
     top: 12px;
     width: 38px;
     height: 38px;

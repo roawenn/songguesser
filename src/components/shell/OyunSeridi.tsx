@@ -5,31 +5,25 @@ import { useRef } from 'react'
 import { useKaydirilabilir } from './Chrome'
 
 /**
- * Oyun seçici — footer yazısının hemen ÜSTÜNDE, kendi satırında.
+ * Oyun seçici — logonun hemen ALTINDA, segmentli bir anahtar.
  *
- * ⚠️ Yatay kaydırılabilir, ama BUGÜN iki oyun var ve hiçbir ekranda kaymıyor.
- * Kaydırma altyapısı yine de kuruldu çünkü üçüncü oyun eklendiğinde şeridin
- * kırpılması sessiz bir hata olurdu — kategori şeridinde tam bu yaşandı
- * (tasarımda 8 çip vardı, bizde 11 oldu ve sondaki üçü kırpıldı).
+ * ⚠️ Bir ara sayfanın en altında, footer'ın üstündeydi. Orada sayfanın ana
+ * seçimi (hangi oyun) en az bakılan yerde kalıyordu; logonun altında markayla
+ * birlikte okunuyor: "tahmin" → hangi tahmin.
  *
- * Kenar soluklaşması `useKaydirilabilir` ile yalnızca gerçekten kaydırılabilir
- * olduğunda çıkıyor; koşulsuz uygulandığında şerit tam sığdığı hâlde sondaki
- * madde kırpılmış gibi duruyordu.
+ * ⚠️ Yatay kaydırılabilir, ama bugün iki oyun var ve hiçbir ekranda kaymıyor.
+ * Kaydırma altyapısı üçüncü oyun eklendiğinde sessizce kırpılmasın diye duruyor
+ * — kategori şeridinde tam bu yaşandı (8 çip tasarlanmıştı, 11 oldu).
  *
- * ⚠️ YÜKSEKLİĞİ ÖLÇEK BÜTÇESİNE GİRİYOR (`useOlcek.ts`).
- *
- * Şerit bir ara footer'ın İÇİNE, atıf yazısıyla aynı satıra alınmıştı: o zaman
- * yalnızca bir etiket taşıyordu ("Şarkı" / "Ünlü") ve kendi satırı 38 px'e mal
- * oluyordu. Artık ikon + ad + açıklama taşıyor ve kendi satırında; eklediği
- * yükseklik `TASARIM_Y`'ye ÖLÇÜLEREK yansıtıldı. Bu dosyadaki dolgu/yazı
- * boyutları değişirse `TASARIM_Y` yeniden ölçülmeli, yoksa 1366x768'de sahne
- * sessizce taşar.
+ * ⚠️ YÜKSEKLİĞİ ÖLÇEK BÜTÇESİNE GİRİYOR (`useOlcek.ts`). Dolgu ya da yazı
+ * boyutu değişirse `TASARIM_Y` yeniden ölçülmeli. Telefonda açıklama satırı
+ * gizli (globals.css): orada ilk ekran "Geç" düğmesine lazım.
  */
 
 /** İki oyunun ikonu — dışarıdan ikon paketi çekmemek için elde çizildi. */
 function NotaIkonu() {
   return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden>
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
       <path
         d="M9 18V5.5l10-2V16"
         stroke="currentColor"
@@ -45,14 +39,9 @@ function NotaIkonu() {
 
 function YuzIkonu() {
   return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden>
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
       {/* Saç — oyunun ilk açılan şeridi. */}
-      <path
-        d="M5 11a7 7 0 0 1 14 0"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
+      <path d="M5 11a7 7 0 0 1 14 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       <path
         d="M5.6 11v3.2a6.4 6.4 0 0 0 12.8 0V11"
         stroke="currentColor"
@@ -60,7 +49,12 @@ function YuzIkonu() {
         strokeLinecap="round"
       />
       <path d="M9.5 13.4h.01M14.5 13.4h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M4 21c1.8-2.4 4.6-3.6 8-3.6s6.2 1.2 8 3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M4 21c1.8-2.4 4.6-3.6 8-3.6s6.2 1.2 8 3.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }
@@ -96,13 +90,21 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
         style={{ maxWidth: '100%', overflowX: 'auto', flex: 'none' }}
         aria-label="Oyunlar"
       >
+        {/*
+          Tek çerçeve içinde iki segment: iki ayrı kart değil, TEK bir seçimin
+          iki seçeneği olduğu görünsün. Seçili segment sahne renginde dolu.
+        */}
         <div
           style={{
             display: 'flex',
-            gap: 10,
-            padding: '0 2px',
+            gap: 4,
+            padding: 4,
             minWidth: 'max-content',
-            justifyContent: 'center',
+            margin: '0 auto',
+            width: 'max-content',
+            borderRadius: 12,
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.02)',
           }}
         >
           {OYUNLAR.map((o) => {
@@ -118,20 +120,16 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
-                  padding: '8px 14px',
-                  borderRadius: 8,
-                  border: `1px solid ${on ? 'var(--acc)' : 'rgba(255,255,255,0.09)'}`,
-                  background: on ? 'oklch(0.81 0.12 var(--hue) / 0.09)' : 'transparent',
+                  padding: '6px 16px 6px 6px',
+                  borderRadius: 9,
+                  background: on ? 'oklch(0.81 0.12 var(--hue) / 0.11)' : 'transparent',
+                  boxShadow: on ? 'inset 0 0 0 1px oklch(0.81 0.12 var(--hue) / 0.5)' : 'none',
                   textDecoration: 'none',
                   textAlign: 'left',
                   whiteSpace: 'nowrap',
+                  transition: 'background .15s ease',
                 }}
               >
-                {/*
-                  İkon adın SOLUNDA ve iki satırın ortasında. Kendi kutusu var:
-                  kutu olmadan çizim, ad ve açıklamanın oluşturduğu bloğun
-                  tepesine yapışıyordu.
-                */}
                 <span
                   aria-hidden
                   style={{
@@ -141,8 +139,7 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                     width: 30,
                     height: 30,
                     borderRadius: 7,
-                    border: `1px solid ${on ? 'var(--acc)' : 'rgba(255,255,255,0.1)'}`,
-                    background: on ? 'oklch(0.81 0.12 var(--hue) / 0.12)' : 'rgba(255,255,255,0.02)',
+                    background: on ? 'oklch(0.81 0.12 var(--hue) / 0.16)' : 'rgba(255,255,255,0.04)',
                     color: on ? 'var(--acc)' : '#7b8186',
                   }}
                 >
@@ -151,6 +148,7 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
 
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                   <span
+                    className="nk-oyun-ad"
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: 10.5,
@@ -167,11 +165,10 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                     hangisinin ad hangisinin açıklama olduğu okunmuyordu.
                   */}
                   <span
+                    className="nk-oyun-aciklama"
                     style={{
                       fontFamily: 'var(--font-sans)',
                       fontSize: 10.5,
-                      letterSpacing: 0,
-                      textTransform: 'none',
                       color: '#6a7075',
                       lineHeight: 1.25,
                     }}
@@ -186,8 +183,8 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
       </nav>
 
       <style>{`
-        .nk-oyun:not([data-on]):hover { border-color: rgba(255,255,255,0.2) !important; }
-        .nk-oyun:not([data-on]):hover span { color: #b6bbbf !important; }
+        .nk-oyun:not([data-on]):hover { background: rgba(255,255,255,0.04) !important; }
+        .nk-oyun:not([data-on]):hover .nk-oyun-ad { color: #cfd3d6 !important; }
       `}</style>
     </>
   )

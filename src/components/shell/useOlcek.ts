@@ -22,18 +22,18 @@ import { useEffect } from 'react'
  * ⚠️ 1920 DEĞİL. 1920'ye bölmek sahnenin 1920 px'lik bir tuvale çizildiğini
  * varsayıyordu; oysa sütunlar çok daha dar bir alana sığıyordu ve kalan genişlik
  * yanlarda boş kalıyordu (1080p'de %40). Değer: sütunlar 300 + 760 + 300, yan
- * dolgular 2 × 88, en dar aralıklar 2 × 72 (bkz. `.nk-stage-grid`).
+ * dolgular 2 × 110, en dar aralıklar 2 × 72 (bkz. `.nk-stage-grid`).
  */
-const TASARIM_G = 1680
+const TASARIM_G = 1724
 
 /**
  * Oyun alanının (üst bant + ızgara + footer) ölçek 1'de istediği YÜKSEKLİK.
  *
  * ⚠️ Sayfa HER ekranda bu sayıya takılıyor, genişliğe hiç takılmıyor —
  * yani metin boyutunu fiilen bu değer belirliyor. Eskiden 1215'ti ve 1080p'de
- * 13 px metin 10 px'e iniyordu. Kaset ve üst banttaki kategori şeridi
- * kaldırılıp kategoriler sol sütuna geçince sütunların en uzunu (şarkıda
- * kategoriler + istatistik) belirleyici oldu.
+ * 13 px metin 10 px'e iniyordu. Kategoriler üst banttan sol sütuna geçince
+ * yüksekliği sahne değil EN UZUN YAN SÜTUN belirlemeye başladı — kaset bu
+ * yüzden bütçeye neredeyse dokunmadan geri gelebildi.
  *
  * ⚠️ Değer TAHMİN EDİLMEZ, ölçülür: ölçek 1'e sabitlenip `.nk-scale`
  * çocuklarının doğal yükseklikleri toplanır. `min-height: 100vh/ölçek` ve
@@ -45,11 +45,12 @@ const TASARIM_G = 1680
  * değiştirmek sayfanın tamamını %4 büyütüp küçültüyordu.
  *
  * Ölçüm (ölçek 1, 1920 genişlik, istatistik kartı DOLU — en uzun hâl):
- *   üst bant 82 + orta 880 + footer 95 = 1057
- * Orta = sahne kutusu 810 (`.nk-stage` min-height, globals.css) + ızgara
- * dolgusu 36 + üst pay 34. Sütunlar: şarkı sol 808 / sağ 728, ünlü 616 / 580.
+ *   üst bant 147 (marka + oyun seçici) + orta 900 + footer 35 = 1082
+ * Orta = sahne kutusu 830 (`.nk-stage` min-height, globals.css) + ızgara
+ * dolgusu 36 + üst pay 34. Sütunlar: şarkı sol 808 / sağ 827, ünlü 616 / 699;
+ * kasetli şarkı sahnesi 815.
  */
-const TASARIM_Y = 1062
+const TASARIM_Y = 1087
 
 /**
  * En fazla büyütme.

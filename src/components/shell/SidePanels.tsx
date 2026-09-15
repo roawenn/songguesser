@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Link from 'next/link'
 import { STEPS, tr } from '@/game/ladder'
 import { isabet, KADEME } from '@/game/stats'
 import { TIER_LABELS, type Difficulty } from '@/data/categories'
@@ -496,9 +497,46 @@ export function HowToCard() {
 }
 
 /*
- * ⚠️ Klavye ve Bağlantılar kartları KALDIRILDI.
- *
- * Kategoriler sol sütuna geçince sağ sütun (Ayarlar + Nasıl oynanır + Klavye +
- * Bağlantılar) ~1000 px'e çıkıyordu; hedef ~800. Kısayollar "Tüm kurallar"
- * sayfasında anlatılıyor, iki bağlantı footer'ın atıf satırına indi.
+ * ⚠️ Klavye kartı KALDIRILDI: kategoriler sol sütuna geçince sağ sütun yükseklik
+ * bütçesini aşıyordu. Kısayollar "Tüm kurallar" sayfasında anlatılıyor.
  */
+
+/** Kart içindeki bağlantı düğmesi. */
+const KART_DUGME = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '10px 8px',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 5,
+  fontFamily: 'var(--font-mono)',
+  fontSize: 10.5,
+  letterSpacing: '.06em',
+  color: '#a9aeb3',
+  textAlign: 'center' as const,
+}
+
+/**
+ * Sayfa bağlantıları — sağ sütunun EN ALTINDA, kendi kartında.
+ *
+ * ⚠️ Bir ara footer'ın atıf satırına indirilmişti (sütun bütçesi için); orada
+ * ince metin bağlantıları olarak kayboluyordu ve eski yerine döndü. Kartın
+ * 84 px'lik maliyeti sahne kutusuna ölçülerek yansıtıldı (bkz. `.nk-stage`).
+ *
+ * İki bağlantı, aynı yeri BÖLEN iki düğme: hem hedef büyüyor hem de ikisinin
+ * eş değerde olduğu görülüyor.
+ */
+export function LinksCard() {
+  return (
+    <nav style={{ ...CARD, padding: 14, gap: 0 }} aria-label="Sayfalar">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <Link href="/nasil-oynanir" className="nk-kart-dugme" style={KART_DUGME}>
+          Tüm kurallar
+        </Link>
+        <Link href="/hakkinda" className="nk-kart-dugme" style={KART_DUGME}>
+          Hakkında
+        </Link>
+      </div>
+    </nav>
+  )
+}
