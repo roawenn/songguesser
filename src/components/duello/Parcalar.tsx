@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { DUELLO_TUR, type DuelloSkor } from '@/game/duel'
+import { useRouter } from 'next/navigation'
+import { DUELLO_TUR, kodAyikla, type DuelloSkor } from '@/game/duel'
 import type { DuelloApi } from '@/hooks/useDuello'
 
 /**
@@ -90,8 +91,8 @@ export function Lobi({ kod }: { kod: string }) {
         </div>
 
         <p style={{ margin: 0, fontSize: 14, color: '#b6bbbf', lineHeight: 1.6 }}>
-          Bu bağlantıyı arkadaşına gönder. O girdiği anda ikiniz aynı beş turu
-          kolaydan zora oynamaya başlayacaksınız.
+          Bu bağlantıyı ya da kodu arkadaşına gönder. O girdiği anda ikiniz aynı
+          beş turu kolaydan zora oynamaya başlayacaksınız.
         </p>
 
         {/*
@@ -132,7 +133,125 @@ export function Lobi({ kod }: { kod: string }) {
           arkadaşın bekleniyor
         </div>
       </div>
+
+      <LobiyeBaglan mevcut={kod} />
     </div>
+  )
+}
+
+/**
+ * Başkasının lobisine kodla bağlan.
+ *
+ * Arkadaş bağlantı yerine yalnızca kodu gönderdiyse kod tek başına bir işe
+ * yaramıyordu: girilecek bir yer yoktu.
+ *
+ * ⚠️ Gitmeden ÖNCE lobi gizli anahtarsız okunuyor. Bu okuma kimseyi lobiye
+ * katmıyor (katılma yalnızca düello sayfasının yoklamasında, `katil` ucu ile).
+ * Böylece yanlış, süresi dolmuş ya da dolu bir kod kişiyi kendi lobisinden
+ * koparıp bir hata sayfasına atmıyor; hata burada, kartın içinde görünüyor.
+ */
+function LobiyeBaglan({ mevcut }: { mevcut: string }) {
+  const router = useRouter()
+  const [ham, setHam] = useState('')
+  const [hata, setHata] = useState<string | null>(null)
+  const [bekliyor, setBekliyor] = useState(false)
+
+  async function baglan(e: FormEvent) {
+    e.preventDefault()
+    const kod = kodAyikla(ham)
+    if (!kod) {
+      setHata('Kod 6 karakter olmalı, örneğin Y8Q6S4. Bağlantının tamamını da yapıştırabilirsin.')
+      return
+    }
+    if (kod === mevcut) {
+      setHata('Bu zaten senin lobin. Kodu arkadaşına gönder.')
+      return
+    }
+
+    setHata(null)
+    setBekliyor(true)
+    try {
+      const res = await fetch(`/api/duello/${kod}`)
+      const d = (await res.json().catch(() => ({}))) as { error?: string; oyuncuSayisi?: number }
+      if (!res.ok) {
+        setHata(d.error ?? 'Lobi bulunamadı.')
+        setBekliyor(false)
+        return
+      }
+      if ((d.oyuncuSayisi ?? 0) >= 2) {
+        setHata('Bu lobi dolu — iki oyuncu da girmiş.')
+        setBekliyor(false)
+        return
+      }
+      router.push(`/duello/${kod}`)
+    } catch {
+      setHata('Bağlanılamadı, tekrar dene.')
+      setBekliyor(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={(e) => void baglan(e)}
+      style={{ ...KART, alignItems: 'center', textAlign: 'center', gap: 14 }}
+      aria-label="Lobiye bağlan"
+    >
+      <div style={{ ...M, color: '#6a7075' }}>Lobiye bağlan</div>
+      <p style={{ margin: 0, fontSize: 13.5, color: '#9aa0a5', lineHeight: 1.6 }}>
+        Arkadaşın sana kod verdiyse buraya yapıştır.
+      </p>
+      <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+        <input
+          value={ham}
+          onChange={(e) => {
+            setHam(e.target.value)
+            if (hata) setHata(null)
+          }}
+          placeholder="Y8Q6S4"
+          aria-label="Lobi kodu"
+          maxLength={80}
+          autoComplete="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            padding: '11px 14px',
+            borderRadius: 5,
+            border: `1px solid ${hata ? 'rgba(208,154,154,0.6)' : 'rgba(255,255,255,0.14)'}`,
+            background: 'rgba(0,0,0,0.25)',
+            color: '#e6e8ea',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 16,
+            letterSpacing: '.18em',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+          }}
+        />
+        <button
+          type="submit"
+          disabled={bekliyor || ham.trim() === ''}
+          style={{
+            ...M,
+            flex: 'none',
+            padding: '11px 18px',
+            borderRadius: 5,
+            border: '1px solid rgba(255,255,255,0.18)',
+            background: 'rgba(255,255,255,0.05)',
+            color: '#dfe2e4',
+            opacity: bekliyor || ham.trim() === '' ? 0.5 : 1,
+            cursor: bekliyor ? 'progress' : 'pointer',
+          }}
+        >
+          {bekliyor ? 'bakılıyor…' : 'Bağlan'}
+        </button>
+      </div>
+      {hata && (
+        <div role="alert" style={{ fontSize: 13, color: '#d09a9a', lineHeight: 1.5 }}>
+          {hata}
+        </div>
+      )}
+    </form>
   )
 }
 

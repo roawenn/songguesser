@@ -41,8 +41,14 @@ const KapakDuelloShell = dynamic(
   { ssr: false, loading: () => <Iskelet /> },
 )
 
+/*
+ * ⚠️ Kabuk KODLA ANAHTARLANIYOR (`key={kod}`). "Lobiye bağlan" bir lobiden
+ * diğerine istemci tarafında geçiyor; aynı oyunun kabuğu yeniden kullanılsaydı
+ * eski lobinin durumu (oyuncu sayısı, cevaplar, bekleyen gönderim) yeni lobinin
+ * ilk yoklaması gelene kadar ekranda ve ref'lerde kalırdı.
+ */
 export function ClientDuello({ kod, oyun }: { kod: string; oyun: DuelloOyun }) {
-  if (oyun === 'unlu') return <UnluDuelloShell kod={kod} />
-  if (oyun === 'kapak') return <KapakDuelloShell kod={kod} />
-  return <DuelloShell kod={kod} />
+  if (oyun === 'unlu') return <UnluDuelloShell key={kod} kod={kod} />
+  if (oyun === 'kapak') return <KapakDuelloShell key={kod} kod={kod} />
+  return <DuelloShell key={kod} kod={kod} />
 }
