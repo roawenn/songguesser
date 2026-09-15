@@ -619,8 +619,16 @@ button {
   .nk-kademe {
     margin-top: 12px;
   }
+  /*
+   * Zorluk düğmelerinin ALTINDA nefes (kullanıcı isteği): 18'de çubuk
+   * düğmelere yapışık duruyordu. Ünlüde zorluğun altında tahmin kutusu var,
+   * aynı ritim için o da açıldı.
+   */
   .nk-cubuk {
-    margin-top: 18px;
+    margin-top: 30px;
+  }
+  .nk-unlu .nk-unlu-kontrol .nk-giris {
+    margin-top: 28px;
   }
   .nk-kontrol {
     margin-top: 18px;
