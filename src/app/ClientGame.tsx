@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { CHIPS, type ChipId } from '@/data/categories'
 import { havuzuIsit } from '@/data/loadPool'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { slugGecerli } from '@/text/sanatci'
 
 /**
  * Oyunu yalnızca tarayıcıda kur.
@@ -76,8 +77,21 @@ function seckiyiHizala() {
   useSettingsStore.setState({ category: hedef as ChipId })
 }
 
+/**
+ * `?sanatci=sezen-aksu` — sanatçı modu.
+ *
+ * ⚠️ `?secki=`'nin tersine KALICI AYARA YAZILMAZ: sanatçı modu bir oturumluk
+ * hayran testi; oyuncu çıkınca kendi seçkisine dönmeli (bkz. `useRound`).
+ */
+function sanatciOku(): string | null {
+  if (typeof window === 'undefined') return null
+  const s = new URLSearchParams(window.location.search).get('sanatci')
+  return s && slugGecerli(s) ? s : null
+}
+
 export function ClientGame() {
   seckiyiHizala()
+  const sanatci = sanatciOku()
   /*
    * ⚠️ Havuz isteği, tembel `GameShell` parçası inip çalışmadan başlatılıyor.
    *
@@ -87,6 +101,9 @@ export function ClientGame() {
    * `localStorage`'da: varsayılan dışında bir seçki kullanan oyuncuya yanlış
    * havuzu indirtmek, kazandırdığından fazlasını götürürdü.
    */
-  if (typeof window !== 'undefined') havuzuIsit(useSettingsStore.getState().category)
-  return <GameShell />
+  if (typeof window !== 'undefined') {
+    // Sanatçı modu her zaman `karisik` havuzundan süzer.
+    havuzuIsit(sanatci ? 'karisik' : useSettingsStore.getState().category)
+  }
+  return <GameShell sanatci={sanatci} />
 }

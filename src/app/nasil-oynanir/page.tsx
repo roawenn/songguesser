@@ -74,6 +74,10 @@ const faq = [
     a: 'Hayır, ayrı. Şarkıda "Uzman" seviyesindeysen ünlü oyununa "Kolay"dan başlarsın; isabet yüzden, serin ve kademe dağılımın da her oyun için ayrı tutulur. "Kolay arama" ve "azaltılmış animasyon" ise ortak tercihlerdir.',
   },
   {
+    q: 'Yalnızca bir sanatçının şarkılarıyla oynayabilir miyim?',
+    a: 'Evet. Sanatçı sayfalarından (tahmin.net/sanatci) birini seçip "ile oyna" dersen tur yalnızca o sanatçının şarkılarından kurulur. Seçki ayarın değişmez; sol üstteki ✕ ile moddan çıkınca kendi seçkine dönersin. Sanatçı modunda düello kurulamaz.',
+  },
+  {
     q: 'İpucu nasıl çalışır?',
     a: 'Şarkı oyununda bir turda iki ipucu alabilirsin: önce çıkış yılı, sonra sanatçının baş harfi. Her ipucu pas geçmek gibi bir kademe yakar — klip bir sonraki uzunluğa geçer ama tahmin hakkın gitmez. Son kademede ipucu alınamaz, çünkü turu kaybettirirdi.',
   },

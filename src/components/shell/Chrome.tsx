@@ -217,7 +217,16 @@ export function KategoriListesi<Id extends string>({
   onCategory,
   chips,
   baslik = 'Kategoriler',
-}: CategoryProps<Id>) {
+  sanatciModu,
+}: CategoryProps<Id> & {
+  /**
+   * Sanatçı modu açıksa başlık satırı "Sanatçı · Ad ✕" olur.
+   *
+   * ⚠️ AYRI KART DEĞİL, başlığın YERİNE: ayrı kart sol sütunu ~70 px uzatıp
+   * sahne kutusunu (830) aşardı ve sayfa ölçek bütçesinden taşardı.
+   */
+  sanatciModu?: { ad: string; kapat: () => void }
+}) {
   return (
     <nav
       aria-label="Seçki"
@@ -231,15 +240,58 @@ export function KategoriListesi<Id extends string>({
         gap: 12,
       }}
     >
-      <div
-        style={{
-          ...MONO_CAPTION,
-          padding: '0 6px 10px',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        {baslik}
-      </div>
+      {sanatciModu ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            padding: '0 2px 10px 6px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+          }}
+        >
+          <span
+            style={{
+              ...MONO_CAPTION,
+              color: 'var(--acc)',
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Sanatçı · {sanatciModu.ad}
+          </span>
+          <button
+            type="button"
+            onClick={sanatciModu.kapat}
+            aria-label="Sanatçı modundan çık"
+            title="Sanatçı modundan çık"
+            style={{
+              flex: 'none',
+              border: 0,
+              background: 'transparent',
+              color: '#8d9398',
+              fontSize: 12,
+              lineHeight: 1,
+              padding: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <div
+          style={{
+            ...MONO_CAPTION,
+            padding: '0 6px 10px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+          }}
+        >
+          {baslik}
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {chips.map((c) => {

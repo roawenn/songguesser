@@ -13,6 +13,7 @@ import { pickNext, filterByTier } from '@/game/select'
 import { judgeGuess, type Verdict } from '@/text/match'
 import { buildIndex, sarkiSamanligi, type SearchIndex } from '@/text/autocomplete'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { sanatciSlug } from '@/text/sanatci'
 
 /**
  * Ölü preview URL'inde art arda en fazla kaç şarkı denenir.
@@ -71,14 +72,28 @@ export interface DizilimOpts {
   index: number
 }
 
-export function useRound(dizilim?: DizilimOpts): RoundApi {
+/** Tek oyunculu modun seçenekleri. */
+export interface RoundSecenek {
+  /**
+   * Sanatçı modu: yalnızca bu kısa adın (`sanatciSlug(nA)`) şarkıları.
+   *
+   * ⚠️ Havuz her zaman `karisik`: sanatçının şarkıları birden fazla türe
+   * dağılmış olabilir ve kalıcı seçki ayarı DEĞİŞTİRİLMEZ — oyuncu moddan
+   * çıkınca kendi seçkisine döner.
+   */
+  sanatci?: string | null
+}
+
+export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundApi {
   /*
    * ⚠️ Alan alan abone olunuyor. Seçicisiz `useSettingsStore()` bütün depoya
    * abone olur; "Azaltılmış animasyon" anahtarına dokunmak bile tur kancasını
    * ve altındaki her şeyi yeniden çizdiriyordu — oysa `reduce` burada hiç
    * kullanılmıyor.
    */
-  const category = useSettingsStore((s) => s.category)
+  const ayarKategori = useSettingsStore((s) => s.category)
+  const sanatci = secenek?.sanatci ?? null
+  const category = sanatci ? 'karisik' : ayarKategori
   const tier = useSettingsStore((s) => s.tier)
   const easySearch = useSettingsStore((s) => s.easySearch)
   const volume = useSettingsStore((s) => s.volume)
@@ -152,10 +167,22 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
     return () => {
       cancelled = true
     }
-  }, [category])
+    /*
+     * ⚠️ `sanatci` da bağımlılık: moddan çıkarken seçki zaten `karisik` ise
+     * `category` değişmez ve elde sanatçının turu kalırdı. Havuz söz önbelleğinden
+     * geldiği için yeniden yükleme ağa gitmiyor.
+     */
+  }, [category, sanatci])
+
+  // Sanatçı modunda havuz önce sanatçıya daraltılır.
+  const sanatciHavuzu = useMemo(
+    () => (sanatci ? pool.filter((s) => sanatciSlug(s.nA) === sanatci) : pool),
+    [pool, sanatci],
+  )
 
   // Zorluk kademesi havuzu süzer; küratörlük inceyse komşu kademeler eklenir.
-  const filtered = useMemo(() => filterByTier(pool, tier), [pool, tier])
+  // Sanatçı havuzu küçük olduğu için orada genişleme sık devreye girer — bilinçli.
+  const filtered = useMemo(() => filterByTier(sanatciHavuzu, tier), [sanatciHavuzu, tier])
 
   /**
    * Metin eşleştirmenin gördüğü havuz.

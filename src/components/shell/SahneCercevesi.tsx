@@ -48,6 +48,11 @@ interface Props {
 
   /** Alt şeritte hangi oyun seçili. */
   aktifOyun: 'sarki' | 'unlu'
+  /**
+   * Sanatçı modu (yalnızca şarkı oyunu). Masaüstünde kategori listesinin başlık
+   * satırında, telefonda kategori şeridinin üstünde gösterilir; ✕ ile çıkılır.
+   */
+  sanatciModu?: { ad: string; kapat: () => void }
   /** Footer'daki atıf metni — oyuna göre değişir. */
   atif?: React.ReactNode
 }
@@ -64,6 +69,7 @@ export function SahneCercevesi({
   sag,
   aktifOyun,
   atif,
+  sanatciModu,
 }: Props) {
   /**
    * ⚠️ Sistemin `prefers-reduced-motion` tercihi KASITLI olarak okunmuyor.
@@ -157,6 +163,44 @@ export function SahneCercevesi({
             <OyunSeridi aktif={aktifOyun} />
           </div>
           <div className="nk-yalniz-mobil" style={{ width: '100%' }}>
+            {sanatciModu && (
+              <div
+                role="status"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  marginBottom: 8,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  letterSpacing: '.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--acc)',
+                }}
+              >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  Sanatçı · {sanatciModu.ad}
+                </span>
+                <button
+                  type="button"
+                  onClick={sanatciModu.kapat}
+                  aria-label="Sanatçı modundan çık"
+                  style={{
+                    flex: 'none',
+                    width: 26,
+                    height: 26,
+                    borderRadius: 6,
+                    border: '1px solid rgba(255,255,255,0.14)',
+                    background: 'transparent',
+                    color: '#b6bbbf',
+                    fontSize: 11,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
             <CategoryStrip chips={cipler} category={secili} onCategory={seckiSec} />
           </div>
         </div>
@@ -171,7 +215,12 @@ export function SahneCercevesi({
             {/* Üç sütun: kategoriler + istatistik · sahne · ayarlar + kurallar. */}
             <div className="nk-stage-grid">
               <div className="nk-side">
-                <KategoriListesi chips={cipler} category={secili} onCategory={seckiSec} />
+                <KategoriListesi
+                  chips={cipler}
+                  category={secili}
+                  onCategory={seckiSec}
+                  sanatciModu={sanatciModu}
+                />
                 {sol}
               </div>
               {orta}

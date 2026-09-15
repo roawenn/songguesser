@@ -1,13 +1,18 @@
 import type { MetadataRoute } from 'next'
 import { CHIPS } from '@/data/categories'
+import { sanatcilariGetir } from '@/lib/sanatcilar'
 import { SITE_URL } from '@/lib/siteUrl'
+
+/** Sanatçı listesi havuzla birlikte tazeleniyor; site haritası da saatte bir. */
+export const revalidate = 3600
 
 /**
  * ⚠️ Alan adı SABİT KODLANMAZ. Önceden burada `tahmin.net` yazılıydı, yani her
  * Vercel önizlemesi canlı adresi işaret eden bir sitemap yayınlıyordu.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
+  const sanatcilar = await sanatcilariGetir()
 
   return [
     { url: SITE_URL, lastModified: now, changeFrequency: 'daily', priority: 1 },
@@ -22,6 +27,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
+    })),
+    {
+      url: `${SITE_URL}/sanatci`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
+    ...sanatcilar.map((s) => ({
+      url: `${SITE_URL}/sanatci/${s.slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
     })),
     {
       url: `${SITE_URL}/nasil-oynanir`,

@@ -21,10 +21,13 @@ import { GuessLog } from './guess/GuessLog'
 import { ResultPanel } from './reveal/ResultPanel'
 import { TierStrip } from './shell/Chrome'
 import { SahneCercevesi } from './shell/SahneCercevesi'
+import { sanatciSlug } from '@/text/sanatci'
 import { SettingsCard, HowToCard, StatsCard, LinksCard } from './shell/SidePanels'
 
-export function GameShell() {
-  const round = useRound()
+export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | null } = {}) {
+  /** Sanatçı modu — URL'den gelir (`/?sanatci=`), kalıcı ayar değildir. */
+  const [sanatci, setSanatci] = useState<string | null>(ilkSanatci)
+  const round = useRound(undefined, { sanatci })
   const settings = useSettingsStore()
 
   /**
@@ -75,6 +78,19 @@ export function GameShell() {
   }
 
   const chip = chipById(settings.category)
+
+  /*
+   * Sanatçının GÖRÜNTÜ adı havuzdan: kısa addan geri üretilemiyor (Türkçe
+   * karakterler katlanmış). Havuz inene kadar kısa ad görünür.
+   */
+  const sanatciAdi = sanatci
+    ? (round.filtered[0]?.a ?? round.pool.find((s) => sanatciSlug(s.nA) === sanatci)?.a ?? sanatci)
+    : null
+  const sanatcidenCik = () => {
+    setSanatci(null)
+    // Yenileyince moda geri dönülmesin; geçmişe yeni kayıt da eklenmesin.
+    window.history.replaceState(null, '', '/')
+  }
 
   // Yanlış tahminde kaseti sarsan geri çağrıyı kaydet.
   const { onWrong } = round
@@ -138,13 +154,13 @@ export function GameShell() {
     // Aynı anahtar: kademe yükselip etki yeniden çalışınca tur İKİ KEZ sayılmasın.
     olayBirKez(`sarki:${turId}`, 'tur_bitti', {
       oyun: 'sarki',
-      secki: settings.category,
+      secki: sanatci ? 'sanatci' : settings.category,
       zorluk: settings.tier,
       sonuc: state.s === 'won' ? 'kazandi' : 'kaybetti',
       adim: state.steps.length,
       duello: false,
     })
-  }, [state, settings.tier, settings.category, kaydet])
+  }, [state, settings.tier, settings.category, kaydet, sanatci])
 
   /**
    * Ekran okuyucu için tur anlatımı.
@@ -174,13 +190,18 @@ export function GameShell() {
 
   return (
     <SahneCercevesi
-      hue={chip.hue}
+      hue={sanatci ? chipById('karisik').hue : chip.hue}
       reduce={reduce}
       anons={announcement}
       cipler={CHIPS}
-      secili={settings.category}
-      onSecki={(c) => settings.setCategory(c as typeof settings.category)}
+      // Sanatçı modunda hiçbir seçki seçili görünmez; birine dokunmak moddan çıkarır.
+      secili={sanatci ? '' : settings.category}
+      onSecki={(c) => {
+        if (sanatci) sanatcidenCik()
+        settings.setCategory(c as typeof settings.category)
+      }}
       aktifOyun="sarki"
+      sanatciModu={sanatci ? { ad: sanatciAdi ?? sanatci, kapat: sanatcidenCik } : undefined}
       sol={<StatsCard />}
       sag={
         <>
@@ -223,7 +244,7 @@ export function GameShell() {
               */}
               <Cassette
                 handleRef={cassette}
-                categoryLabel={chip.label}
+                categoryLabel={sanatciAdi ?? chip.label}
                 tapeCode={round.tapeCode}
                 playing={playing}
                 reduce={reduce}
@@ -478,6 +499,11 @@ export function GameShell() {
                     değiştir) ile sayfadan çıkaran bir eylem aynı ağırlıkta
                     duruyordu. Alt satır, farklı bir işe geçtiğini gösteriyor.
                   */}
+                  {/*
+                    ⚠️ Sanatçı modunda düello YOK: lobi seçkiden şarkı seçiyor,
+                    sanatçıdan değil — rakip bambaşka şarkılarla oynardı.
+                  */}
+                  {!sanatci && (
                   <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
                   {/*
                     Düello: aynı seçkiden 5 şarkı, kolaydan zora, iki kişi.
@@ -503,6 +529,7 @@ export function GameShell() {
                     {duelloKuruluyor ? 'lobi kuruluyor…' : 'Arkadaşınla oyna'}
                   </button>
                   </div>
+                  )}
 
                   {duelloHata && (
                     <div
