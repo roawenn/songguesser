@@ -156,7 +156,9 @@ export function StepIndicator({
                     ? `Yanlış: ${step.text}`
                     : step?.kind === 'skip'
                       ? 'Pas geçildi'
-                      : `${tr(len)} saniye`
+                      : step?.kind === 'hint'
+                        ? 'İpucu alındı'
+                        : `${tr(len)} saniye`
                 }
                 style={{
                   flex: 1,
@@ -171,7 +173,9 @@ export function StepIndicator({
                       ? 'rgba(160,90,90,0.8)'
                       : step?.kind === 'skip'
                         ? 'rgba(255,255,255,0.22)'
-                        : 'transparent',
+                        : step?.kind === 'hint'
+                          ? 'rgba(150,140,210,0.5)'
+                          : 'transparent',
                 }}
               />
             )

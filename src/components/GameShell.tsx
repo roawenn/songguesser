@@ -10,7 +10,9 @@ import { anahtarYaz } from '@/lib/duelloAnahtar'
 import { olay, olayBirKez } from '@/lib/olay'
 import { chipById, CHIPS } from '@/data/categories'
 import { ATTEMPTS, STEPS, tr } from '@/game/ladder'
-import { heardLength, MAX_WRONG, wrongCount  } from '@/game/machine'
+import {
+  heardLength, IPUCU_SAYISI, ipuclari, ipucuVerilebilir, MAX_WRONG, wrongCount,
+} from '@/game/machine'
 import { Cassette, type CassetteHandle } from './stage/Cassette'
 import { StepIndicator } from './stage/StepIndicator'
 import { Transport } from './stage/Transport'
@@ -109,6 +111,8 @@ export function GameShell() {
   const steps = 'steps' in state ? state.steps : []
   const listens = 'listens' in state ? state.listens : 0
   const heardIndex = 'heardIndex' in state ? state.heardIndex : -1
+  const ipucuListesi = 'track' in state && 'steps' in state ? ipuclari(state.track, state.steps) : []
+  const ipucuAcik = ipucuVerilebilir(state)
 
   /**
    * Biten turu istatistiğe işle.
@@ -155,7 +159,14 @@ export function GameShell() {
     if (round.stalled) return 'Bağlantı takıldı, hakkın gitmedi'
     if (state.s !== 'ready') return ''
     const last = steps[steps.length - 1]
-    const head = last?.kind === 'wrong' ? 'Yanlış.' : last?.kind === 'skip' ? 'Pas geçildi.' : ''
+    const head =
+      last?.kind === 'wrong'
+        ? 'Yanlış.'
+        : last?.kind === 'skip'
+          ? 'Pas geçildi.'
+          : last?.kind === 'hint'
+            ? `İpucu: ${ipuclari(state.track, steps).join(', ')}.`
+            : ''
     // Sınırı artık merdiven değil TAHMİN HAKKI koyuyor; okunan sayı o olmalı.
     const left = MAX_WRONG - wrongCount(steps)
     return `${head} Klip ${tr(round.clipLength)} saniye. ${left} tahmin hakkın kaldı.`.trim()
@@ -389,6 +400,49 @@ export function GameShell() {
                       <span style={{ color: '#8a7448', letterSpacing: 0, textTransform: 'none' }}>
                         {attempt < ATTEMPTS - 1 ? `→ ${tr(STEPS[attempt + 1]!)}s` : '→ son hak'}
                       </span>
+                    </button>
+
+                    {/*
+                      İpucu — pas gibi bir kademe yakar, tahmin hakkı yakmaz.
+
+                      ⚠️ Açılan ipucu AYRI BİR SATIRDA DEĞİL, düğmenin içinde
+                      ("1998 · İpucu"). Masaüstünde sahne kutusunda ~15 px pay
+                      var; yeni bir satır sahneyi uzatıp sayfanın tamamını
+                      yeniden ortalardı (bkz. `.nk-stage` min-height). Kendi
+                      rengi var: kehribar "Geç" ile mavi-gri "Değiştir"den ayrı.
+                    */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const sira = ipucuListesi.length + 1
+                        round.hint()
+                        olay('ipucu_alindi', { oyun: 'sarki', sira })
+                      }}
+                      disabled={!ipucuAcik}
+                      className="nk-ipucu-dugme"
+                      title={
+                        ipucuListesi.length === 0
+                          ? 'Bir kademe karşılığında çıkış yılını göster — tahmin hakkın gitmez'
+                          : ipucuListesi.length === 1
+                            ? 'Bir kademe karşılığında sanatçının baş harfini göster'
+                            : 'Bu turun ipuçları bitti'
+                      }
+                      style={{
+                        ...GHOST,
+                        border: '1px solid rgba(150,140,210,0.36)',
+                        background: 'rgba(150,140,210,0.07)',
+                        color: '#bdb6e2',
+                        // İpucu metni görünürken düğme soluklaşmasın: bilgi okunmalı.
+                        opacity: ipucuAcik || ipucuListesi.length > 0 ? 1 : 0.4,
+                        cursor: ipucuAcik ? 'pointer' : 'default',
+                      }}
+                    >
+                      {ipucuListesi.length > 0 && (
+                        <span style={{ letterSpacing: 0, textTransform: 'none', color: '#e4e0f8' }}>
+                          {ipucuListesi.join(' · ')}
+                        </span>
+                      )}
+                      {ipucuListesi.length < IPUCU_SAYISI && (ipucuListesi.length > 0 ? ' · İpucu' : 'İpucu')}
                     </button>
 
                     {/*

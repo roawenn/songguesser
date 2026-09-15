@@ -8,7 +8,47 @@ import type { Song } from '@/data/schema'
  * Dinleme sayısı ayrıca tutulur (`listens`) çünkü gösterilen "N. deneme"
  * etiketi onu sayar, kademeyi değil.
  */
-export type StepKind = 'wrong' | 'skip'
+export type StepKind = 'wrong' | 'skip' | 'hint'
+
+/**
+ * Bir turda alınabilecek ipucu sayısı: 1. çıkış yılı, 2. sanatçının baş harfi.
+ *
+ * ⚠️ İpucu PAS GİBİ bir kademe yakar (klip uzar), tahmin hakkı YAKMAZ
+ * (`wrongCount` yalnızca `wrong` sayar). Kullanıcı kararı: bedava ipucu şarkı
+ * oyununu anlamsızlaştırırdı, hak yakan ipucu da kimsenin almayacağı kadar pahalıydı.
+ */
+export const IPUCU_SAYISI = 2
+
+/** Turda alınmış ipucu sayısı. */
+export function ipucuSayisi(steps: readonly Step[]): number {
+  return steps.reduce((n, s) => (s.kind === 'hint' ? n + 1 : n), 0)
+}
+
+/**
+ * Şu an ipucu alınabilir mi?
+ *
+ * ⚠️ SON KADEMEDE HAYIR: ipucu bir kademe yaktığı için orada turu doğrudan
+ * kaybettirirdi — oyuncu bir bilgi için basıp cevabı göremeden kaybederdi.
+ */
+export function ipucuVerilebilir(state: GameState): boolean {
+  if (state.s !== 'ready' && state.s !== 'playing') return false
+  return ipucuSayisi(state.steps) < IPUCU_SAYISI && state.attempt + 1 < state.ladder.length
+}
+
+/**
+ * Alınmış ipuçlarının METNİ, alınma sırasıyla.
+ *
+ * Saf ve türetilmiş: ipucu içeriği durumda saklanmıyor, şarkıdan ve kaç ipucu
+ * alındığından hesaplanıyor — saklanan ile gösterilen ayrışamaz.
+ *
+ * ⚠️ Baş harf büyük/küçük harf DÖNÜŞTÜRÜLMEDEN alınır: görüntü adı zaten doğru
+ * yazılmış ve `toLowerCase`/`toUpperCase` Türkçe İ/ı'yı bozuyor.
+ */
+export function ipuclari(track: Pick<Song, 'y' | 'a'>, steps: readonly Step[]): string[] {
+  const n = Math.min(ipucuSayisi(steps), IPUCU_SAYISI)
+  const hepsi = [String(track.y), `${Array.from(track.a.trim())[0] ?? ''}…`]
+  return hepsi.slice(0, n)
+}
 
 /**
  * Bir turda en fazla kaç YANLIŞ TAHMİN yapılabilir.
@@ -70,6 +110,8 @@ export type Action =
   | { type: 'WRONG'; text: string; sameArtist: boolean }
   | { type: 'CORRECT' }
   | { type: 'SKIP' }
+  /** İpucu: pas gibi bir kademe yakar, tahmin hakkı yakmaz (bkz. `IPUCU_SAYISI`). */
+  | { type: 'HINT' }
   | { type: 'EMPTY_POOL' }
   /**
    * Elde tur kalmadı — yeni bir tur kurulana kadar hiçbir şey oynatılamaz.
@@ -187,6 +229,15 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return advance(state, [
         ...state.steps,
         { kind: 'skip' as const, text: '', sameArtist: false },
+      ])
+    }
+
+    case 'HINT': {
+      // ⚠️ Aynı nesne döner: arayüz yanlışlıkla basılan düğmede yeniden çizmesin.
+      if (!ipucuVerilebilir(state) || !inRound(state)) return state
+      return advance(state, [
+        ...state.steps,
+        { kind: 'hint' as const, text: '', sameArtist: false },
       ])
     }
 

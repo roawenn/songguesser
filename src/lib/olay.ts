@@ -33,6 +33,8 @@ interface OlayKatalogu {
   secki_degisti: { oyun: OyunAdi; secki: string }
   duello_kuruldu: { oyun: OyunAdi; secki: string }
   story_indirildi: { oyun: OyunAdi }
+  /** `sira`: turda kaçıncı ipucu (1 = yıl, 2 = baş harf). */
+  ipucu_alindi: { oyun: OyunAdi; sira: number }
 }
 
 declare global {

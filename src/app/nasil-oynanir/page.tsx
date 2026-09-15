@@ -74,6 +74,10 @@ const faq = [
     a: 'Hayır, ayrı. Şarkıda "Uzman" seviyesindeysen ünlü oyununa "Kolay"dan başlarsın; isabet yüzden, serin ve kademe dağılımın da her oyun için ayrı tutulur. "Kolay arama" ve "azaltılmış animasyon" ise ortak tercihlerdir.',
   },
   {
+    q: 'İpucu nasıl çalışır?',
+    a: 'Şarkı oyununda bir turda iki ipucu alabilirsin: önce çıkış yılı, sonra sanatçının baş harfi. Her ipucu pas geçmek gibi bir kademe yakar — klip bir sonraki uzunluğa geçer ama tahmin hakkın gitmez. Son kademede ipucu alınamaz, çünkü turu kaybettirirdi.',
+  },
+  {
     q: 'Klavyeden oynayabilir miyim?',
     a: 'Evet. Şarkı oyununda Boşluk tuşu klibi çalar; tahmin kutusuna yazarken ya da bir düğmeye odaklanmışken boşluk normal işini görür. İki oyunda da Enter tahmini gönderir, ↑ ve ↓ öneri listesinde gezdirir. Ünlü oyununda çalınacak bir şey olmadığı için Boşluk\'un özel bir görevi yok.',
   },

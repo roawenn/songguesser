@@ -45,6 +45,8 @@ export interface RoundApi {
   guess: (raw: string) => Verdict
   guessSong: (song: Song) => void
   skip: () => void
+  /** İpucu al: pas gibi bir kademe yakar, tahmin hakkı yakmaz. */
+  hint: () => void
   /** Aynı seçkide başka bir şarkıya geç — bedava, hak tüketmez. */
   reroll: () => void
   next: () => void
@@ -419,6 +421,18 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
   }, [state])
 
   /**
+   * İpucu. Sınırlar (en fazla iki, son kademede yok) makinede; burada yalnızca
+   * çalan klibi durdurmak var — kademe değişince yarım kalan klip yanlış
+   * uzunlukta çalmaya devam ederdi.
+   */
+  const hint = useCallback(() => {
+    if (state.s !== 'ready' && state.s !== 'playing') return
+    clipPlayer.stop()
+    dispatch({ type: 'HINT' })
+    setAmbiguous(null)
+  }, [state])
+
+  /**
    * Şarkıyı değiştir: aynı seçki, aynı zorluk, yeni parça.
    *
    * Pas geçmekten farkı bedava olması — tur kaybedilmez, kademe tüketilmez.
@@ -472,6 +486,6 @@ export function useRound(dizilim?: DizilimOpts): RoundApi {
   return {
     state, pool, filtered, tooNarrow, index, clipLength, loading, ambiguous, stalled, tapeCode,
     canPlay: canPlay(state),
-    play, guess, guessSong, skip, reroll, next, clearAmbiguity, onWrong,
+    play, guess, guessSong, skip, hint, reroll, next, clearAmbiguity, onWrong,
   }
 }

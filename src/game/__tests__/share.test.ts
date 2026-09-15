@@ -103,6 +103,11 @@ describe('kutular', () => {
     expect(marksOf(steps, false)).toEqual(['yanlis', 'yanlis', 'pas', 'yanlis', 'yanlis'])
   })
 
+  it('ipucu kademesi PAS gibi görünür, yanlış gibi değil', () => {
+    const hint = (): Step => ({ kind: 'hint', text: '', sameArtist: false })
+    expect(marksOf([hint(), wrong('x')], true)).toEqual(['pas', 'yanlis', 'dogru', 'bos', 'bos'])
+  })
+
   it('emoji şeridi beş karakter', () => {
     expect([...emojiLine(base.marks)].length).toBeGreaterThanOrEqual(5)
   })

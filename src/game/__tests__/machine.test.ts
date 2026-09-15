@@ -7,6 +7,9 @@ import {
   heardLength,
   MAX_WRONG,
   wrongCount,
+  IPUCU_SAYISI,
+  ipuclari,
+  ipucuVerilebilir,
   type GameState,
 } from '../machine'
 import { pickNext, filterByTier } from '../select'
@@ -221,6 +224,62 @@ describe('tur sonu', () => {
     const won = gameReducer(ready(), { type: 'CORRECT' })
     expect(gameReducer(won, { type: 'WRONG', text: 'x', sameArtist: false })).toBe(won)
     expect(gameReducer(won, { type: 'PLAY' })).toBe(won)
+  })
+})
+
+describe('İPUCU', () => {
+  it('bir kademe yakar ama tahmin hakkı YAKMAZ', () => {
+    const s = gameReducer(ready(), { type: 'HINT' })
+    expect(s.s).toBe('ready')
+    if (s.s === 'ready') {
+      expect(s.attempt).toBe(1)
+      expect(currentClipLength(s)).toBe(STEPS[1])
+      expect(wrongCount(s.steps)).toBe(0)
+      expect(s.steps[0]?.kind).toBe('hint')
+    }
+  })
+
+  it('önce çıkış yılı, sonra sanatçının baş harfi', () => {
+    let s: GameState = ready()
+    if (s.s === 'ready') expect(ipuclari(s.track, s.steps)).toEqual([])
+    s = gameReducer(s, { type: 'HINT' })
+    if (s.s === 'ready') expect(ipuclari(s.track, s.steps)).toEqual(['2004'])
+    s = gameReducer(s, { type: 'HINT' })
+    if (s.s === 'ready') expect(ipuclari(s.track, s.steps)).toEqual(['2004', 'C…'])
+  })
+
+  it('baş harf Türkçe karakteri bozmadan alınır', () => {
+    expect(ipuclari(song({ a: 'İbrahim Tatlıses' }), [
+      { kind: 'hint', text: '', sameArtist: false },
+      { kind: 'hint', text: '', sameArtist: false },
+    ])[1]).toBe('İ…')
+  })
+
+  it(`en fazla ${IPUCU_SAYISI} ipucu — fazlası durumu değiştirmez`, () => {
+    let s: GameState = ready()
+    for (let i = 0; i < IPUCU_SAYISI; i++) s = gameReducer(s, { type: 'HINT' })
+    expect(ipucuVerilebilir(s)).toBe(false)
+    expect(gameReducer(s, { type: 'HINT' })).toBe(s)
+  })
+
+  it('SON KADEMEDE verilmez — turu kaybettirirdi', () => {
+    const son = ready({ attempt: ATTEMPTS - 1 })
+    expect(ipucuVerilebilir(son)).toBe(false)
+    expect(gameReducer(son, { type: 'HINT' })).toBe(son)
+  })
+
+  it('ipucu + üç yanlış: sınırı yine yanlış sayısı koyar', () => {
+    let s: GameState = gameReducer(ready(), { type: 'HINT' })
+    for (const t of ['a', 'b']) s = gameReducer(s, { type: 'WRONG', text: t, sameArtist: false })
+    expect(s.s).toBe('ready')
+    s = gameReducer(s, { type: 'WRONG', text: 'c', sameArtist: false })
+    expect(s.s).toBe('lost')
+  })
+
+  it('tur dışında etkisiz', () => {
+    const won = gameReducer(ready(), { type: 'CORRECT' })
+    expect(gameReducer(won, { type: 'HINT' })).toBe(won)
+    expect(ipucuVerilebilir(won)).toBe(false)
   })
 })
 

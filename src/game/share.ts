@@ -50,10 +50,17 @@ export interface ShareResult {
 /** `itunes:123` → `123`. Başka biçimdeki kimlikler kodlanmaz. */
 const ITUNES = /^itunes:(\d+)$/
 
-/** Turu beş kutuya çevirir: kademeyi tüketen her eylem bir kutu. */
+/**
+ * Turu beş kutuya çevirir: kademeyi tüketen her eylem bir kutu.
+ *
+ * ⚠️ Ölçüt "yanlış mı", "pas mı" DEĞİL. Eskiden pas olmayan her adım kırmızı
+ * sayılıyordu; ipucu (`hint`) eklenince o da yanlış görünecekti. İpucu pas gibi
+ * kademe yakıyor ama hak yakmıyor, dolayısıyla gri kutu. Paylaşım kodunun
+ * biçimi bu yüzden DEĞİŞMEDİ — eski bağlantılar çözülmeye devam ediyor.
+ */
 export function marksOf(steps: Step[], won: boolean): Mark[] {
   return Array.from({ length: ATTEMPTS }, (_, i): Mark => {
-    if (i < steps.length) return steps[i]!.kind === 'skip' ? 'pas' : 'yanlis'
+    if (i < steps.length) return steps[i]!.kind === 'wrong' ? 'yanlis' : 'pas'
     if (i === steps.length && won) return 'dogru'
     return 'bos'
   })
