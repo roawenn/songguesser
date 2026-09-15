@@ -1,7 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { useRef, type MouseEvent } from 'react'
+import { kapakHavuzuIsit } from '@/data/loadKapakPool'
+import { havuzuIsit } from '@/data/loadPool'
+import { unluHavuzuIsit } from '@/data/loadUnluPool'
+import { useSettingsStore } from '@/store/useSettingsStore'
 import { useKaydirilabilir } from './Chrome'
 
 /**
@@ -101,9 +106,95 @@ export const OYUNLAR = [
 
 export type OyunId = (typeof OYUNLAR)[number]['id']
 
+/**
+ * Yeni oyunun sahnesi en geç bu sürede çizilmezse geçiş yine de tamamlanır.
+ *
+ * ⚠️ Tarayıcılar güncelleme adımını ~4 sn sonra kendisi iptal ediyor; ondan önce
+ * bırakmak, yavaş bağlantıda ekranın donuk kalıp sonra sertçe atlamasını önler.
+ */
+const HAZIR_ZAMAN_ASIMI = 2500
+
+/**
+ * Hedef oyunun kod parçasını ve havuzunu önden ısıtır.
+ *
+ * ⚠️ Geçiş, yeni sahne çizilene kadar ESKİ görüntüyü tutuyor. Parça ve havuz
+ * üzerine gelince inmeye başlarsa tıklandığında çoğu zaman hazır oluyor ve
+ * donma hissedilmiyor. Aynı modül yolları `Client*` bileşenlerinin dinamik
+ * içe aktarmalarıyla aynı parçaya çözülüyor.
+ */
+function isit(id: OyunId) {
+  const ayar = useSettingsStore.getState()
+  if (id === 'sarki') {
+    void import('@/components/GameShell').catch(() => {})
+    havuzuIsit(ayar.category)
+  } else if (id === 'unlu') {
+    void import('@/components/UnluShell').catch(() => {})
+    unluHavuzuIsit(ayar.unluCategory)
+  } else {
+    void import('@/components/KapakShell').catch(() => {})
+    kapakHavuzuIsit(ayar.kapakCategory)
+  }
+}
+
+type GecisliBelge = Document & { startViewTransition?: (guncelle: () => Promise<void>) => unknown }
+
+/** Yeni oyunun kabuğu DOM'a geldiğinde çözülür (ya da zaman aşımında). */
+function sahneHazir(id: OyunId): Promise<void> {
+  const secici = `.themed[data-oyun="${id}"] .nk-stage`
+  return new Promise((coz) => {
+    if (document.querySelector(secici)) return coz()
+    /*
+     * ⚠️ `requestAnimationFrame` İLE BEKLENMİYOR: geçişin güncelleme adımında
+     * tarayıcı boyamayı askıya alıyor ve rAF geri çağrıları gelmiyor — söz hiç
+     * çözülmez, geçiş zaman aşımına kadar donardı. DOM gözlemcisi boyamadan bağımsız.
+     */
+    const gozcu = new MutationObserver(() => {
+      if (document.querySelector(secici)) bitir()
+    })
+    const zaman = setTimeout(() => bitir(), HAZIR_ZAMAN_ASIMI)
+    function bitir() {
+      gozcu.disconnect()
+      clearTimeout(zaman)
+      coz()
+    }
+    gozcu.observe(document.body, { childList: true, subtree: true })
+  })
+}
+
 export function OyunSeridi({ aktif }: { aktif: OyunId }) {
   const ref = useRef<HTMLElement>(null)
   useKaydirilabilir(ref)
+  const router = useRouter()
+
+  /**
+   * Oyunlar arası YUMUŞAK geçiş (View Transitions API).
+   *
+   * Eskiden tıklama sayfayı önce boş iskelete, sonra yeni oyuna atlatıyordu:
+   * her oyun `ssr: false` ile tembel yükleniyor. Artık eski sayfanın görüntüsü,
+   * yeni oyunun sahnesi çizilene kadar ekranda tutuluyor ve ikisi arasında
+   * çapraz geçiş yapılıyor — iskelet hiç görünmüyor. Marka ve oyun seçici
+   * yerinde kalıyor (bkz. globals.css `view-transition-name`).
+   *
+   * ⚠️ API yoksa (eski tarayıcı) ya da "Azaltılmış animasyon" açıksa normal
+   * `Link` gezinmesi olur. Yeni sekmede açma (Ctrl/Cmd/orta tık) bozulmaz.
+   */
+  function gec(e: MouseEvent<HTMLAnchorElement>, id: OyunId, yol: string) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (id === aktif) {
+      e.preventDefault()
+      return
+    }
+    const belge = document as GecisliBelge
+    const azaltilmis = document.documentElement.getAttribute('data-motion') === 'reduced'
+    if (typeof belge.startViewTransition !== 'function' || azaltilmis) return
+
+    e.preventDefault()
+    isit(id)
+    belge.startViewTransition(async () => {
+      router.push(yol)
+      await sahneHazir(id)
+    })
+  }
 
   return (
     <>
@@ -139,6 +230,9 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                 aria-current={on ? 'page' : undefined}
                 className="nk-oyun"
                 data-on={on ? '1' : undefined}
+                onClick={(e) => gec(e, o.id, o.yol)}
+                onPointerEnter={() => !on && isit(o.id)}
+                onFocus={() => !on && isit(o.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -150,7 +244,12 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                   textDecoration: 'none',
                   textAlign: 'left',
                   whiteSpace: 'nowrap',
-                  transition: 'background .15s ease',
+                  /*
+                   * ⚠️ Geçiş YALNIZCA seçili olmayanda (üzerine gelme). Seçili
+                   * segmentin arka planı `--hue`'dan hesaplanıyor ve `--hue` zaten
+                   * kayıyor; üstüne kendi geçişi binince her karede yeniden başlıyordu.
+                   */
+                  transition: on ? 'none' : 'background .15s ease',
                 }}
               >
                 <span

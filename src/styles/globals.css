@@ -63,6 +63,45 @@
   transition: --hue 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/*
+ * Oyunlar arası geçiş (View Transitions — bkz. `OyunSeridi`).
+ *
+ * Sayfa çapraz geçişle değişiyor; marka ve masaüstü oyun seçici AYRI yakalanıp
+ * yerinde kalıyor — üç oyunda da aynı yerdeler, kaymaları ya da solup yeniden
+ * belirmeleri "sayfa yeniden yüklendi" hissi veriyordu.
+ *
+ * ⚠️ Adlar belge içinde TEK olmalı; aynı adı taşıyan iki görünür eleman geçişi
+ * iptal eder. Oyun seçici iki kez çiziliyor (masaüstü üstte, telefon footer'da)
+ * ama biri her zaman `display: none` — gizli eleman yakalanmıyor.
+ */
+::view-transition-old(root) {
+  animation: 180ms cubic-bezier(0.4, 0, 1, 1) both nk-gecis-cik;
+}
+::view-transition-new(root) {
+  animation: 320ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both nk-gecis-gir;
+}
+::view-transition-group(nk-marka),
+::view-transition-group(nk-oyunlar) {
+  animation-duration: 260ms;
+}
+.nk-top > header {
+  view-transition-name: nk-marka;
+}
+.nk-top .nk-yalniz-masaustu .nk-strip {
+  view-transition-name: nk-oyunlar;
+}
+@keyframes nk-gecis-cik {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes nk-gecis-gir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
 html,
 body {
   margin: 0;

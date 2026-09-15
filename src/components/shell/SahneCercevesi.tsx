@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { enKisaTon } from '@/lib/renk'
 import { Backdrop } from '../stage/Backdrop'
 import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
 import { MobilMenu } from './MobilMenu'
@@ -89,6 +90,20 @@ export function SahneCercevesi({
   useOlcek()
 
   /*
+   * Renk tonu EN KISA YOLDAN kayar (bkz. `lib/renk.ts`).
+   *
+   * ⚠️ Ref render sırasında güncelleniyor: aynı `hue` ile ikinci render (StrictMode)
+   * `hedef` eşit olduğu için hiçbir şeyi değiştirmez. Efektte güncellenseydi ilk
+   * karede ham ton yazılır ve geçiş bir kare uzun yoldan başlardı.
+   */
+  const ton = useRef<{ hedef: number; gosterilen: number } | null>(null)
+  if (ton.current === null) ton.current = { hedef: hue, gosterilen: hue }
+  else if (ton.current.hedef !== hue) {
+    ton.current = { hedef: hue, gosterilen: enKisaTon(ton.current.gosterilen, hue) }
+  }
+  const gosterilenTon = ton.current.gosterilen
+
+  /*
    * Seçki değişimi TEK yerden geçiyor (liste ve mobil şerit ikisi de burayı
    * çağırıyor); analitik de burada. Zaten seçili çipe tekrar dokunmak sayılmaz.
    */
@@ -100,8 +115,10 @@ export function SahneCercevesi({
   return (
     <div
       className="themed"
+      // Oyunlar arası geçiş, yeni oyunun sahnesi çizildi mi diye buna bakıyor (bkz. `OyunSeridi`).
+      data-oyun={aktifOyun}
       style={{
-        ['--hue' as string]: String(hue),
+        ['--hue' as string]: String(gosterilenTon),
         position: 'relative',
         minHeight: '100vh',
         overflow: 'hidden',
