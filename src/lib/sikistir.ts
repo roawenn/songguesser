@@ -22,7 +22,17 @@ import { brotliCompressSync, constants, gzipSync } from 'node:zlib'
  * fonksiyon yalnızca önbellek soğukken çağrılıyor.
  */
 
+/** Bu süre boyunca kayıt taze sayılır. */
 const TTL_MS = 60_000
+/**
+ * Tazelik bittikten sonra kaydın BAYAT olarak servis edilebileceği süre.
+ *
+ * ⚠️ Olmasaydı her dakikanın ilk isteği havuzu yeniden üretirdi: Supabase'den
+ * 16 sayfalık okuma, ~1,2 sn (ölçüldü). Bayatı verip arkadan tazelemek, o
+ * bekleyişi yalnızca sunucunun ilk isteğine indiriyor. Yanıt başlığındaki
+ * `stale-while-revalidate` ile aynı fikir.
+ */
+const BAYAT_MS = 10 * 60_000
 
 /** Node Buffer'ının kendi baytları — havuzdan (pooled) pay almadan. */
 function arrayBuffer(b: Buffer): ArrayBuffer {
@@ -31,6 +41,8 @@ function arrayBuffer(b: Buffer): ArrayBuffer {
 
 interface Kayit {
   zaman: number
+  /** Arkada süren tazeleme — aynı anda ikinci kez üretilmesin. */
+  yenileniyor?: Promise<void>
   etag: string
   /** ⚠️ `Buffer` DEĞİL `ArrayBuffer`: `Response` gövde tipi Node'un Buffer'ını kabul etmiyor. */
   ham: ArrayBuffer
@@ -40,19 +52,39 @@ interface Kayit {
 
 const onbellek = new Map<string, Kayit>()
 
-async function kayitAl(anahtar: string, uret: () => Promise<unknown>): Promise<Kayit> {
-  const eski = onbellek.get(anahtar)
-  if (eski && Date.now() - eski.zaman < TTL_MS) return eski
-
+async function uretVeYaz(anahtar: string, uret: () => Promise<unknown>): Promise<Kayit> {
   const ham = arrayBuffer(Buffer.from(JSON.stringify(await uret()), 'utf8'))
   const etag = `"${createHash('sha1').update(new Uint8Array(ham)).digest('base64url').slice(0, 20)}"`
-  // Aynı içerik yeniden üretildiyse sıkıştırılmışları koru.
+  // Aynı içerik yeniden üretildiyse sıkıştırılmışları KORU: brotli 84 ms.
+  const onceki = onbellek.get(anahtar)
   const kayit: Kayit =
-    eski && eski.etag === etag
-      ? { ...eski, zaman: Date.now() }
+    onceki && onceki.etag === etag
+      ? { ...onceki, zaman: Date.now(), yenileniyor: undefined }
       : { zaman: Date.now(), etag, ham }
   onbellek.set(anahtar, kayit)
   return kayit
+}
+
+async function kayitAl(anahtar: string, uret: () => Promise<unknown>): Promise<Kayit> {
+  const eski = onbellek.get(anahtar)
+  if (!eski) return uretVeYaz(anahtar, uret)
+
+  const yas = Date.now() - eski.zaman
+  if (yas < TTL_MS) return eski
+
+  if (yas < BAYAT_MS) {
+    // Bayat ama servis edilebilir: tazelemeyi arkada başlat, beklemeden dön.
+    eski.yenileniyor ??= uretVeYaz(anahtar, uret)
+      .then(() => undefined)
+      .catch(() => undefined)
+      .finally(() => {
+        const guncel = onbellek.get(anahtar)
+        if (guncel) guncel.yenileniyor = undefined
+      })
+    return eski
+  }
+
+  return uretVeYaz(anahtar, uret)
 }
 
 /**
