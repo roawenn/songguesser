@@ -123,6 +123,7 @@ export function CategoryStrip<Id extends string>({
 
   return (
     <div
+      className="nk-kategori-serit"
       style={{
         width: '100%',
         padding: '2px 20px 0',
@@ -386,8 +387,9 @@ export function Footer({
 }) {
   return (
     <footer
+      // Dolgu CSS'te (`.nk-footer`): telefonda tek kenar payına bağlanıyor.
+      className="nk-footer"
       style={{
-        padding: '0 20px 18px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -400,7 +402,7 @@ export function Footer({
       }}
     >
       {oyunlar}
-      <span>{atif}</span>
+      <span className="nk-atif">{atif}</span>
     </footer>
   )
 }

@@ -583,9 +583,26 @@ button {
  * Yan kartlar menüde; sayfa yalnızca oyundan ibaret.
  */
 @media (max-width: 899px) {
+  /*
+   * ⚠️ TEK KENAR PAYI. Üst bant 24, kategori şeridi 24 + 20, sahne 24 px'ten
+   * başlıyordu: kenarlar üst üste oturmadığı için sayfa dağınık görünüyordu
+   * ve içerik yine de kenara yapışık kalıyordu. Hepsi artık bu değişkenden.
+   */
+  :root {
+    --nk-kenar: clamp(22px, 7vw, 34px);
+  }
   .nk-top {
-    gap: 8px;
-    padding: 14px 24px 12px;
+    gap: 10px;
+    padding: 14px var(--nk-kenar) 12px;
+  }
+  /* Şerit kenar payının İÇİNDE başlıyor; kendi ek dolgusu yok. */
+  .nk-kategori-serit {
+    padding: 2px 0 0 !important;
+  }
+  /* Çipler sahnedeki düğmelerle aynı ölçekte; eskisi ekranın en iri öğesiydi. */
+  .nk-chip {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
   }
   /*
    * Oyun seçici telefonda FOOTER'da, yatay kaydırılabilir (kullanıcı isteği);
@@ -626,24 +643,53 @@ button {
   .nk-tahminler ul {
     min-height: 0;
   }
+  /*
+   * ⚠️ Telefonda oyun ÜSTTEN akar, dikeyde ortalanmaz. Ortalanınca kategori
+   * şeridiyle kaset arasında ve düello düğmesiyle footer arasında iki ayrı
+   * boşluk açılıyor, sahne ekranın ortasında kopuk duruyordu. Artık tek boşluk
+   * var ve o da footer'ın üstünde.
+   */
   .nk-center {
-    padding-top: 4px;
+    padding-top: 10px;
+    margin: 0 auto auto;
   }
   /*
-   * Kaset sahnenin kimliği; telefonda küçülüyor ama kaybolmuyor.
+   * Kaset sahnenin kimliği.
    *
    * ⚠️ `!important` ŞART: kasetin kökünde satır içi `maxWidth: 440` var ve
-   * satır içi stil onsuz ezilmiyor — eski kural bu yüzden hiç çalışmamıştı.
+   * satır içi stil onsuz ezilmiyor — ilk mobil kural bu yüzden hiç çalışmamıştı.
    * ⚠️ `:not(.nk-unlu)`: ünlü sahnesinin ilk çocuğu görsel + kontrol düzeni;
    * bu sınır tahmin kutusunu da daraltırdı.
+   * 250 px → %86 (en fazla 320): 250'de iki yanında büyük boşluk kalıyordu.
    */
   .nk-stage:not(.nk-unlu) > :first-child {
-    max-width: 250px !important;
+    max-width: min(320px, 86%) !important;
   }
-  /* "Kenarlara yapışık" geri bildirimi: 16 → 24 px. */
   .nk-stage-grid {
-    padding: 4px 24px 24px;
+    padding: 4px var(--nk-kenar) 24px;
     gap: 16px;
+  }
+  /*
+   * Zorluk TEK SATIRDA kalsın: artan kenar payıyla 360 px'lik telefonda
+   * düğmeler alt satıra kayıyordu. ⚠️ `!important`: ölçüler satır içi.
+   */
+  .nk-kademe button {
+    padding: 6px 9px !important;
+    font-size: 10px !important;
+  }
+  .nk-footer {
+    padding: 0 var(--nk-kenar) 16px;
+  }
+  /*
+   * Atıf TEK SATIR. Mono yazıyla 360 px'e sığması için 8 px'e inmek
+   * gerekiyordu; daha dar harfli sans yazı ve ekrana göre küçülen boyutla
+   * ~9-10,5 px'te sığıyor.
+   */
+  .nk-atif {
+    white-space: nowrap;
+    font-family: var(--font-sans);
+    font-size: min(10.5px, 2.5vw);
+    letter-spacing: 0;
   }
 }
 
@@ -800,16 +846,17 @@ button {
   margin-block: auto;
 }
 
-/* Footer'daki sayfa bağlantıları: atıf kadar sessiz, ama tıklanabilir olduğu belli. */
-.nk-alt-link {
-  color: #6a7075;
-  text-decoration: underline;
-  text-decoration-color: rgba(255, 255, 255, 0.14);
-  text-underline-offset: 3px;
-}
-.nk-alt-link:hover {
-  color: #b6bbbf;
-  text-decoration-color: rgba(255, 255, 255, 0.4);
+/*
+ * Sayfa altı dolgusu — masaüstü. Telefondaki karşılığı mobil blokta ve ortak
+ * kenar payına bağlı.
+ *
+ * ⚠️ Medya sorgusu ŞART: bu kural dosyada mobil bloktan SONRA duruyor ve
+ * özgüllük eşit olduğu için sorgusuz yazılınca telefondaki kuralı eziyordu.
+ */
+@media (min-width: 900px) {
+  .nk-footer {
+    padding: 0 20px 18px;
+  }
 }
 
 /*
@@ -826,7 +873,7 @@ button {
     display: grid;
     place-content: center;
     position: absolute;
-    left: 20px;
+    left: var(--nk-kenar, 20px);
     top: 12px;
     width: 38px;
     height: 38px;
