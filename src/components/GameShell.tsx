@@ -507,15 +507,13 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                   {!sanatci && (
                   <div className="nk-sosyal" style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 10 }}>
                   {/*
-                    ⚠️ Yazı BÖLÜNMEZ: telefonda iki düğme daralıp etiketleri iki
-                    satıra kırıyordu. Mobilde dolgu ve harf aralığı daralıyor;
-                    yine sığmazsa düğmeler alt alta geçer.
+                    ⚠️ Yayıncı modu telefonda GİZLİ: yayın bilgisayardan yapılıyor
+                    (OBS, sohbet, ses). Telefonda düğme yalnızca yer kaplıyordu.
                   */}
                   <style>{`
                     .nk-sosyal > * { white-space: nowrap; }
                     @media (max-width: 899px) {
-                      .nk-sosyal { gap: 8px !important; }
-                      .nk-sosyal > * { padding: 11px 12px !important; letter-spacing: .05em !important; }
+                      .nk-sosyal-yayin { display: none !important; }
                     }
                   `}</style>
                   {/*
@@ -547,7 +545,7 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                   */}
                   <Link
                     href="/yayin"
-                    className="nk-skip"
+                    className="nk-skip nk-sosyal-yayin"
                     title="Twitch ya da Kick sohbetinle oyna"
                     style={{ ...GHOST, textDecoration: 'none' }}
                   >
