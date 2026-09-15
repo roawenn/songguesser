@@ -5,19 +5,19 @@ import { useRef } from 'react'
 import { useKaydirilabilir } from './Chrome'
 
 /**
- * Oyun seçici — logonun hemen ALTINDA, segmentli bir anahtar.
+ * Oyun seçici — segmentli bir anahtar.
  *
- * ⚠️ Bir ara sayfanın en altında, footer'ın üstündeydi. Orada sayfanın ana
- * seçimi (hangi oyun) en az bakılan yerde kalıyordu; logonun altında markayla
- * birlikte okunuyor: "tahmin" → hangi tahmin.
+ * İKİ yerde çiziliyor, görünürlüğü CSS seçiyor (bkz. `SahneCercevesi`):
+ *   - masaüstünde logonun altında, markayla birlikte ("tahmin" → hangi tahmin)
+ *   - telefonda footer'da, yatay kaydırılabilir — üst bantta ilk ekranı
+ *     oyundan çalıyordu
  *
- * ⚠️ Yatay kaydırılabilir, ama bugün iki oyun var ve hiçbir ekranda kaymıyor.
- * Kaydırma altyapısı üçüncü oyun eklendiğinde sessizce kırpılmasın diye duruyor
- * — kategori şeridinde tam bu yaşandı (8 çip tasarlanmıştı, 11 oldu).
+ * ⚠️ Kaydırma altyapısı (`useKaydirilabilir` + kenar soluklaşması) telefonda
+ * gerçekten iş görüyor: iki segment açıklamalarıyla dar ekrana sığmıyor.
  *
- * ⚠️ YÜKSEKLİĞİ ÖLÇEK BÜTÇESİNE GİRİYOR (`useOlcek.ts`). Dolgu ya da yazı
- * boyutu değişirse `TASARIM_Y` yeniden ölçülmeli. Telefonda açıklama satırı
- * gizli (globals.css): orada ilk ekran "Geç" düğmesine lazım.
+ * ⚠️ Masaüstündeki kopyanın YÜKSEKLİĞİ ÖLÇEK BÜTÇESİNE GİRİYOR
+ * (`useOlcek.ts`). Dolgu ya da yazı boyutu değişirse `TASARIM_Y` yeniden
+ * ölçülmeli.
  */
 
 /** İki oyunun ikonu — dışarıdan ikon paketi çekmemek için elde çizildi. */

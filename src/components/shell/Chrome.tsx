@@ -367,17 +367,21 @@ export function TierStrip({ tier, onTier }: TierProps) {
 }
 
 /**
- * Sayfa altı: yalnızca atıf.
+ * Sayfa altı: atıf ve (yalnızca telefonda) oyun seçici.
  *
- * Oyun seçici logonun altına, sayfa bağlantıları sağ sütundaki kartına döndü.
+ * Masaüstünde oyun seçici logonun altında; `oyunlar` yuvasına verilen kopya
+ * orada CSS ile gizli, dolayısıyla masaüstünde footer'ın yüksekliği değişmiyor
+ * (gizli öğe flex öğesi sayılmadığı için `gap` de eklenmiyor).
  *
  * ⚠️ Atıf OYUNA GÖRE. Apple metni ToS gereği zorunlu ama YALNIZCA ses
  * önizlemesi kullanan oyun için; ünlü sayfasında hiçbir Apple içeriği yok ve
  * orada durması yanıltıcı bir iddia olurdu.
  */
 export function Footer({
+  oyunlar,
   atif = 'Ses önizlemeleri Apple Music / iTunes aracılığıyla sağlanmaktadır.',
 }: {
+  oyunlar?: React.ReactNode
   atif?: React.ReactNode
 }) {
   return (
@@ -385,7 +389,9 @@ export function Footer({
       style={{
         padding: '0 20px 18px',
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 12,
         fontFamily: 'var(--font-mono)',
         fontSize: 10.5,
         lineHeight: 1.6,
@@ -393,6 +399,7 @@ export function Footer({
         color: '#4e5459',
       }}
     >
+      {oyunlar}
       <span>{atif}</span>
     </footer>
   )

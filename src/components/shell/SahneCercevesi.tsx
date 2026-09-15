@@ -138,8 +138,14 @@ export function SahneCercevesi({
             {sol}
           </MobilMenu>
           <Header />
-          {/* Oyun seçici logonun altında: önce "hangi oyun", sonra oyunun kendisi. */}
-          <OyunSeridi aktif={aktifOyun} />
+          {/*
+            Oyun seçici masaüstünde logonun altında: önce "hangi oyun", sonra
+            oyunun kendisi. Telefonda footer'da (aşağıda) — orada üst bant ilk
+            ekranı oyundan çalıyordu.
+          */}
+          <div className="nk-yalniz-masaustu">
+            <OyunSeridi aktif={aktifOyun} />
+          </div>
           <div className="nk-yalniz-mobil" style={{ width: '100%' }}>
             <CategoryStrip chips={cipler} category={secili} onCategory={onSecki} />
           </div>
@@ -164,7 +170,14 @@ export function SahneCercevesi({
           </div>
         </div>
 
-        <Footer atif={atif} />
+        <Footer
+          atif={atif}
+          oyunlar={
+            <div className="nk-yalniz-mobil" style={{ width: '100%' }}>
+              <OyunSeridi aktif={aktifOyun} />
+            </div>
+          }
+        />
       </div>
     </div>
   )

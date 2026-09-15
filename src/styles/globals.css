@@ -587,20 +587,13 @@ button {
     gap: 8px;
     padding: 14px 24px 12px;
   }
-  /* Telefonda oyun seçicinin açıklama satırı gizli: ilk ekran oyuna lazım. */
-  .nk-oyun-aciklama {
-    display: none;
-  }
   /*
-   * Telefonda segmentler de sıkı: logonun altına taşınınca ünlü oyununda
-   * "Geç" ilk ekranın dışına düşüyordu. ⚠️ `!important`: ölçüler satır içi.
+   * Oyun seçici telefonda FOOTER'da, yatay kaydırılabilir (kullanıcı isteği);
+   * üst banttaki kopya gizli. Orada ilk ekranı oyundan çalıyordu ve ünlü
+   * oyununda "Geç" ancak segmentler sıkıştırılarak sığıyordu.
    */
-  .nk-oyun {
-    padding: 3px 12px 3px 3px !important;
-  }
-  .nk-oyun > span:first-child {
-    width: 26px !important;
-    height: 26px !important;
+  .nk-yalniz-masaustu {
+    display: none;
   }
   /* Kategori başlığı telefonda gizli: çipler ne olduklarını söylüyor. */
   .nk-serit-baslik {
