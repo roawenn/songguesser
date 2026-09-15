@@ -35,6 +35,11 @@ interface OlayKatalogu {
   story_indirildi: { oyun: OyunAdi }
   /** `sira`: turda kaçıncı ipucu (1 = yıl, 2 = baş harf). */
   ipucu_alindi: { oyun: OyunAdi; sira: number }
+  /**
+   * Yayıncı modunda oyun başlatıldı. ⚠️ Kanal adı GÖNDERİLMEZ (kişisel veri);
+   * tur başına olay da yok — bir yayın saatlerce sürüp kotayı yakabilir.
+   */
+  yayin_basladi: { platform: 'twitch' | 'kick'; secki: string; zorluk: number; tur: number }
 }
 
 declare global {

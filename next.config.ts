@@ -32,7 +32,10 @@ const csp = [
   // düşer. `blob:` ve `data:` admin kırpıcısının önizlemesi için zaten var.
   "img-src 'self' data: blob: https://*.mzstatic.com https://*.supabase.co",
   "media-src 'self' blob: https://*.itunes.apple.com https://*.mzstatic.com",
-  "connect-src 'self' https://*.supabase.co",
+  // ⚠️ İki `wss://` adresi yayıncı modunun sohbet soketleri (bkz.
+  // `lib/sohbet/baglanti.ts`). Eksik kalırsa bağlantı sessizce engellenir ve
+  // durum "bağlanıyor"da takılı kalır.
+  "connect-src 'self' https://*.supabase.co wss://irc-ws.chat.twitch.tv wss://ws-us2.pusher.com",
   "font-src 'self' data:",
   "frame-ancestors 'none'",
   "object-src 'none'",

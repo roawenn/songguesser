@@ -86,6 +86,10 @@ const faq = [
     a: 'Şarkı oyununda bir turda iki ipucu alabilirsin: önce çıkış yılı, sonra sanatçının baş harfi. Her ipucu pas geçmek gibi bir kademe yakar — klip bir sonraki uzunluğa geçer ama tahmin hakkın gitmez. Son kademede ipucu alınamaz, çünkü turu kaybettirirdi.',
   },
   {
+    q: 'Yayında izleyicilerimle oynayabilir miyim?',
+    a: 'Evet, tahmin.net/yayin adresindeki yayıncı moduyla. Twitch ya da Kick kanalının adını yazarsın; hesap ya da izin gerekmez, sohbet yalnızca okunur. Klip kendiliğinden uzar ve izleyiciler sohbete şarkının adını yazar. Erken kademede bilen daha çok puan alır; ilk bilen ek puan kazanır, ardından gelen kısa son şansta bilenler yarım puan alır. Ekranda cevap değil, yalnızca bilenlerin adı ve liderlik tablosu görünür.',
+  },
+  {
     q: 'Klavyeden oynayabilir miyim?',
     a: 'Evet. Şarkı oyununda Boşluk tuşu klibi çalar; tahmin kutusuna yazarken ya da bir düğmeye odaklanmışken boşluk normal işini görür. İki oyunda da Enter tahmini gönderir, ↑ ve ↓ öneri listesinde gezdirir. Ünlü oyununda çalınacak bir şey olmadığı için Boşluk\'un özel bir görevi yok.',
   },
