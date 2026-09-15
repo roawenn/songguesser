@@ -702,6 +702,25 @@ button {
     padding: 0 var(--nk-kenar) 16px;
   }
   /*
+   * Sonuç kartı telefonda iki satır: üstte kapak + başlık/sanatçı, altta
+   * rozetler. Tek satırda kapak (96) ve iki rozet (~180) genişliği paylaşıp
+   * metne ~30 px bırakıyordu — başlık rozetlerin üstüne taşıyordu.
+   * ⚠️ `!important`: rozet kutusunun hizası satır içi.
+   */
+  .nk-sonuc-kart {
+    align-items: flex-start !important;
+  }
+  .nk-sonuc-rozetler {
+    order: 3;
+    width: 100%;
+    align-self: auto !important;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .nk-sonuc-baslik {
+    font-size: 23px !important;
+  }
+  /*
    * Atıf TEK SATIR. Mono yazıyla 360 px'e sığması için 8 px'e inmek
    * gerekiyordu; daha dar harfli sans yazı ve ekrana göre küçülen boyutla
    * ~9-10,5 px'te sığıyor.

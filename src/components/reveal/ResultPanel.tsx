@@ -163,11 +163,19 @@ export function ResultPanel({
 
       <div
         ref={cardRef}
+        className="nk-sonuc-kart"
         style={{
           position: 'relative',
           display: 'flex',
           gap: 16,
           alignItems: 'center',
+          /*
+           * ⚠️ Sarmalanabilir: telefonda rozetler kendi satırına iniyor
+           * (bkz. `.nk-sonuc-rozetler`, globals.css). Tek satırdayken kapak ve
+           * rozetler genişliği paylaşıp metne ~30 px bırakıyordu; başlık
+           * rozetlerin üstüne taşıyor, sanatçı kelime kelime kırılıyordu.
+           */
+          flexWrap: 'wrap',
           padding: 16,
           border: `1px solid ${won ? 'var(--acc)' : 'rgba(255,255,255,0.09)'}`,
           borderRadius: 8,
@@ -262,6 +270,7 @@ export function ResultPanel({
           )}
 
           <div
+            className="nk-sonuc-baslik"
             style={{
               fontFamily: 'var(--font-serif)',
               fontSize: 27,
@@ -281,8 +290,9 @@ export function ResultPanel({
           </div>
         </div>
 
-        {/* Sayılar sağ üstte: duyulan kulvar ve kaç kez dinlendiği. */}
+        {/* Sayılar sağ üstte (telefonda kartın altında): duyulan kulvar ve kaç kez dinlendiği. */}
         <div
+          className="nk-sonuc-rozetler"
           style={{
             alignSelf: 'flex-start',
             display: 'flex',
