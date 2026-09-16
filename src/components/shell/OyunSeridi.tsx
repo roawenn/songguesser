@@ -80,6 +80,17 @@ function KapakIkonu() {
   )
 }
 
+/** Günlük: takvim yaprağı — herkese aynı gün. */
+function TakvimIkonu() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M8.5 14.5h2M13.5 14.5h2M8.5 17.5h2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export const OYUNLAR = [
   {
     id: 'sarki',
@@ -101,6 +112,13 @@ export const OYUNLAR = [
     ad: 'Kapaktan Albüm',
     aciklama: 'Pikselden netleşen kapağı tanı',
     Ikon: KapakIkonu,
+  },
+  {
+    id: 'gunluk',
+    yol: '/gunluk',
+    ad: 'Günlük',
+    aciklama: 'Herkese aynı 6 soru',
+    Ikon: TakvimIkonu,
   },
 ] as const
 
@@ -130,9 +148,13 @@ function isit(id: OyunId) {
   } else if (id === 'unlu') {
     void import('@/components/UnluShell').catch(() => {})
     unluHavuzuIsit(ayar.unluCategory)
-  } else {
+  } else if (id === 'kapak') {
     void import('@/components/KapakShell').catch(() => {})
     kapakHavuzuIsit(ayar.kapakCategory)
+  } else {
+    // ⚠️ Açık dal: eskiden son `else` kapaktı ve bilinmeyen her oyun kapağı ısıtıyordu.
+    // Havuzlar burada ISITILMAZ — Günlük sayfası tur türüne göre kendisi indiriyor.
+    void import('@/components/GunlukShell').catch(() => {})
   }
 }
 

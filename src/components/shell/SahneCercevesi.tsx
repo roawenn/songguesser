@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { enKisaTon } from '@/lib/renk'
 import { Backdrop } from '../stage/Backdrop'
+import { GunlukRozeti } from '../gunluk/GunlukRozeti'
 import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
 import { MobilMenu } from './MobilMenu'
 import { OyunSeridi, type OyunId } from './OyunSeridi'
@@ -35,10 +36,12 @@ interface Props {
    * ⚠️ Çerçeve bunları İKİ yerde çiziyor: masaüstünde sol sütunun başında dikey
    * liste, mobilde markanın altında yatay şerit. Kabuklar kategoriyi `sol`'a
    * koymamalı, yoksa iki kez görünür.
+   *
+   * Günlük modda kategori YOK (herkese aynı set): verilmezse iki yer de çizilmez.
    */
-  cipler: ReadonlyArray<{ id: string; label: string; hue: number }>
-  secili: string
-  onSecki: (id: string) => void
+  cipler?: ReadonlyArray<{ id: string; label: string; hue: number }>
+  secili?: string
+  onSecki?: (id: string) => void
 
   /** Sol sütun, kategori listesinin ALTINDA: istatistik. */
   sol: ReactNode
@@ -109,7 +112,7 @@ export function SahneCercevesi({
    */
   const seckiSec = (id: string) => {
     if (id !== secili) olay('secki_degisti', { oyun: aktifOyun, secki: id })
-    onSecki(id)
+    onSecki?.(id)
   }
 
   return (
@@ -170,7 +173,7 @@ export function SahneCercevesi({
             {sag}
             {sol}
           </MobilMenu>
-          <Header />
+          <Header ek={aktifOyun !== 'gunluk' ? <GunlukRozeti /> : undefined} />
           {/*
             Oyun seçici masaüstünde logonun altında: önce "hangi oyun", sonra
             oyunun kendisi. Telefonda footer'da (aşağıda) — orada üst bant ilk
@@ -218,7 +221,7 @@ export function SahneCercevesi({
                 </button>
               </div>
             )}
-            <CategoryStrip chips={cipler} category={secili} onCategory={seckiSec} />
+            {cipler && <CategoryStrip chips={cipler} category={secili ?? ''} onCategory={seckiSec} />}
           </div>
         </div>
 
@@ -232,12 +235,14 @@ export function SahneCercevesi({
             {/* Üç sütun: kategoriler + istatistik · sahne · ayarlar + kurallar. */}
             <div className="nk-stage-grid">
               <div className="nk-side">
-                <KategoriListesi
-                  chips={cipler}
-                  category={secili}
-                  onCategory={seckiSec}
-                  sanatciModu={sanatciModu}
-                />
+                {cipler && (
+                  <KategoriListesi
+                    chips={cipler}
+                    category={secili ?? ''}
+                    onCategory={seckiSec}
+                    sanatciModu={sanatciModu}
+                  />
+                )}
                 {sol}
               </div>
               {orta}

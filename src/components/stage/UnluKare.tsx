@@ -38,10 +38,14 @@ interface Props {
   /** Tur bittiğinde tamamı açılır ve ayırıcılar kaybolur. */
   bitti: boolean
   reduce: boolean
+  /** Görsel indi (Günlük: hazırlanma süresi ölçümü). */
+  onYuklendi?: () => void
+  /** Görsel inmedi (Günlük: ölü medya bildirimi). */
+  onHata?: () => void
 }
 
 export const UnluKare = forwardRef<UnluKareHandle, Props>(function UnluKare(
-  { url, acilan, bitti, reduce },
+  { url, acilan, bitti, reduce, onYuklendi, onHata },
   ref,
 ) {
   const kutu = useRef<HTMLDivElement>(null)
@@ -75,6 +79,8 @@ export const UnluKare = forwardRef<UnluKareHandle, Props>(function UnluKare(
           src={url}
           alt=""
           decoding="async"
+          onLoad={onYuklendi}
+          onError={onHata}
           style={{
             position: 'absolute',
             inset: 0,

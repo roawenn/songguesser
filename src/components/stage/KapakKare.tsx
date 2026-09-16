@@ -28,6 +28,15 @@ export interface KapakKareHandle {
 interface Props {
   /** Kapak adresi (Apple, herhangi bir boyut) — boyut burada seçilir. */
   ar: string
+  /**
+   * Adımın HAZIR adresi — verilirse `ar`'dan boyut türetilmez.
+   *
+   * ⚠️ Günlük modda kapak adresi tarayıcıya hiç gelmiyor (`8x8bb` elle
+   * `600x600bb` yapılabilirdi); sunucu o adımın görselini imzalı adresle veriyor.
+   */
+  url?: string
+  onYuklendi?: () => void
+  onHata?: () => void
   adim: number
   /** Tur bittiğinde tam kapak gösterilir. */
   bitti: boolean
@@ -35,7 +44,7 @@ interface Props {
 }
 
 export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
-  { ar, adim, bitti, reduce },
+  { ar, url: hazirUrl, adim, bitti, reduce, onYuklendi, onHata },
   ref,
 ) {
   const kutu = useRef<HTMLDivElement>(null)
@@ -43,7 +52,7 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
 
   const gorunur = bitti ? KAPAK_ADIM : Math.max(1, Math.min(adim, KAPAK_ADIM))
   const boyut = KAPAK_BOYUTLARI[gorunur - 1] ?? 600
-  const url = artworkAt(ar, boyut)
+  const url = hazirUrl ?? artworkAt(ar, boyut)
   const net = boyut === KAPAK_BOYUTLARI[KAPAK_BOYUTLARI.length - 1]
 
   return (
@@ -65,10 +74,12 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
       {url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          key={boyut}
+          key={url}
           src={url}
           alt=""
           decoding="async"
+          onLoad={onYuklendi}
+          onError={onHata}
           style={{
             position: 'absolute',
             inset: 0,

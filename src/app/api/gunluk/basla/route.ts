@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { istanbulGunu } from '@/game/gun'
 import {
-  belkiTemizle, cihazOzeti, gorunum, gunlukSetiGetir, gunlukSimdi, oturumAc, yeniCihazGizlisi,
+  belkiTemizle, cihazOzeti, gorunum, gunlukSetiGetir, gunlukSimdi, hakemGetir, oturumAc, yeniCihazGizlisi,
 } from '@/lib/gunlukSunucu'
 import { cokHizli, ipOzeti, sinirAsildi } from '@/lib/hizSinir'
 import { supabaseReady } from '@/lib/supabase'
@@ -44,6 +44,12 @@ export async function POST(req: Request) {
     if (!oturum) return NextResponse.json({ error: 'Oturum açılamadı.' }, { status: 502 })
 
     belkiTemizle()
+    /*
+     * Hakem havuzlarını (15 bin şarkı, ünlüler, kapak gruplaması) yanıttan
+     * SONRA ısıt: soğuk örnekte ilk tahmin aksi hâlde ~2 sn bekliyordu.
+     * `after` lambdanın yanıttan sonra dondurulmasını engelliyor.
+     */
+    after(() => hakemGetir().then(() => undefined, () => undefined))
     return NextResponse.json(
       { cihaz: yeni ? gizli : undefined, gorunum: gorunum(oturum, set) },
       { headers: { 'Cache-Control': 'no-store' } },

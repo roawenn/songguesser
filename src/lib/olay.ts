@@ -17,7 +17,7 @@
  * ⚠️ Olay adı en fazla 50 karakter (Umami sınırı).
  */
 
-export type OyunAdi = 'sarki' | 'unlu' | 'kapak'
+export type OyunAdi = 'sarki' | 'unlu' | 'kapak' | 'gunluk'
 
 interface OlayKatalogu {
   /** Bir tur bitti — tek oyunculu ya da düello. */
@@ -40,6 +40,10 @@ interface OlayKatalogu {
    * tur başına olay da yok — bir yayın saatlerce sürüp kotayı yakabilir.
    */
   yayin_basladi: { platform: 'twitch' | 'kick'; secki: string; zorluk: number; tur: number }
+  /** Günlük oturumu açıldı. Tur başına olay YOK — kotayı altı katına çıkarırdı. */
+  gunluk_basladi: { arsiv: boolean }
+  /** ⚠️ Puan KOVALANIYOR (60'lık): ham puan gereksiz ayrıntı. */
+  gunluk_bitti: { puan_kova: number; arsiv: boolean }
 }
 
 declare global {

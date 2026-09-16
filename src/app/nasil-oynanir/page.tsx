@@ -78,6 +78,10 @@ const faq = [
     a: 'Bir albüm kapağı 8×8 pikselle başlar. Yanlış tahmin ya da pas kapağı bir adım netleştirir (16, 32, 64 piksel, sonra tam kapak); beşinci adımda tur biter, yani dört tahmin hakkın var. Kolay mod açıkken sanatçının adını yazman da yeter; kapalıyken albümün adı gerekir. "- Single" gibi ekleri yazman gerekmez.',
   },
   {
+    q: 'Günlük nasıl oynanır?',
+    a: 'Her gün herkese aynı altı soru çıkar: iki şarkı, iki ünlü, iki albüm kapağı; her çiftte önce kolay, sonra zor olan gelir. Kurallar oyunların kendisiyle aynıdır. Bildiğin turda ilk adımda 100 puan alırsın, her açılan adım 20 eksiltir; ayrıca görsel ya da klip geldikten sonraki ilk 60 saniye içinde bilirsen en fazla 20 hız puanı eklenir. En yüksek puan 720. Günlük her gün bir kez oynanır ve gece yarısı (Türkiye saatiyle) yenilenir.',
+  },
+  {
     q: 'Yalnızca bir sanatçının şarkılarıyla oynayabilir miyim?',
     a: 'Evet. Sanatçı sayfalarından (tahmin.net/sanatci) birini seçip "ile oyna" dersen tur yalnızca o sanatçının şarkılarından kurulur. Seçki ayarın değişmez; sol üstteki ✕ ile moddan çıkınca kendi seçkine dönersin. Sanatçı modunda düello kurulamaz.',
   },
