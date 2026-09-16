@@ -26,11 +26,14 @@ const TUZ = process.env.SUPABASE_SECRET_KEY ?? 'tahmin.net'
  * ama Vercel gerçek adresi listenin başına yazdığı için uydurma değerler
  * ancak kendi kovasını böler, başkasınınkini değil.
  */
-function kova(req: Request, ad: string): string {
+export function ipOzeti(req: Request): string {
   const xff = req.headers.get('x-forwarded-for') ?? ''
   const ip = xff.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'bilinmiyor'
-  const ozet = createHash('sha256').update(`${TUZ}:${ip}`).digest('hex').slice(0, 32)
-  return `${ad}:${ozet}`
+  return createHash('sha256').update(`${TUZ}:${ip}`).digest('hex').slice(0, 32)
+}
+
+function kova(req: Request, ad: string): string {
+  return `${ad}:${ipOzeti(req)}`
 }
 
 export interface SinirAyari {

@@ -1,9 +1,8 @@
-import {
-  UNLU_CHIPS, unluChipById, type UnluCategoryId, type UnluChipId, type Difficulty,
-} from '@/data/categories'
+import { UNLU_CHIPS, type UnluChipId } from '@/data/categories'
 import { UNLU_HAVUZ_SURUM, type Unlu } from '@/data/unlu'
-import { restHeaders, restTumSatirlar, supabaseReady } from '@/lib/supabase'
+import { supabaseReady } from '@/lib/supabase'
 import { sikistirilmisJson } from '@/lib/sikistir'
+import { unluSatirlari } from '@/lib/unluHavuzSunucu'
 
 /**
  * Ünlü havuzu — `api/havuz/[chip]`'in kardeşi.
@@ -18,61 +17,11 @@ import { sikistirilmisJson } from '@/lib/sikistir'
  * `snapshot.ts`'e ünlü dalı eklenebilir.
  */
 
-/**
- * ⚠️ Supabase'den havuzun yeniden OKUNMA aralığı — tazelikle ilgisi yok.
- * Panelden kaydedince `revalidateTag('unluhavuz')` çalışıyor ve yayın anında.
- */
-const SUPABASE_TAZELE = 3600
 /** Tarayıcı ve CDN tazelik ömrü. */
 const ISTEMCI_TAZE = 60
 
-interface UnluRow {
-  id: string
-  category: UnluCategoryId
-  name: string
-  norm_name: string
-  accept_keys: string[]
-  tier: Difficulty
-  image_ver: number
-}
-
-const KOLONLAR = 'id,category,name,norm_name,accept_keys,tier,image_ver'
-
 export function generateStaticParams() {
   return UNLU_CHIPS.map((c) => ({ chip: c.id }))
-}
-
-function toUnlu(r: UnluRow): Unlu {
-  return {
-    id: r.id,
-    ad: r.name,
-    d: r.tier,
-    c: r.category,
-    v: r.image_ver,
-    nT: r.norm_name,
-    // ⚠️ Ünlüde İKİNCİ AD YOK. Boş dize bırakılıyor ki `judgeGuess`'in
-    // "sanatçı doğru" rozeti asla tetiklenmesin (bkz. `text/match.ts`).
-    nA: '',
-    k: r.accept_keys,
-  }
-}
-
-async function supabasedenAl(chip: UnluChipId): Promise<Unlu[]> {
-  const c = unluChipById(chip)
-  const params = new URLSearchParams({
-    select: KOLONLAR,
-    enabled: 'eq.true',
-    // ⚠️ Sıralama sayfalama için ŞART: sırasız sorguda planlayıcı sayfalar
-    // arasında aynı satırı iki kez verebilir ya da atlayabilir.
-    order: 'id.asc',
-  })
-  if (c.kategori) params.set('category', `eq.${c.kategori}`)
-
-  const rows = await restTumSatirlar<UnluRow>(`unluler?${params}`, {
-    headers: restHeaders(),
-    next: { revalidate: SUPABASE_TAZELE, tags: ['unluhavuz'] },
-  })
-  return rows.map(toUnlu)
 }
 
 export async function GET(req: Request, ctx: { params: Promise<{ chip: string }> }) {
@@ -88,7 +37,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ chip: string }>
 
       if (supabaseReady) {
         try {
-          unluler = await supabasedenAl(chip)
+          unluler = await unluSatirlari(chip)
         } catch {
           kaynak = 'yok'
         }

@@ -512,3 +512,167 @@ revoke execute on function public.hiz_sinir_sil(text)                     from p
 grant  execute on function public.hiz_sinir_dene(text, integer, interval) to service_role;
 grant  execute on function public.hiz_sinir_bak(text, integer, interval)  to service_role;
 grant  execute on function public.hiz_sinir_sil(text)                     to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Günlük mod: herkese aynı altı tur, sunucu hakemli
+-- ---------------------------------------------------------------------------
+-- Günün seti. Günün ilk isteğinde seçilip yazılır (`on conflict do nothing`):
+-- iki lambda aynı anda kurmaya kalkarsa ilk yazan kazanır, ikincisi okur.
+--
+-- ⚠️ `turlar` CEVAPLAR DAHİL tam anlık görüntü (bkz. `game/gunluk.ts`). Tablo
+-- RLS'li ve politikasız; yalnızca gizli anahtarla okunur.
+create table if not exists public.gunluk (
+  gun          date        primary key,
+  olusturuldu  timestamptz not null default now(),
+  surum        integer     not null default 0,
+  turlar       jsonb       not null,
+  oge_idleri   text[]      not null default '{}',
+  constraint gunluk_tur_chk check (jsonb_array_length(turlar) = 6)
+);
+
+-- Oyuncunun o günkü oturumu.
+--
+-- ⚠️ `cihaz_ozet` HAM GİZLİ DEĞİL, sha256'sı: tablo sızsa bile başkasının
+-- oturumuna hamle gönderilemez. `ip_ozet` hız sınırıyla aynı tuzlu özet —
+-- yalnızca aynı gün girişsiz + girişli çift oynamayı işaretlemek için.
+create table if not exists public.gunluk_oturum (
+  id                uuid        primary key default gen_random_uuid(),
+  gun               date        not null references public.gunluk(gun) on delete cascade,
+  cihaz_ozet        text        not null,
+  kullanici_id      uuid,
+  sirali            boolean     not null default true,
+  ip_ozet           text,
+  supheli           boolean     not null default false,
+  basladi           timestamptz not null default now(),
+  bitti             timestamptz,
+  zaman_asimi       boolean     not null default false,
+  turlar            jsonb       not null default '[]',
+  puan              smallint    check (puan between 0 and 720),
+  surum             integer     not null default 0,
+  yedek_kullanildi  boolean     not null default false
+);
+
+-- Girişsiz: cihaz başına günde bir. Girişli: kullanıcı başına günde bir.
+create unique index if not exists gunluk_oturum_cihaz_uidx
+  on public.gunluk_oturum (cihaz_ozet, gun, sirali) where kullanici_id is null;
+create unique index if not exists gunluk_oturum_kullanici_uidx
+  on public.gunluk_oturum (kullanici_id, gun, sirali) where kullanici_id is not null;
+create index if not exists gunluk_oturum_gun_idx on public.gunluk_oturum (gun);
+
+-- Günün puan dağılımı — materyalize. Yüzdelik her istekte binlerce oturumu
+-- taramasın; gün başına en fazla 721 satır.
+create table if not exists public.gunluk_dagilim (
+  gun   date     not null,
+  puan  smallint not null,
+  adet  integer  not null default 0,
+  primary key (gun, puan)
+);
+
+alter table public.gunluk         enable row level security;
+alter table public.gunluk_oturum  enable row level security;
+alter table public.gunluk_dagilim enable row level security;
+
+/*
+ * Oturumu bulur ya da açar — tek gidiş-dönüş, yarışa kapalı.
+ *
+ * ⚠️ PostgREST `on_conflict` kısmi indeksi hedefleyemiyor; bu yüzden RPC.
+ *
+ * Girişli açılışta, aynı gün aynı cihazdan ya da aynı IP'den BİTMİŞ girişsiz
+ * bir oturum varsa `supheli` işaretlenir: cevabı girişsiz öğrenip girişli
+ * oynamanın izi. Otomatik gizlenmez (mobil operatörlerde IP paylaşılıyor);
+ * karar yöneticide.
+ */
+create or replace function public.gunluk_oturum_ac(
+  p_gun        date,
+  p_cihaz_ozet text,
+  p_kullanici  uuid,
+  p_sirali     boolean,
+  p_ip_ozet    text
+) returns setof public.gunluk_oturum
+language plpgsql security definer set search_path = '' as $gac$
+declare v public.gunluk_oturum;
+begin
+  if p_kullanici is not null then
+    select * into v from public.gunluk_oturum o
+     where o.kullanici_id = p_kullanici and o.gun = p_gun and o.sirali = p_sirali;
+  else
+    select * into v from public.gunluk_oturum o
+     where o.cihaz_ozet = p_cihaz_ozet and o.gun = p_gun and o.sirali = p_sirali and o.kullanici_id is null;
+  end if;
+  if found then return next v; return; end if;
+
+  begin
+    insert into public.gunluk_oturum (gun, cihaz_ozet, kullanici_id, sirali, ip_ozet, supheli)
+    values (
+      p_gun, p_cihaz_ozet, p_kullanici, p_sirali, p_ip_ozet,
+      p_kullanici is not null and p_sirali and exists (
+        select 1 from public.gunluk_oturum o
+         where o.gun = p_gun and o.sirali and o.kullanici_id is null and o.bitti is not null
+           and (o.cihaz_ozet = p_cihaz_ozet or (p_ip_ozet is not null and o.ip_ozet = p_ip_ozet))
+      )
+    )
+    returning * into v;
+  exception when unique_violation then
+    if p_kullanici is not null then
+      select * into v from public.gunluk_oturum o
+       where o.kullanici_id = p_kullanici and o.gun = p_gun and o.sirali = p_sirali;
+    else
+      select * into v from public.gunluk_oturum o
+       where o.cihaz_ozet = p_cihaz_ozet and o.gun = p_gun and o.sirali = p_sirali and o.kullanici_id is null;
+    end if;
+  end;
+  return next v;
+end $gac$;
+
+/*
+ * Oturumu bitirir ve dağılıma yazar — ATOMİK.
+ *
+ * `surum` eşleşmezse (başka sekme araya girdi) hiçbir şey yazılmaz ve `false`
+ * döner; çağıran yeniden okuyup dener. Zaman aşımı ve arşiv dağılıma girmez.
+ */
+create or replace function public.gunluk_bitir(
+  p_oturum      uuid,
+  p_surum       integer,
+  p_turlar      jsonb,
+  p_puan        integer,
+  p_zaman_asimi boolean
+) returns boolean
+language plpgsql security definer set search_path = '' as $gbt$
+declare v_gun date; v_sirali boolean;
+begin
+  update public.gunluk_oturum o
+     set turlar = p_turlar, puan = p_puan, bitti = now(), zaman_asimi = p_zaman_asimi, surum = o.surum + 1
+   where o.id = p_oturum and o.surum = p_surum and o.bitti is null
+  returning o.gun, o.sirali into v_gun, v_sirali;
+  if not found then return false; end if;
+
+  if v_sirali and not p_zaman_asimi then
+    insert into public.gunluk_dagilim as d (gun, puan, adet) values (v_gun, p_puan, 1)
+    on conflict (gun, puan) do update set adet = d.adet + 1;
+  end if;
+  return true;
+end $gbt$;
+
+revoke execute on function public.gunluk_oturum_ac(date, text, uuid, boolean, text) from public, anon, authenticated;
+revoke execute on function public.gunluk_bitir(uuid, integer, jsonb, integer, boolean) from public, anon, authenticated;
+grant  execute on function public.gunluk_oturum_ac(date, text, uuid, boolean, text) to service_role;
+grant  execute on function public.gunluk_bitir(uuid, integer, jsonb, integer, boolean) to service_role;
+
+/*
+ * `temizle()` Günlük oturumlarını da topluyor: 120 günden eski oturumlar
+ * silinir. Dağılım ve setler kalır (arşiv ve tekrar önleme onları okuyor).
+ *
+ * ⚠️ Fonksiyon yukarıda tanımlı; burada YENİDEN tanımlanıyor çünkü şema tek
+ * dosya ve tablo ondan sonra kuruluyor. Yukarıdaki tanım ilk kurulum içindir.
+ */
+create or replace function public.temizle()
+returns integer language plpgsql as $tmz$
+declare silinen integer;
+begin
+  delete from public.duels where expires_at < now();
+  get diagnostics silinen = row_count;
+  delete from public.admin_oturum where biter < now();
+  delete from public.hiz_sinir where pencere < now() - interval '1 day';
+  delete from public.gunluk_oturum where basladi < now() - interval '120 days';
+  return silinen;
+end $tmz$;
