@@ -370,7 +370,9 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                     <GuessInput
                       index={round.index}
                       suggestions={settings.easySearch}
-                      disabled={!live}
+                      // Tur başlangıç paketiyle dilimden önce kurulabiliyor.
+                      disabled={!live || !round.havuzHazir}
+                      yerTutucu={live && !round.havuzHazir ? 'Liste yükleniyor…' : undefined}
                       ambiguous={round.ambiguous}
                       onGuess={round.guess}
                       onPickAmbiguous={(song) => {

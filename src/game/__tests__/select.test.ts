@@ -42,3 +42,17 @@ describe('pickNext', () => {
     expect(sec?.song.id).toBe(liste[liste.length - 1]!.id)
   })
 })
+
+describe('filterByTier — kademe dilimi', () => {
+  it('dilim tam kademeyi HER ZAMAN içerir; başlangıç paketi dilimin alt kümesidir', () => {
+    // İnce seçki: kademe 1'de 3 şarkı, genişletme devreye giriyor.
+    const havuz = [
+      ...Array.from({ length: 3 }, (_, i) => ({ id: `k1-${i}`, d: 1 as const })),
+      ...Array.from({ length: 10 }, (_, i) => ({ id: `k2-${i}`, d: 2 as const })),
+    ]
+    const dilim = filterByTier(havuz, 1)
+    const tamKademe = havuz.filter((s) => s.d === 1)
+    expect(dilim.length).toBeGreaterThan(tamKademe.length)
+    for (const s of tamKademe) expect(dilim).toContain(s)
+  })
+})

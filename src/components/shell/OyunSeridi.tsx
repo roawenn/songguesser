@@ -126,7 +126,7 @@ function isit(id: OyunId) {
   const ayar = useSettingsStore.getState()
   if (id === 'sarki') {
     void import('@/components/GameShell').catch(() => {})
-    havuzuIsit(ayar.category)
+    havuzuIsit(ayar.category, ayar.tier)
   } else if (id === 'unlu') {
     void import('@/components/UnluShell').catch(() => {})
     unluHavuzuIsit(ayar.unluCategory)

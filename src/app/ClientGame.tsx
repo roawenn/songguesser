@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { CHIPS, type ChipId } from '@/data/categories'
 import { havuzuIsit } from '@/data/loadPool'
+import { ilkTuruHazirla } from '@/data/ilkTur'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { slugGecerli } from '@/text/sanatci'
 
@@ -102,8 +103,15 @@ export function ClientGame() {
    * havuzu indirtmek, kazandırdığından fazlasını götürürdü.
    */
   if (typeof window !== 'undefined') {
-    // Sanatçı modu her zaman `karisik` havuzundan süzer.
-    havuzuIsit(sanatci ? 'karisik' : useSettingsStore.getState().category)
+    // Sanatçı modu her zaman TAM `karisik` havuzundan süzer; diğerleri kademe
+    // dilimi + başlangıç paketi.
+    const ayar = useSettingsStore.getState()
+    if (sanatci) havuzuIsit('karisik')
+    else {
+      havuzuIsit(ayar.category, ayar.tier)
+      // İlk şarkının sesi kabuk çizilmeden inmeye başlasın (bkz. `ilkTur`).
+      ilkTuruHazirla(ayar.category, ayar.tier)
+    }
   }
   return <GameShell sanatci={sanatci} />
 }

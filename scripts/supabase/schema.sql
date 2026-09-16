@@ -298,6 +298,34 @@ create or replace function public.duello_sec(
 $$;
 
 /*
+ * Başlangıç paketi: bir kademeden rastgele birkaç TAM şarkı (önizleme dahil).
+ *
+ * ⚠️ Oyunun ilk turu bununla kuruluyor (bkz. `api/baslangic`). Tam havuzu
+ * sayfalayarak okumak soğuk sunucuda ~1,2 sn sürüyordu; bu tek sorgu. Kademe
+ * TAM eşleşme: istemcideki dilim `filterByTier` ile yalnızca GENİŞLER, yani
+ * buradaki şarkılar her zaman dilimin içinde kalır.
+ *
+ * ⚠️ `security invoker` (varsayılan): RLS geçerli, anon yalnızca açık
+ * şarkıları görür. `where s.enabled` yine de yazıldı — yönetim anahtarıyla
+ * çağrılırsa kapalı şarkı sızmasın.
+ */
+create or replace function public.baslangic_sec(
+  p_kategori text default null,
+  p_donemler text[] default null,
+  p_kademe int default 3,
+  p_adet int default 24
+) returns setof public.songs language sql stable as $$
+  select s.*
+  from public.songs s
+  where s.enabled
+    and s.tier = p_kademe
+    and (p_kategori is null or s.category = p_kategori)
+    and (p_donemler is null or s.era = any(p_donemler))
+  order by random()
+  limit least(greatest(p_adet, 1), 40)
+$$;
+
+/*
  * Süresi dolmuş satırları toplar: lobiler, oturumlar, hız sınırı sayaçları.
  *
  * ⚠️ Bunu ÇAĞIRAN bir zamanlayıcı yok. `duel_temizle` da aynı durumdaydı.
@@ -397,8 +425,10 @@ on conflict (id) do nothing;
 -- `default 'sarki'` mevcut satırları güvene alıyor. Lobiler 2 saatte zaten
 -- geçersizleşiyor, yani riskli pencere dar; yine de varsayılan şart.
 alter table public.duels add column if not exists oyun text not null default 'sarki';
-alter table public.duels drop constraint if exists duels_oyun_chk;
-alter table public.duels add constraint duels_oyun_chk check (oyun in ('sarki', 'unlu'));
+-- ⚠️ `duels_oyun_chk` burada KURULMAZ, aşağıda (Kapaktan Albüm) tam listeyle
+-- kuruluyor. Burada dar listeyle (`sarki`, `unlu`) yeniden kurulduğunda, tabloda
+-- `kapak` lobisi olduğu anda şemanın tamamı bu satırda patlıyordu — dosya tek
+-- sorguda gittiği için sonraki HİÇBİR değişiklik uygulanmıyordu.
 
 -- ⚠️ `duels_songs_chk (= 5)` ve `song_index between 0 and 4` GEVŞETİLMİYOR.
 -- İki oyun da beş turluk (kademe 1→5). Çalışan bir kısıtı sebepsiz açmak,

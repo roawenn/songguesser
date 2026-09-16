@@ -19,7 +19,18 @@ export interface YuklemeDurumu {
   /** `el.buffered.length` */
   bufferliAralik: number
   crossOrigin: string | null
+  /**
+   * Yükleme şu an SÜRÜYOR mu ve ne kadar süredir (ms). `networkState ===
+   * NETWORK_LOADING` değilse `null`.
+   */
+  yukleniyorMs: number | null
 }
+
+/**
+ * Süren bir yüklemeye bu yaşa kadar güvenilir — `ClipPlayer`'daki kurulum zaman
+ * aşımıyla aynı. Daha eski bir "yükleniyor" takılmış sayılır ve baştan başlatılır.
+ */
+export const YUKLEME_GUVEN_MS = 8000
 
 /**
  * Şeride `src` yazıp `load()` çağırmak gerekiyor mu?
@@ -33,13 +44,20 @@ export interface YuklemeDurumu {
  *   - `readyState === 0` (önceki yükleme yarıda kesilmiş; arabellek zaten yok),
  *   - `buffered` boş (iOS arka planda medya arabelleğini boşaltabiliyor),
  *   - `crossOrigin` beklenenden farklı (TUZAK 3 — CORS'suz istek SESSİZLİK üretir).
+ *
+ * ⚠️ `readyState === 0` ve boş `buffered` YÜKLEME SÜRERKEN de böyle. İlk turun
+ * sesi kabuk çizilmeden önden yükleniyor (bkz. `data/ilkTur`); tur kurulduğunda
+ * Apple'dan meta veri henüz gelmemişse bu kural yüklemeyi "yarıda kesilmiş"
+ * sanıp BAŞTAN başlatıyordu — aynı dosya iki kez isteniyor, önden kazanılan
+ * ~900 ms çöpe gidiyordu (ölçüldü). Süren ve taze bir yükleme korunur.
  */
 export function yenidenYuklenmeli(d: YuklemeDurumu): boolean {
   if (d.kaynak !== d.url) return true
   if (d.hataVar) return true
+  if (d.crossOrigin !== 'anonymous') return true
+  if (d.yukleniyorMs !== null && d.yukleniyorMs < YUKLEME_GUVEN_MS) return false
   if (d.readyState < 1) return true
   if (d.bufferliAralik === 0) return true
-  if (d.crossOrigin !== 'anonymous') return true
   return false
 }
 

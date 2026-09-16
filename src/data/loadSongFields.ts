@@ -81,6 +81,19 @@ export function alanlariIsit(ids: string | string[]): void {
 }
 
 /**
+ * Alanları zaten TAŞIYAN şarkıları önbelleğe yazar — ağ yok.
+ *
+ * ⚠️ Başlangıç paketi şarkıları önizlemeleriyle geliyor. Yazılmazsa, paketten
+ * seçilen aday dilimdeki (alansız) kopyasıyla kurulduğunda `/api/sarki`'ye
+ * boşuna gidilir ve `alanlarOnbellekten` gesture içinde indirmeyi başlatamaz.
+ */
+export function alanlariYaz(songs: readonly Song[]): void {
+  for (const s of songs) {
+    if (s.p) onbellek.set(s.id, { p: s.p, ar: s.ar ?? '', u: s.u ?? '' })
+  }
+}
+
+/**
  * Önbellekten SENKRON okur; ağa gitmez, yoksa `null`.
  *
  * ⚠️ Bunun senkron olması şart: "Sıradaki şarkı" dokunuşunun içinde, hiçbir

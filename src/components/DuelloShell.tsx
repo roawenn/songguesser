@@ -261,7 +261,8 @@ function Sahne({
              * "Kolay arama" anahtarının düello ekranında hiçbir etkisi yoktu.
              */
             suggestions={easySearch}
-            disabled={!live}
+            disabled={!live || !round.havuzHazir}
+            yerTutucu={live && !round.havuzHazir ? 'Liste yükleniyor…' : undefined}
             ambiguous={round.ambiguous}
             onGuess={round.guess}
             onPickAmbiguous={(song) => {

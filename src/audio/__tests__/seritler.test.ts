@@ -8,6 +8,7 @@ const saglikli = {
   readyState: 4,
   bufferliAralik: 1,
   crossOrigin: 'anonymous',
+  yukleniyorMs: null,
 }
 
 describe('yenidenYuklenmeli', () => {
@@ -23,6 +24,19 @@ describe('yenidenYuklenmeli', () => {
     expect(yenidenYuklenmeli({ ...saglikli, bufferliAralik: 0 })).toBe(true)
     // TUZAK 3: CORS'suz istek sessizlik üretir.
     expect(yenidenYuklenmeli({ ...saglikli, crossOrigin: null })).toBe(true)
+  })
+
+  it('SÜREN taze yüklemeyi baştan başlatmaz — meta veri henüz gelmemiş olsa da', () => {
+    const suren = { ...saglikli, readyState: 0, bufferliAralik: 0, yukleniyorMs: 500 }
+    expect(yenidenYuklenmeli(suren)).toBe(false)
+  })
+
+  it('takılmış (eski) yüklemeyi, farklı URL’i, hatayı ve CORS’suz isteği yine yükletir', () => {
+    const suren = { ...saglikli, readyState: 0, bufferliAralik: 0, yukleniyorMs: 500 }
+    expect(yenidenYuklenmeli({ ...suren, yukleniyorMs: 9000 })).toBe(true)
+    expect(yenidenYuklenmeli({ ...suren, url: 'https://cdn/b.m4a' })).toBe(true)
+    expect(yenidenYuklenmeli({ ...suren, hataVar: true })).toBe(true)
+    expect(yenidenYuklenmeli({ ...suren, crossOrigin: null })).toBe(true)
   })
 })
 

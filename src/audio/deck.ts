@@ -22,6 +22,8 @@ export interface Lane {
   clipGain: GainNode
   /** Şu an yüklü kaynak — aynı URL boşuna yeniden indirilmesin diye. */
   kaynak: string | null
+  /** Son `load()` anı (`performance.now()`) — süren yüklemenin yaşı için. */
+  yuklemeZamani: number
 }
 
 let lanes: [Lane, Lane] | null = null
@@ -43,7 +45,7 @@ function createLane(graph: NonNullable<ReturnType<typeof getGraph>>): Lane {
   source.connect(clipGain)
   clipGain.connect(graph.master)
 
-  return { el, clipGain, kaynak: null }
+  return { el, clipGain, kaynak: null, yuklemeZamani: 0 }
 }
 
 /** Şeritleri döndürür (gerekirse oluşturur). Tarayıcı dışında null. */
@@ -75,6 +77,10 @@ export function loadSource(lane: Lane, url: string): void {
     readyState: lane.el.readyState,
     bufferliAralik: lane.el.buffered.length,
     crossOrigin: lane.el.crossOrigin,
+    yukleniyorMs:
+      lane.el.networkState === HTMLMediaElement.NETWORK_LOADING
+        ? performance.now() - lane.yuklemeZamani
+        : null,
   })
   if (!gerek) return
 
@@ -82,5 +88,6 @@ export function loadSource(lane: Lane, url: string): void {
   lane.el.crossOrigin = 'anonymous'
   lane.el.src = url
   lane.kaynak = url
+  lane.yuklemeZamani = performance.now()
   lane.el.load()
 }

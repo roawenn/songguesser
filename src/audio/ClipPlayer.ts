@@ -16,6 +16,7 @@ import { getLanes, loadSource, type Lane } from './deck'
 import { seritSec } from './seritler'
 import { armPenceresi, FADE_IN, FADE_OUT, TAIL, planClip, MAX_CLIP, previewIsLongEnough } from './envelope'
 import { MAX_STEP } from '@/game/ladder'
+import { isaret } from '@/lib/olcum'
 
 export type ArmResult = 'ready' | 'stalled' | 'dead-url' | 'unsupported'
 export type ClipResult = 'completed' | 'stalled' | 'aborted'
@@ -167,6 +168,7 @@ class ClipPlayer {
        */
       if (lane.el.readyState < 1) {
         await waitForEvent(lane.el, 'loadedmetadata', ARM_TIMEOUT_MS, signal)
+        isaret('ses-metadata')
       }
 
       /**
@@ -190,6 +192,7 @@ class ClipPlayer {
       if (Math.abs(lane.el.currentTime - plan.seekTo) > 0.01) {
         lane.el.currentTime = plan.seekTo
         await waitForEvent(lane.el, 'seeked', ARM_TIMEOUT_MS, signal)
+        isaret('ses-seeked')
       }
 
       /*
@@ -202,6 +205,7 @@ class ClipPlayer {
        */
       const pencere = armPenceresi(track.clipStart, duration)
       await waitForBuffer(lane.el, pencere.from, pencere.to, ARM_TIMEOUT_MS, signal)
+      isaret('ses-arabellek')
 
       this.emit('ready', 0)
       return 'ready'
@@ -237,6 +241,14 @@ class ClipPlayer {
   prefetch(track: ArmTrack): void {
     const lanes = getLanes()
     if (!lanes) return
+    /*
+     * ⚠️ URL ETKİN şeritte zaten yüklüyse dokunma. İlk turun sesi kabuk
+     * çizilmeden önden yükleniyor (bkz. `data/ilkTur`); tur o arada kurulduysa
+     * şarkı etkin şeritte ve boştakine ikinci kez indirmek bant genişliğini
+     * ikiye bölerdi. Boştaki şeridin kendi durumunu `loadSource` zaten tartıyor.
+     */
+    const etkin = lanes[this.active]!
+    if (etkin.kaynak === track.url && etkin.el.error === null) return
     const idle = lanes[this.active === 0 ? 1 : 0]!
     loadSource(idle, track.url)
   }

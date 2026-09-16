@@ -3,10 +3,11 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { clipPlayer } from '@/audio/ClipPlayer'
 import { installResumeHandlers } from '@/audio/context'
-import { loadChip } from '@/data/loadPool'
+import { loadBaslangic, loadChip } from '@/data/loadPool'
+import { ilkTurAdayiAl } from '@/data/ilkTur'
 import { alanlariAl, alanlariIsit, alanlarOnbellekten, birlestir } from '@/data/loadSongFields'
 import type { Song } from '@/data/schema'
-import { MIN_PLAYABLE, type Difficulty } from '@/data/categories'
+import { MIN_PLAYABLE, type ChipId, type Difficulty } from '@/data/categories'
 import { gameReducer, canPlay, currentClipLength, type GameState } from '@/game/machine'
 import { STEPS } from '@/game/ladder'
 import { pickNext, filterByTier } from '@/game/select'
@@ -14,6 +15,7 @@ import { judgeGuess, type Verdict } from '@/text/match'
 import { buildIndex, sarkiSamanligi, type SearchIndex } from '@/text/autocomplete'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { sanatciSlug } from '@/text/sanatci'
+import { isaret } from '@/lib/olcum'
 
 /**
  * Ölü preview URL'inde art arda en fazla kaç şarkı denenir.
@@ -24,6 +26,15 @@ import { sanatciSlug } from '@/text/sanatci'
  */
 const DEAD_URL_LIMIT = 6
 
+/**
+ * Dilim geldikten sonra yoldaki başlangıç paketi en fazla bu kadar beklenir.
+ *
+ * Paket beklemeye değer çünkü gelirse ilk şarkının alanları için ayrı bir
+ * istek (`/api/sarki`, ölçüldü: 130-360 ms) gerekmiyor. Ama Supabase takılırsa
+ * hazır dilimle oyunu bekletmenin anlamı yok.
+ */
+const PAKET_BEKLE_MS = 500
+
 export interface RoundApi {
   state: GameState
   pool: Song[]
@@ -32,6 +43,13 @@ export interface RoundApi {
   /** Bu zorlukta oynanacak kadar şarkı yok. */
   tooNarrow: boolean
   index: SearchIndex<Song> | null
+  /**
+   * Tahmin edilebilir mi: havuz dilimi indi ve öneri indeksi kuruldu.
+   *
+   * ⚠️ Tur, başlangıç paketiyle dilimden ÖNCE kurulabiliyor; o arada tahmin
+   * kutusu kilitli kalmalı, yoksa eşleştirme boş evrene karşı yapılır.
+   */
+  havuzHazir: boolean
   clipLength: number
   /** Çal basılabilir mi? Tur sürdüğü sürece evet — dinlemek bedava. */
   canPlay: boolean
@@ -153,14 +171,47 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
    * kademe değişimleri de arka arkaya tetikleyebiliyor.
    */
   const roundToken = useRef(0)
+  /** Dilim gelmeden turu kuran başlangıç paketi (bkz. `loadBaslangic`). */
+  const paketRef = useRef<Song[]>([])
+  /**
+   * Geçerli tur başlangıç paketinden kuruldu; dilim gelince tur kurulum etkisi
+   * turu BAŞTAN KURMAMALI.
+   */
+  const baslangicTuru = useRef(false)
+  /**
+   * Başlangıç paketi yolda ve ilk turu O kuracak — dilim önce gelse de.
+   *
+   * ⚠️ Ölçüldü (4x yavaş CPU): dilim kabuk yüklenirken paketten önce
+   * ayrıştırılıyor, tur dilimden kuruluyor ve ilk şarkı için `/api/sarki`
+   * bekleniyordu (+358 ms). Oysa paket sayfa açılışında, o istekten çok önce
+   * yola çıkmıştı ve alanları taşıyor. Beklemenin üst sınırı `PAKET_BEKLE_MS`.
+   */
+  const paketBekleniyor = useRef(false)
+  /** Paket beklemesi bitince (boş/gecikti) tur kurulum etkisini yeniden tetikler. */
+  const [paketTetik, setPaketTetik] = useState(0)
+  /** Yüklenmesi başlatılmış üst kademe diliminin anahtarı — bir kez istensin. */
+  const ustIstek = useRef<string | null>(null)
+  const [ustDilim, setUstDilim] = useState<Song[]>([])
+  const duello = Boolean(sequence)
+
+  /**
+   * Sayfa girişinde önden seçilip sesi inmeye başlamış şarkıyı (bkz.
+   * `data/ilkTur`) sıradaki turun adayı olarak çiviler.
+   *
+   * ⚠️ Yalnızca başka bir çivili aday yoksa: kazanınca seçilen üst kademe
+   * adayının sesi zaten iniyor.
+   */
+  const ondenSecileniCivile = (c: ChipId, k: Difficulty) => {
+    if (sabitAday.current || sequenceRef.current) return
+    const onden = ilkTurAdayiAl(c, k)
+    if (onden) sabitAday.current = onden
+  }
 
   useEffect(() => installResumeHandlers(), [])
   useEffect(() => clipPlayer.setVolume(volume), [volume])
 
-  // --- havuz ---
+  // --- seçki değişimi ---
   useEffect(() => {
-    let cancelled = false
-    setLoading(true)
     /**
      * ⚠️ Elde kalan tur HEMEN düşürülür.
      *
@@ -168,18 +219,63 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
      * tutuyordu, yani `canPlay` doğru kalıyordu: oyuncu kategoriyi değiştirip
      * hemen çal'a bastığında önceki seçkinin şarkısı çalıyordu. Sesi de
      * durdurmak gerekiyor — hazırlanmış klip şeritte duruyor.
+     *
+     * ⚠️ Kademe değişimi BURADA DEĞİL. Kazanınca kademe yükseliyor ve sesi
+     * indirilmeye başlamış aday `sabitAday`'da çivili; sıfırlamak onu çöpe atardı.
      */
     clipPlayer.stop()
     dispatch({ type: 'RESET' })
-    loadChip(category)
+    played.current = new Set()
+    nextUp.current = null
+    nextUpUst.current = null
+    sabitAday.current = null
+    baslangicTuru.current = false
+    /*
+     * ⚠️ `sanatci` da bağımlılık: moddan çıkarken seçki zaten `karisik` ise
+     * `category` değişmez ve elde sanatçının turu kalırdı.
+     */
+  }, [category, sanatci])
+
+  // --- havuz: kademe dilimi (sanatçı modunda tam havuz) ---
+  useEffect(() => {
+    let cancelled = false
+    let dilimGeldi = false
+    let zamanlayici: ReturnType<typeof setTimeout> | undefined
+    setLoading(true)
+    setUstDilim([])
+    ustIstek.current = null
+    paketRef.current = []
+
+    /**
+     * Başlangıç paketi YALNIZCA tur SIFIRDAN kurulacaksa istenir.
+     *
+     * ⚠️ Kazanınca kademe yükseldiğinde aday zaten çivili (`sabitAday`) ve sesi
+     * iniyor; paketten başka bir şarkı seçmek o indirmeyi çöpe atardı. Düello
+     * sırası sabit, sanatçı modu da pakette olmayan bir süzgeç kullanıyor.
+     */
+    const paketIste = !sanatci && !sequenceRef.current && !sabitAday.current
+    paketBekleniyor.current = paketIste
+
+    /** Paketi beklemekten vazgeç: tur dilimle kurulsun. */
+    const paketsizDevam = () => {
+      if (cancelled || !paketBekleniyor.current) return
+      paketBekleniyor.current = false
+      setPaketTetik((n) => n + 1)
+    }
+
+    /*
+     * ⚠️ Sanatçı modu TAM havuz ister: sanatçının şarkıları kademelere dağılmış
+     * ve süzme sanatçıya göre yapılıyor. Havuz söz önbelleğinden geldiği için
+     * kademe değişiminde yeniden yükleme ağa gitmiyor.
+     */
+    loadChip(category, sanatci ? undefined : tier)
       .then((songs) => {
         if (cancelled) return
-        played.current = new Set()
-        nextUp.current = null
-        nextUpUst.current = null
-        sabitAday.current = null
+        dilimGeldi = true
         setPool(songs)
         setLoading(false)
+        // Paket hâlâ yoldaysa kısa süre bekle; gecikirse dilimle devam.
+        if (paketBekleniyor.current) zamanlayici = setTimeout(paketsizDevam, PAKET_BEKLE_MS)
       })
       .catch(() => {
         if (!cancelled) {
@@ -187,15 +283,36 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
           dispatch({ type: 'ARM_FAIL', reason: 'pool' })
         }
       })
+
+    if (paketIste) {
+      void loadBaslangic(category, tier).then((paket) => {
+        // Vazgeçildiyse (gecikti) tur dilimle kuruldu; alanlar yine önbellekte.
+        if (cancelled || !paketBekleniyor.current) return
+        if (paket.length === 0) {
+          paketsizDevam()
+          return
+        }
+        paketBekleniyor.current = false
+        clearTimeout(zamanlayici)
+        paketRef.current = paket
+        /*
+         * ⚠️ Bayrak YALNIZCA dilim henüz gelmediyse: dilim geldiyse tur kurulum
+         * etkisi zaten paketi beklerken çıktı ve yeniden çalışmayacak. Bayrak
+         * kalsaydı sonraki GERÇEK kurulumu (ör. kademe değişimi) yutardı.
+         */
+        baslangicTuru.current = !dilimGeldi
+        isaret('tur-paketten')
+        ondenSecileniCivile(category, tier)
+        void startRound(paket, ladder)
+      })
+    }
+
     return () => {
       cancelled = true
+      clearTimeout(zamanlayici)
     }
-    /*
-     * ⚠️ `sanatci` da bağımlılık: moddan çıkarken seçki zaten `karisik` ise
-     * `category` değişmez ve elde sanatçının turu kalırdı. Havuz söz önbelleğinden
-     * geldiği için yeniden yükleme ağa gitmiyor.
-     */
-  }, [category, sanatci])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, sanatci, tier])
 
   // Sanatçı modunda havuz önce sanatçıya daraltılır.
   const sanatciHavuzu = useMemo(
@@ -203,9 +320,18 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     [pool, sanatci],
   )
 
-  // Zorluk kademesi havuzu süzer; küratörlük inceyse komşu kademeler eklenir.
-  // Sanatçı havuzu küçük olduğu için orada genişleme sık devreye girer — bilinçli.
-  const filtered = useMemo(() => filterByTier(sanatciHavuzu, tier), [sanatciHavuzu, tier])
+  /*
+   * Zorluk kademesi havuzu süzer; küratörlük inceyse komşu kademeler eklenir.
+   * Sanatçı havuzu küçük olduğu için orada genişleme sık devreye girer — bilinçli.
+   *
+   * ⚠️ Dilim modunda `filterByTier` SUNUCUDA uygulandı; burada yeniden
+   * uygulanmaz. Kademe değişirken yeni dilim inene kadar `pool` ESKİ kademenin
+   * dilimi — onu yeni kademeye göre süzmek yanlış bir ara liste üretirdi.
+   */
+  const filtered = useMemo(
+    () => (sanatci ? filterByTier(sanatciHavuzu, tier) : pool),
+    [sanatci, sanatciHavuzu, pool, tier],
+  )
 
   /**
    * Kazanılırsa oynanacak kademenin havuzu.
@@ -214,12 +340,50 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
    * üzerinden okunuyor. Bağımlılık olsaydı kimliği her değiştiğinde tur kurulum
    * etkisi yeniden tetiklenir ve tur iki kez kurulurdu.
    */
-  const ustListe = useMemo(
-    () => (tier < 5 ? filterByTier(sanatciHavuzu, (tier + 1) as Difficulty) : []),
-    [sanatciHavuzu, tier],
-  )
+  const ustListe = useMemo(() => {
+    if (tier >= 5) return []
+    return sanatci ? filterByTier(sanatciHavuzu, (tier + 1) as Difficulty) : ustDilim
+  }, [sanatci, sanatciHavuzu, ustDilim, tier])
   const ustListeRef = useRef<Song[]>([])
   ustListeRef.current = ustListe
+
+  /**
+   * Üst kademenin dilimi — tur HAZIR olunca arkada indirilir.
+   *
+   * ⚠️ Daha erken değil: ilk turun sesiyle bant genişliği için yarışmasın.
+   * Kazanan oyuncunun sıradaki şarkısı bu dilimden seçiliyor (bkz. `nextUpUst`).
+   *
+   * ⚠️ İptal `ready`'den çıkınca DEĞİL, yalnızca seçki/kademe değişince
+   * (`ustIstek` anahtarı). Çal'a basmak durumu `playing`'e çeviriyor; o anda
+   * iptal etmek, çabuk bilen oyuncuda dilimi hiç teslim etmezdi.
+   */
+  const turHazir = state.s === 'ready'
+  useEffect(() => {
+    if (!turHazir || sanatci || duello || tier >= 5) return
+    const anahtar = `${category}:${tier}`
+    if (ustIstek.current === anahtar) return
+    ustIstek.current = anahtar
+    loadChip(category, (tier + 1) as Difficulty)
+      .then((songs) => {
+        if (ustIstek.current === anahtar) setUstDilim(songs)
+      })
+      .catch(() => {
+        // Bir sonraki hazır turda yeniden denensin.
+        if (ustIstek.current === anahtar) ustIstek.current = null
+      })
+  }, [turHazir, category, tier, sanatci, duello])
+
+  /*
+   * Üst kademe listesi tur kurulduktan SONRA geldiyse adayı şimdi seç.
+   * Tur kurulumu (`startRound`) o an liste boş olduğu için adayı boş bırakmıştı.
+   */
+  useEffect(() => {
+    if (sequenceRef.current || ustListe.length === 0 || nextUpUst.current) return
+    const p = pickNext(ustListe, played.current)
+    if (!p || p.recycled) return
+    nextUpUst.current = p.song
+    if (!p.song.p) alanlariIsit(p.song.id)
+  }, [ustListe])
 
   /**
    * Metin eşleştirmenin gördüğü havuz.
@@ -250,6 +414,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     () => (ertelenmisEvren.length > 0 ? buildIndex(ertelenmisEvren, sarkiSamanligi) : null),
     [ertelenmisEvren],
   )
+  const havuzHazir = !loading && index !== null
 
   /**
    * Havuz ince: şarkılar kısa sürede tekrar edecek.
@@ -326,7 +491,13 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
        * ⚠️ Düelloda şarkılar sunucudan TAM geliyor; `p` zaten doluysa ağ hiç
        * kullanılmaz.
        */
-      const tam = song.p ? song : birlestir(song, await alanlariAl(song.id))
+      /*
+       * ⚠️ `await` YALNIZCA alan gerekiyorsa: başlangıç paketi şarkısı `p`
+       * taşıyor ve `ARM` bu durumda aynı tikte gönderiliyor. Tur kurulum
+       * etkisi `booting` durumunu buna göre ayırt ediyor.
+       */
+      if (!song.p) isaret('alanlar-bekleniyor')
+      const tam = song.p ? song : birlestir(song, alanlarOnbellekten(song.id) ?? await alanlariAl(song.id))
 
       // ⚠️ Yeni bir `await`, yeni bir yarış penceresi: token burada da
       // kontrol edilmeli, yoksa geçersiz kalmış kurulum ARM gönderir.
@@ -356,6 +527,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
 
       dispatch({ type: 'ARM', track: tam, ladder: rungs })
 
+      isaret('arm-basla')
       const result = await clipPlayer.arm({
         id: tam.id,
         url: tam.p,
@@ -368,6 +540,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       if (token !== roundToken.current) return
 
       if (result === 'ready') {
+        isaret('hazir')
         dispatch({ type: 'ARM_OK' })
 
         /*
@@ -465,9 +638,33 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       return
     }
     if (filtered.length === 0) return
+    // Paket yolda: ilk turu o kuracak (bkz. `paketBekleniyor`).
+    if (paketBekleniyor.current) return
+    /*
+     * ⚠️ Tur başlangıç paketinden kurulduysa dilim gelince BAŞTAN KURULMAZ:
+     * oyuncu çoktan dinliyor olabilir, ses de hazır. Sıradaki adaylar zaten
+     * dilimden (`ustListe` etkisi) ve paketten tamamlanıyor.
+     *
+     * Paket turu tutunamadıysa (hata, boş havuz) dilimle normal kurulum yapılır.
+     */
+    if (baslangicTuru.current) {
+      baslangicTuru.current = false
+      if (state.s !== 'error' && state.s !== 'empty' && state.s !== 'booting') return
+    }
+    // Paket gecikip dilimle kurulursa da önden inen şarkı kullanılsın.
+    if (!sanatci) ondenSecileniCivile(category, tier)
     void startRound(filtered, ladder)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, ladder, loading, sequence, seqIndex, forcedSong])
+  }, [filtered, ladder, loading, sequence, seqIndex, forcedSong, paketTetik])
+
+  /**
+   * Oyuncunun eylemiyle kurulacak turun listesi.
+   *
+   * ⚠️ Dilim yüklenirken (ilk açılış ya da kademe değişimi) `filtered` boş ya
+   * da ESKİ kademenin dilimi; paket varsa ondan seçilir. Yoksa "Şarkıyı
+   * değiştir" boş havuz ekranına düşerdi.
+   */
+  const eylemListesi = loading && paketRef.current.length > 0 ? paketRef.current : filtered
 
   const clipLength = currentClipLength(state)
 
@@ -533,6 +730,9 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
   const guess = useCallback(
     (raw: string): Verdict => {
       if (state.s !== 'ready' && state.s !== 'playing') return { kind: 'empty' }
+      // Dilim inmeden eşleştirme boş evrene karşı yapılırdı (kutu zaten kilitli;
+      // bu, klavye yolu için güvence).
+      if (!havuzHazir) return { kind: 'empty' }
 
       const verdict = judgeGuess(raw, state.track, universe, { easySearch })
 
@@ -549,7 +749,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       }
       return verdict
     },
-    [state, universe, easySearch, markWrong, hedefleAday],
+    [state, universe, easySearch, markWrong, hedefleAday, havuzHazir],
   )
 
   /** Kolay modu: şıktan seçim. Metin eşleştirmesine gerek yok, id yeter. */
@@ -600,8 +800,8 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     clipPlayer.stop()
     // ⚠️ `swapLanes()` YOK: şeridi artık `arm()` veriye göre seçiyor (bkz.
     // `ClipPlayer.ensureLane`). Körlemesine takas, hazır arabelleği çöpe atıyordu.
-    void startRound(filtered, ladder)
-  }, [filtered, ladder, startRound])
+    void startRound(eylemListesi, ladder)
+  }, [eylemListesi, ladder, startRound])
 
   const next = useCallback(() => {
     // ⚠️ Kurulum sürerken gelen ikinci çağrı YUTULUR: yoksa `roundToken` artıp
@@ -647,8 +847,8 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       setTier(climbed as typeof tier)
       return
     }
-    void startRound(filtered, ladder)
-  }, [state, tier, setTier, filtered, ladder, startRound, sequence])
+    void startRound(eylemListesi, ladder)
+  }, [state, tier, setTier, eylemListesi, ladder, startRound, sequence])
 
   /** Kurulum bitince (ya da hata verince) kilit açılır. */
   useEffect(() => {
@@ -660,14 +860,19 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
     wrongHandler.current = fn
   }, [])
 
+  /**
+   * ⚠️ Numara şarkı kimliğinden türüyor, havuzdaki sıradan DEĞİL. Havuz artık
+   * kademe dilimi ve ilk tur dilim inmeden kurulabiliyor; sıraya bağlı etiket
+   * önce "NK-000" gösterip sonra atlıyordu.
+   */
   const tapeCode = useMemo(() => {
     if (state.s === 'booting' || state.s === 'empty' || state.s === 'error') return 'NK-000'
-    const i = pool.findIndex((s) => s.id === state.track.id)
-    return `NK-${String(i + 1).padStart(3, '0')}`
-  }, [state, pool])
+    const rakamlar = state.track.id.replace(/\D/g, '').slice(-3)
+    return `NK-${rakamlar.padStart(3, '0')}`
+  }, [state])
 
   return {
-    state, pool, filtered, tooNarrow, index, clipLength, loading, ambiguous, stalled, tapeCode,
+    state, pool, filtered, tooNarrow, index, havuzHazir, clipLength, loading, ambiguous, stalled, tapeCode,
     canPlay: canPlay(state),
     play, guess, guessSong, skip, hint, reroll, next, clearAmbiguity, onWrong,
   }
