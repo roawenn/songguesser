@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { artworkAt } from '@/data/schema'
 import { KAPAK_ADIM, KAPAK_BOYUTLARI } from '@/data/kapak'
 import { sars as sarsit } from './sars'
@@ -55,6 +55,18 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
   const url = hazirUrl ?? artworkAt(ar, boyut)
   const net = boyut === KAPAK_BOYUTLARI[KAPAK_BOYUTLARI.length - 1]
 
+  /*
+   * YÜKLENİYOR DURUMU. Apple'dan ilk kapak ~750 ms sürebiliyor (ölçüldü) ve bu
+   * sürede kutu boş kalıyordu. İki önlem:
+   *   · adres yokken ya da henüz inmediyse ortada dönen gösterge (250 ms
+   *     gecikmeli — önbellekten gelen görselde hiç görünmesin),
+   *   · netlik adımı değişince ÖNCEKİ kare yenisi inene kadar yerinde kalır;
+   *     eskiden `key` değişince kutu bir an boşalıyordu.
+   */
+  const [yuklenen, setYuklenen] = useState<string | null>(null)
+  const [hatali, setHatali] = useState<string | null>(null)
+  const yukleniyor = !url || (url !== yuklenen && url !== hatali)
+
   return (
     <div
       ref={kutu}
@@ -71,6 +83,17 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
         background: 'repeating-linear-gradient(135deg, #15181c 0 7px, #0f1216 7px 14px)',
       }}
     >
+      {yuklenen && yuklenen !== url && (
+        // Önceki adımın karesi — yenisi inene kadar.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={yuklenen}
+          alt=""
+          aria-hidden
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }}
+        />
+      )}
+
       {url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -78,8 +101,14 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
           src={url}
           alt=""
           decoding="async"
-          onLoad={onYuklendi}
-          onError={onHata}
+          onLoad={() => {
+            setYuklenen(url)
+            onYuklendi?.()
+          }}
+          onError={() => {
+            setHatali(url)
+            onHata?.()
+          }}
           style={{
             position: 'absolute',
             inset: 0,
@@ -87,10 +116,23 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
             height: '100%',
             objectFit: 'cover',
             imageRendering: net ? 'auto' : 'pixelated',
-            animation: reduce ? undefined : 'nk-kapak-gelis .35s ease both',
+            // İnene kadar görünmez; animasyon inince başlar (stil o an ekleniyor).
+            opacity: url === yuklenen ? 1 : 0,
+            animation: reduce || url !== yuklenen ? undefined : 'nk-kapak-gelis .35s ease both',
           }}
         />
       )}
+
+      {yukleniyor &&
+        (yuklenen ? (
+          // Önceki kare görünürken ortadaki yazı piksellerin üstünde okunmuyordu: köşede küçük halka.
+          <span role="status" aria-label="Kapak netleşiyor" className="nk-kapak-halka nk-kapak-halka-kose" />
+        ) : (
+          <div role="status" aria-label="Kapak yükleniyor" className="nk-kapak-yukleniyor">
+            <span className="nk-kapak-halka" aria-hidden />
+            <span className="nk-kapak-yazi">kapak yükleniyor</span>
+          </div>
+        ))}
 
       {/* Kaçıncı netlikte olunduğu — "8×8" oyunun ne istediğini söylüyor. */}
       {!bitti && (
@@ -112,6 +154,29 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
           {net ? 'net' : `${boyut}×${boyut}`}
         </span>
       )}
+
+      <style>{`
+        .nk-kapak-yukleniyor {
+          position: absolute; inset: 0; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; gap: 12px; pointer-events: none;
+          opacity: 0; animation: nk-kapak-yukleniyor-belir .25s ease 250ms forwards;
+        }
+        @keyframes nk-kapak-yukleniyor-belir { to { opacity: 1 } }
+        .nk-kapak-halka {
+          width: 30px; height: 30px; border-radius: 50%;
+          border: 2px solid rgba(255,255,255,0.10); border-top-color: var(--acc);
+          animation: nk-spin .8s linear infinite;
+        }
+        .nk-kapak-halka-kose {
+          position: absolute; top: 9px; right: 9px; width: 16px; height: 16px;
+          background: rgba(10,11,13,0.6); opacity: 0;
+          animation: nk-spin .8s linear infinite, nk-kapak-yukleniyor-belir .25s ease 250ms forwards;
+        }
+        .nk-kapak-yazi {
+          font-family: var(--font-mono); font-size: 10px; letter-spacing: .18em;
+          text-transform: uppercase; color: #6a7075;
+        }
+      `}</style>
     </div>
   )
 })

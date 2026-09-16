@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, useTransition, type MouseEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { kapakHavuzuIsit } from '@/data/loadKapakPool'
 import { havuzuIsit } from '@/data/loadPool'
 import { unluHavuzuIsit } from '@/data/loadUnluPool'
@@ -128,12 +129,31 @@ export const OYUNLAR = [
 export type OyunId = (typeof OYUNLAR)[number]['id']
 
 /**
- * Yeni oyunun sahnesi en geç bu sürede çizilmezse geçiş yine de tamamlanır.
- *
- * ⚠️ Tarayıcılar güncelleme adımını ~4 sn sonra kendisi iptal ediyor; ondan önce
- * bırakmak, yavaş bağlantıda ekranın donuk kalıp sonra sertçe atlamasını önler.
+ * Kabuk kodu en geç bu sürede inmezse gezinme yine başlar (`next/dynamic`
+ * iskeletiyle). Sonsuza kadar eski sayfada bekletmesin.
  */
-const HAZIR_ZAMAN_ASIMI = 2500
+const KOD_BEKLEME_SINIRI = 4000
+
+/**
+ * Bir sonraki `SahneCercevesi` bir oyun geçişiyle mi kuruluyor?
+ *
+ * Yeni sahne kısa bir solmayla girsin, ama İLK sayfa açılışında değil: ilk
+ * çizimi geciktirmek (opaklık 0'dan başlamak) algılanan yüklemeyi uzatırdı.
+ */
+let gecisBekliyor = false
+
+/**
+ * Bayrağı OKUR (yan etkisiz). Sıfırlama ayrı ve efektte (`gecisGirisiTuket`):
+ * StrictMode `useState` başlatıcısını iki kez çağırıyor, okurken sıfırlasaydık
+ * ikinci çağrı `false` görürdü.
+ */
+export function gecisGirisiVar(): boolean {
+  return gecisBekliyor
+}
+
+export function gecisGirisiTuket(): void {
+  gecisBekliyor = false
+}
 
 /**
  * Hedef oyunun kod parçasını ve havuzunu önden ısıtır.
@@ -179,29 +199,13 @@ function kabuklariBostaIsit(aktif: OyunId) {
   else setTimeout(calistir, 2500)
 }
 
-type GecisliBelge = Document & { startViewTransition?: (guncelle: () => Promise<void>) => unknown }
-
-/** Yeni oyunun kabuğu DOM'a geldiğinde çözülür (ya da zaman aşımında). */
-function sahneHazir(id: OyunId): Promise<void> {
-  const secici = `.themed[data-oyun="${id}"] .nk-stage`
-  return new Promise((coz) => {
-    if (document.querySelector(secici)) return coz()
-    /*
-     * ⚠️ `requestAnimationFrame` İLE BEKLENMİYOR: geçişin güncelleme adımında
-     * tarayıcı boyamayı askıya alıyor ve rAF geri çağrıları gelmiyor — söz hiç
-     * çözülmez, geçiş zaman aşımına kadar donardı. DOM gözlemcisi boyamadan bağımsız.
-     */
-    const gozcu = new MutationObserver(() => {
-      if (document.querySelector(secici)) bitir()
-    })
-    const zaman = setTimeout(() => bitir(), HAZIR_ZAMAN_ASIMI)
-    function bitir() {
-      gozcu.disconnect()
-      clearTimeout(zaman)
-      coz()
-    }
-    gozcu.observe(document.body, { childList: true, subtree: true })
-  })
+/** Sayfanın tepesinde ince, belirsiz ilerleme çubuğu. */
+function YuklemeCubugu() {
+  /*
+   * ⚠️ PORTAL: `.nk-scale` `transform` ile ölçekleniyor ve dönüşümlü bir
+   * atanın içinde `position: fixed` görünüm alanına değil ataya yapışıyor.
+   */
+  return createPortal(<div className="nk-gecis-cubuk" role="progressbar" aria-label="Oyun yükleniyor" />, document.body)
 }
 
 /**
@@ -221,35 +225,48 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
   useKaydirilabilir(ref)
   useEffect(() => kabuklariBostaIsit(aktif), [aktif])
   const router = useRouter()
+  const [bekleyen, setBekleyen] = useState<OyunId | null>(null)
+  const [gezinmeSuruyor, gezinmeBaslat] = useTransition()
+  const itildi = useRef(false)
+
+  // Gezinme bir sebeple yeni sayfaya ulaşmadan bittiyse (hata) göstergeyi kapat.
+  useEffect(() => {
+    if (!gezinmeSuruyor && itildi.current) {
+      itildi.current = false
+      setBekleyen(null)
+    }
+  }, [gezinmeSuruyor])
 
   /**
-   * Oyunlar arası YUMUŞAK geçiş (View Transitions API).
+   * Oyunlar arası geçiş: ANINDA geri bildirim, eski sayfa CANLI.
    *
-   * Eskiden tıklama sayfayı önce boş iskelete, sonra yeni oyuna atlatıyordu:
-   * her oyun `ssr: false` ile tembel yükleniyor. Artık eski sayfanın görüntüsü,
-   * yeni oyunun sahnesi çizilene kadar ekranda tutuluyor ve ikisi arasında
-   * çapraz geçiş yapılıyor — iskelet hiç görünmüyor. Marka ve oyun seçici
-   * yerinde kalıyor (bkz. globals.css `view-transition-name`).
+   * ⚠️ View Transitions KALDIRILDI. Yeni sahneyi beklerken tarayıcı boyamayı
+   * donduruyordu: ekran saniyelerce (geliştirmede sayfa derlenirken, üretimde
+   * soğuk bağlantıda) tepkisiz kalıyor ve araya konacak hiçbir yükleme
+   * göstergesi çizilemiyordu. Şimdi:
+   *   1. tıklanan segmentte hemen dönen halka, 150 ms'yi aşarsa tepede çubuk,
+   *   2. kabuk kodu hazır olana kadar eski sayfa etkileşimli kalır,
+   *   3. `router.push` bir React geçişinde — yeni rota hazır olana kadar eski
+   *      sayfa görünür, sonra yeni sahne kısa bir solmayla girer
+   *      (`gecisGirisiAl`, `SahneCercevesi`).
    *
-   * ⚠️ API yoksa (eski tarayıcı) ya da "Azaltılmış animasyon" açıksa normal
-   * `Link` gezinmesi olur. Yeni sekmede açma (Ctrl/Cmd/orta tık) bozulmaz.
+   * Yeni sekmede açma (Ctrl/Cmd/orta tık) `Link`in kendi davranışında kalıyor.
    */
   function gec(e: MouseEvent<HTMLAnchorElement>, id: OyunId, yol: string) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    if (id === aktif) {
-      e.preventDefault()
-      return
-    }
-    const belge = document as GecisliBelge
-    const azaltilmis = document.documentElement.getAttribute('data-motion') === 'reduced'
-    if (typeof belge.startViewTransition !== 'function' || azaltilmis) return
-
     e.preventDefault()
+    if (id === aktif || bekleyen) return
+
+    setBekleyen(id)
     isit(id)
-    belge.startViewTransition(async () => {
-      router.push(yol)
-      await sahneHazir(id)
-    })
+    const zaman = new Promise((coz) => setTimeout(coz, KOD_BEKLEME_SINIRI))
+    void Promise.race([kabukYukle(id), zaman])
+      .catch(() => undefined)
+      .then(() => {
+        gecisBekliyor = true
+        itildi.current = true
+        gezinmeBaslat(() => router.push(yol))
+      })
   }
 
   return (
@@ -279,6 +296,7 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
         >
           {OYUNLAR.map((o) => {
             const on = o.id === aktif
+            const yukleniyor = bekleyen === o.id
             return (
               <Link
                 key={o.id}
@@ -287,6 +305,7 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                 aria-label={o.id === 'gunluk' && gunlukBekliyor && !on ? `${o.ad}: bugünün soruları seni bekliyor` : undefined}
                 className="nk-oyun"
                 data-on={on ? '1' : undefined}
+                aria-busy={yukleniyor || undefined}
                 onClick={(e) => gec(e, o.id, o.yol)}
                 onPointerEnter={() => !on && isit(o.id)}
                 onFocus={() => !on && isit(o.id)}
@@ -327,11 +346,11 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                     width: 30,
                     height: 30,
                     borderRadius: 7,
-                    background: on ? 'oklch(0.81 0.12 var(--hue) / 0.16)' : 'rgba(255,255,255,0.04)',
-                    color: on ? 'var(--acc)' : '#7b8186',
+                    background: on || yukleniyor ? 'oklch(0.81 0.12 var(--hue) / 0.16)' : 'rgba(255,255,255,0.04)',
+                    color: on || yukleniyor ? 'var(--acc)' : '#7b8186',
                   }}
                 >
-                  <o.Ikon />
+                  {yukleniyor ? <span className="nk-oyun-halka" /> : <o.Ikon />}
                 </span>
 
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
@@ -369,6 +388,7 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
           })}
         </div>
       </nav>
+      {bekleyen && <YuklemeCubugu />}
 
       <style>{`
         .nk-oyun:not([data-on]):hover { background: rgba(255,255,255,0.04) !important; }
@@ -378,6 +398,11 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
           animation: nk-nabiz 2.4s ease-in-out infinite;
         }
         @keyframes nk-nabiz { 0%, 100% { opacity: 1 } 50% { opacity: .4 } }
+        .nk-oyun-halka {
+          display: block; width: 14px; height: 14px; border-radius: 50%;
+          border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--acc);
+          animation: nk-spin .7s linear infinite;
+        }
         :root[data-motion='reduced'] .nk-gunluk-nokta { animation: none; }
         .nk-oyun:not([data-on]):hover .nk-oyun-ad { color: #cfd3d6 !important; }
       `}</style>

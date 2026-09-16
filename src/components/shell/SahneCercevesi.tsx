@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { enKisaTon } from '@/lib/renk'
 import { Backdrop } from '../stage/Backdrop'
 import { HesapDugmesi } from '../hesap/HesapDugmesi'
 import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
 import { MobilMenu } from './MobilMenu'
-import { OyunSeridi, type OyunId } from './OyunSeridi'
+import { OyunSeridi, gecisGirisiTuket, gecisGirisiVar, type OyunId } from './OyunSeridi'
 import { useOlcek } from './useOlcek'
 import { olay } from '@/lib/olay'
 
@@ -87,6 +87,10 @@ export function SahneCercevesi({
     if (reduce) root.setAttribute('data-motion', 'reduced')
     else root.removeAttribute('data-motion')
   }, [reduce])
+
+  // Oyun geçişiyle kurulduysa içerik kısa bir solmayla girer (ilk açılışta değil).
+  const [gecisle] = useState(gecisGirisiVar)
+  useEffect(gecisGirisiTuket, [])
 
   // Orantılı ölçek — bütçe TEK, iki oyunda da aynı; yoksa oyun değiştirince
   // sayfanın tamamı büyüyüp küçülüyor.
@@ -232,7 +236,7 @@ export function SahneCercevesi({
           bile kaydırma çubuğu çıkarıyordu.
         */}
         <div style={{ flex: 1, display: 'flex', width: '100%' }}>
-          <div className="nk-center">
+          <div className={gecisle ? 'nk-center nk-sahne-gir' : 'nk-center'}>
             {/* Üç sütun: kategoriler + istatistik · sahne · ayarlar + kurallar. */}
             <div className="nk-stage-grid">
               <div className="nk-side">
