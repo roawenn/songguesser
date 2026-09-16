@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { artworkAt } from '@/data/schema'
 import { KAPAK_ADIM, KAPAK_BOYUTLARI } from '@/data/kapak'
 import { sars as sarsit } from './sars'
@@ -19,6 +19,16 @@ import { sars as sarsit } from './sars'
  *
  * ⚠️ Azami genişlik CSS'te (`.nk-kapak-kare`): masaüstü ve telefon farklı.
  */
+
+/**
+ * Adresin albümü — boyut, imza ve deneme sayacı olmadan.
+ *
+ * Apple adresinde `/64x64bb.jpg`, Günlük vekilinde `n` (adım), `i` (imza) ve
+ * `d` (deneme) değişiyor; geri kalanı aynı albümü gösterir.
+ */
+function albumKaynagi(u: string): string {
+  return u.replace(/\/\d+x\d+bb\.jpg.*$/, '').replace(/[?&](n|i|d)=[^&]*/g, '')
+}
 
 export interface KapakKareHandle {
   /** Yanlış tahminde kısa bir sarsıntı. */
@@ -66,6 +76,26 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
   const [yuklenen, setYuklenen] = useState<string | null>(null)
   const [hatali, setHatali] = useState<string | null>(null)
   const yukleniyor = !url || (url !== yuklenen && url !== hatali)
+  /*
+   * ⚠️ Önceki kare YALNIZCA AYNI ALBÜMÜN bir önceki netliği. Albüm değişince
+   * (değiştir, sıradaki tur) eski albümün kapağı yenisi inene kadar ekranda
+   * kalıyordu — "kapak değişmedi / yüklenmedi" gibi görünüyordu.
+   */
+  const oncekiKare = yuklenen && yuklenen !== url && url && albumKaynagi(yuklenen) === albumKaynagi(url) ? yuklenen : null
+
+  /*
+   * YENİDEN DENEME. Görsel geçici olarak inmezse (ağ kopması, CDN 5xx) kutu
+   * eskiden sonsuza kadar boş kalıyordu. Aynı adres iki kez daha, artan
+   * aralıkla denenir; tarayıcı başarısız yanıtı önbellekten vermesin diye
+   * denemede adrese sayaç eklenir. Yine olmazsa "Tekrar dene" düğmesi.
+   */
+  const [deneme, setDeneme] = useState<{ url: string; n: number }>({ url: '', n: 0 })
+  const denemeNo = deneme.url === url ? deneme.n : 0
+  const src = url && denemeNo > 0 ? `${url}${url.includes('?') ? '&' : '?'}d=${denemeNo}` : url
+  const zamanlayici = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    if (zamanlayici.current) clearTimeout(zamanlayici.current)
+  }, [])
 
   return (
     <div
@@ -83,11 +113,11 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
         background: 'repeating-linear-gradient(135deg, #15181c 0 7px, #0f1216 7px 14px)',
       }}
     >
-      {yuklenen && yuklenen !== url && (
+      {oncekiKare && (
         // Önceki adımın karesi — yenisi inene kadar.
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={yuklenen}
+          src={oncekiKare}
           alt=""
           aria-hidden
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }}
@@ -97,8 +127,8 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
       {url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          key={url}
-          src={url}
+          key={src}
+          src={src}
           alt=""
           decoding="async"
           onLoad={() => {
@@ -106,6 +136,11 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
             onYuklendi?.()
           }}
           onError={() => {
+            if (denemeNo < 2) {
+              const hedef = url
+              zamanlayici.current = setTimeout(() => setDeneme({ url: hedef, n: denemeNo + 1 }), 700 * (denemeNo + 1))
+              return
+            }
             setHatali(url)
             onHata?.()
           }}
@@ -123,8 +158,24 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
         />
       )}
 
+      {url && url === hatali && (
+        <div role="alert" className="nk-kapak-yukleniyor nk-kapak-hata">
+          <span className="nk-kapak-yazi">kapak yüklenemedi</span>
+          <button
+            type="button"
+            className="nk-kapak-tekrar"
+            onClick={() => {
+              setHatali(null)
+              setDeneme({ url, n: denemeNo + 1 })
+            }}
+          >
+            Tekrar dene
+          </button>
+        </div>
+      )}
+
       {yukleniyor &&
-        (yuklenen ? (
+        (oncekiKare ? (
           // Önceki kare görünürken ortadaki yazı piksellerin üstünde okunmuyordu: köşede küçük halka.
           <span role="status" aria-label="Kapak netleşiyor" className="nk-kapak-halka nk-kapak-halka-kose" />
         ) : (
@@ -171,6 +222,12 @@ export const KapakKare = forwardRef<KapakKareHandle, Props>(function KapakKare(
           position: absolute; top: 9px; right: 9px; width: 16px; height: 16px;
           background: rgba(10,11,13,0.6); opacity: 0;
           animation: nk-spin .8s linear infinite, nk-kapak-yukleniyor-belir .25s ease 250ms forwards;
+        }
+        .nk-kapak-hata { opacity: 1; animation: none; pointer-events: auto; background: rgba(10,11,13,0.55); }
+        .nk-kapak-tekrar {
+          padding: 8px 14px; border-radius: 6px; border: 1px solid var(--acc); background: transparent;
+          color: var(--acc); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .14em;
+          text-transform: uppercase; cursor: pointer;
         }
         .nk-kapak-yazi {
           font-family: var(--font-mono); font-size: 10px; letter-spacing: .18em;

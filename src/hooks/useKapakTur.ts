@@ -46,8 +46,11 @@ export interface KapakDizilimOpts {
 
 /** Ölü kapakta art arda en fazla kaç albüm denenir. */
 const OLU_KAPAK_SINIR = 6
-/** `img.decode()` askıda kalırsa tur sonsuza kadar beklemesin. */
-const DECODE_ZAMAN_ASIMI = 10_000
+/**
+ * İlk kare bu sürede inmezse tur YİNE DE açılır; kare kutuda yükleme
+ * göstergesiyle iner (bkz. `KapakKare`).
+ */
+const ILK_KARE_BEKLEME = 4000
 
 export interface KapakTurApi {
   durum: KapakDurum
@@ -71,20 +74,30 @@ export interface KapakTurApi {
   onYanlis: (fn: () => void) => void
 }
 
-async function gorselHazirla(url: string): Promise<'ready' | 'dead'> {
-  const img = new Image()
-  img.decoding = 'async'
-  // ⚠️ `src` ÖNCE atanmalı: bazı tarayıcılarda `decode()` kaynaksız reddediyor.
-  img.src = url
-  try {
-    await Promise.race([
-      img.decode(),
-      new Promise((_, red) => setTimeout(() => red(new Error('zaman aşımı')), DECODE_ZAMAN_ASIMI)),
-    ])
-    return 'ready'
-  } catch {
-    return 'dead'
-  }
+/**
+ * Görseli indirir.
+ *
+ * ⚠️ YAVAŞLIK ÖLÜM DEĞİL. Eskiden `img.decode()` 10 sn beklenip albüm "ölü"
+ * sayılıyordu: Apple küçük boyutları zaman zaman saniyelerce geç veriyor ve
+ * `decode()` arka plandaki sekmede askıda kalabiliyor. Altı albüm üst üste
+ * böyle düşünce ekranda "Kapak açılamadı" kalıyordu. Artık yalnızca KESİN hata
+ * (`onerror`: 404, bozuk dosya) ölüm; süre dolarsa `yavas` ve tur yine açılır.
+ * `decode` de gerekmiyor — gereken yalnızca baytların önbelleğe inmesi.
+ */
+function gorselHazirla(url: string): Promise<'ready' | 'dead' | 'yavas'> {
+  return new Promise((coz) => {
+    const img = new Image()
+    const zaman = setTimeout(() => coz('yavas'), ILK_KARE_BEKLEME)
+    img.onload = () => {
+      clearTimeout(zaman)
+      coz('ready')
+    }
+    img.onerror = () => {
+      clearTimeout(zaman)
+      coz('dead')
+    }
+    img.src = url
+  })
 }
 
 export function useKapakTur(opts?: KapakDizilimOpts): KapakTurApi {

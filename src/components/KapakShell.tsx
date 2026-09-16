@@ -135,7 +135,17 @@ export function KapakShell() {
             <Uyari>
               {durum.reason === 'pool'
                 ? 'Albüm listesi yüklenemedi. Bağlantını kontrol edip sayfayı yenile.'
-                : 'Kapak açılamadı. Sayfayı yenilemeyi dene.'}
+                : 'Kapak açılamadı. Bağlantın yavaş olabilir.'}
+              {/* Sayfayı yenilemeye zorlamasın: kapak hatasında başka albümle yeniden dene. */}
+              <div style={{ marginTop: 14 }}>
+                <button
+                  type="button"
+                  onClick={() => (durum.reason === 'pool' ? window.location.reload() : tur.degistir())}
+                  style={{ ...GHOST, border: '1px solid var(--acc)', color: 'var(--acc)' }}
+                >
+                  Tekrar dene
+                </button>
+              </div>
             </Uyari>
           ) : durum.s === 'empty' ? (
             <Uyari>Bu seçkide henüz albüm yok. Başka bir seçki dene.</Uyari>

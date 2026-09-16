@@ -33,7 +33,8 @@ function bellegeYaz(anahtar: string, deger: { govde: Uint8Array<ArrayBuffer>; ti
 }
 
 async function indir(url: string): Promise<{ govde: Uint8Array<ArrayBuffer>; tip: string } | null> {
-  const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) })
+  // Apple küçük boyutları zaman zaman saniyelerce geç veriyor (ölçüldü); 8 sn kısa kalıyordu.
+  const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) })
   if (!res.ok) return null
   return { govde: new Uint8Array(await res.arrayBuffer()), tip: res.headers.get('content-type') ?? 'image/jpeg' }
 }
