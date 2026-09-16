@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { kapakHavuzuIsit } from '@/data/loadKapakPool'
+import { hazirKabuk, kabukYukle } from '@/lib/kabukKayit'
 import { useSettingsStore } from '@/store/useSettingsStore'
 
 /**
@@ -9,7 +10,7 @@ import { useSettingsStore } from '@/store/useSettingsStore'
  * `localStorage`'ta yaşıyor, sunucuda okunamadığı için HTML her zaman
  * varsayılanla basılır ve JS gelince gerçek seçkiye atlardı.
  */
-const KapakShell = dynamic(() => import('@/components/KapakShell').then((m) => m.KapakShell), {
+const KapakShellDinamik = dynamic(() => kabukYukle('kapak'), {
   ssr: false,
   loading: () => <Iskelet />,
 })
@@ -29,5 +30,7 @@ function Iskelet() {
 export function ClientKapak() {
   // Havuzu, kabuk parçası inmeden indirmeye başlat.
   if (typeof window !== 'undefined') kapakHavuzuIsit(useSettingsStore.getState().kapakCategory)
+  // Kayıtta hazırsa askıya almadan doğrudan çiz (bkz. `lib/kabukKayit`).
+  const KapakShell = hazirKabuk('kapak') ?? KapakShellDinamik
   return <KapakShell />
 }

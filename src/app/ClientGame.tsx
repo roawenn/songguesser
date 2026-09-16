@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { CHIPS, type ChipId } from '@/data/categories'
 import { havuzuIsit } from '@/data/loadPool'
 import { ilkTuruHazirla } from '@/data/ilkTur'
+import { hazirKabuk, kabukYukle } from '@/lib/kabukKayit'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { slugGecerli } from '@/text/sanatci'
 
@@ -22,7 +23,7 @@ import { slugGecerli } from '@/text/sanatci'
  * atılır. Hidrasyonu mount sonrasına ertelemek o isteği önce "karisik" için
  * yapar, sonra gerçek kategori için bir kez daha.
  */
-const GameShell = dynamic(() => import('@/components/GameShell').then((m) => m.GameShell), {
+const GameShellDinamik = dynamic(() => kabukYukle('sarki'), {
   ssr: false,
   loading: () => <GameSkeleton />,
 })
@@ -113,5 +114,7 @@ export function ClientGame() {
       ilkTuruHazirla(ayar.category, ayar.tier)
     }
   }
+  // Kayıtta hazırsa askıya almadan doğrudan çiz (bkz. `lib/kabukKayit`).
+  const GameShell = hazirKabuk('sarki') ?? GameShellDinamik
   return <GameShell sanatci={sanatci} />
 }

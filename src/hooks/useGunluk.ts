@@ -68,21 +68,28 @@ export interface GunlukIndeksleri {
  *
  * ⚠️ Kademeye göre süzülmüş bir evren cevabı ele verirdi: zor turda öneri
  * listesinde yalnızca zor şarkılar çıksa aday sayısı bir anda düşerdi.
+ *
+ * ⚠️ YALNIZCA GEREKEN TÜR, GEREKTİĞİNDE. Üç havuz sayfa açılır açılmaz
+ * indirilip indeksleniyordu: 547 KB şarkı havuzu + 15 bin satırlık indeks
+ * Günlük'e geçişin tam ortasında ana iş parçacığını meşgul ediyordu (ölçüldü:
+ * sahne ~870 ms'de geliyordu). Giriş ve özet ekranı öneri kullanmıyor.
+ * Şarkı turunda oyuncu zaten önce dinliyor; indeks o arada hazır oluyor.
  */
-function useIndeksler(): GunlukIndeksleri {
+function useIndeksler(gereken: GunlukTurGorunum['oyun'] | null): GunlukIndeksleri {
   const [sarkilar, setSarkilar] = useState<Song[] | null>(null)
   const [unluler, setUnluler] = useState<Unlu[] | null>(null)
   const [kapaklar, setKapaklar] = useState<Kapak[] | null>(null)
 
   useEffect(() => {
+    if (!gereken) return
     let iptal = false
-    void loadChip('karisik').then((l) => !iptal && setSarkilar(l)).catch(() => {})
-    void loadUnluChip('unlu-karisik').then((l) => !iptal && setUnluler(l)).catch(() => {})
-    void loadKapakChip('karisik').then((l) => !iptal && setKapaklar(l)).catch(() => {})
+    if (gereken === 'sarki') void loadChip('karisik').then((l) => !iptal && setSarkilar(l)).catch(() => {})
+    if (gereken === 'unlu') void loadUnluChip('unlu-karisik').then((l) => !iptal && setUnluler(l)).catch(() => {})
+    if (gereken === 'kapak') void loadKapakChip('karisik').then((l) => !iptal && setKapaklar(l)).catch(() => {})
     return () => {
       iptal = true
     }
-  }, [])
+  }, [gereken])
 
   const sarki = useMemo(() => (sarkilar ? buildIndex(sarkilar, sarkiSamanligi) : null), [sarkilar])
   const unlu = useMemo(() => (unluler ? buildIndex(unluler, (u) => u.nT) : null), [unluler])
@@ -146,7 +153,6 @@ export function useGunluk(arsivGun: string | null = null): GunlukApi {
   const [listens, setListens] = useState(0)
   const [heardIndex, setHeardIndex] = useState(-1)
 
-  const indeksler = useIndeksler()
   const volume = useSettingsStore((s) => s.volume)
   const kaydet = useGunlukStore((s) => s.kaydet)
 
@@ -159,6 +165,7 @@ export function useGunluk(arsivGun: string | null = null): GunlukApi {
   const aktifIndex = gorunum ? gorunum.turlar.length - 1 : -1
   const aktif = gorunum && aktifIndex >= 0 ? gorunum.turlar[aktifIndex]! : null
   const turAnahtari = aktif && gun ? `${gorunum!.gun}:${aktifIndex}:${aktif.medyaVerildi}` : null
+  const indeksler = useIndeksler(aktif?.durum === 'oynaniyor' && gorunum?.durum === 'oynaniyor' ? aktif.oyun : null)
 
   useEffect(() => clipPlayer.setVolume(volume), [volume])
 

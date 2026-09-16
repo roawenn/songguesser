@@ -21,7 +21,7 @@ const STRIP_TITLE = { ...MONO_CAPTION, fontSize: 10, color: '#767c81' }
  * Masaüstünde üst bandın TEK öğesi. Mobilde solunda menü düğmesi duruyor
  * (bkz. MobilMenu): ayarlar ve kurallar orada, masaüstünde yan sütunlarda.
  */
-export function Header({ ek }: { ek?: React.ReactNode } = {}) {
+export function Header() {
   return (
     <header
       style={{
@@ -32,11 +32,6 @@ export function Header({ ek }: { ek?: React.ReactNode } = {}) {
         width: '100%',
       }}
     >
-      {/*
-        ⚠️ `ek` (Günlük rozeti) logonun sağında MUTLAK konumlu: üst bant
-        ölçek bütçesine giriyor, yükseklik eklememeli.
-      */}
-      <span style={{ position: 'relative', display: 'inline-flex' }}>
       <h1
         style={{
           fontFamily: 'var(--font-serif)',
@@ -52,8 +47,6 @@ export function Header({ ek }: { ek?: React.ReactNode } = {}) {
       >
         tahmin
       </h1>
-      {ek}
-      </span>
     </header>
   )
 }

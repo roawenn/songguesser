@@ -1,13 +1,14 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { hazirKabuk, kabukYukle } from '@/lib/kabukKayit'
 
 /**
  * ⚠️ `ssr: false` — oturum cihaz anahtarıyla (`localStorage`) bulunuyor;
  * sunucuda okunamadığı için HTML her zaman "Başla" ekranıyla basılır ve
  * devam eden oyuncuda JS gelince tura atlardı.
  */
-const GunlukShell = dynamic(() => import('@/components/GunlukShell').then((m) => m.GunlukShell), {
+const GunlukSayfasiDinamik = dynamic(() => kabukYukle('gunluk'), {
   ssr: false,
   loading: () => <Iskelet />,
 })
@@ -23,7 +24,8 @@ function Iskelet() {
   )
 }
 
-export function ClientGunluk({ arsivGun }: { arsivGun: string | null }) {
-  // `key`: bugünden arşive (ya da günler arası) geçişte hook durumu sıfırdan kurulsun.
-  return <GunlukShell key={arsivGun ?? 'bugun'} arsivGun={arsivGun} />
+export function ClientGunluk() {
+  // Kayıtta hazırsa askıya almadan doğrudan çiz (bkz. `lib/kabukKayit`).
+  const GunlukSayfasi = hazirKabuk('gunluk') ?? GunlukSayfasiDinamik
+  return <GunlukSayfasi />
 }

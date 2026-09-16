@@ -1,5 +1,7 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
+import { gunGecerli } from '@/game/gun'
 import { useGunluk } from '@/hooks/useGunluk'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { GunlukGiris, GunlukOzet } from './gunluk/GunlukEkranlar'
@@ -21,6 +23,20 @@ import { LinksCard, SettingsCard } from './shell/SidePanels'
  */
 
 const GUNLUK_TON = 62
+
+/**
+ * `?gun=` istemcide okunur (sayfa statik kalsın). Geçerlilik ve arşiv sınırı
+ * sunucuda denetleniyor; burada yalnızca biçim.
+ *
+ * ⚠️ `useSearchParams` bu bileşende güvenli: `ssr: false` dinamik içe aktarmayla
+ * yükleniyor, ön render sırasında hiç çalışmıyor.
+ */
+export function GunlukSayfasi() {
+  const ham = useSearchParams().get('gun')
+  const arsivGun = gunGecerli(ham) ? ham : null
+  // `key`: bugünden arşive (ya da günler arası) geçişte hook durumu sıfırdan kurulsun.
+  return <GunlukShell key={arsivGun ?? 'bugun'} arsivGun={arsivGun} />
+}
 
 export function GunlukShell({ arsivGun = null }: { arsivGun?: string | null }) {
   const g = useGunluk(arsivGun)

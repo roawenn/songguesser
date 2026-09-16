@@ -2,10 +2,13 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useRef, type MouseEvent } from 'react'
+import { useEffect, useRef, type MouseEvent } from 'react'
 import { kapakHavuzuIsit } from '@/data/loadKapakPool'
 import { havuzuIsit } from '@/data/loadPool'
 import { unluHavuzuIsit } from '@/data/loadUnluPool'
+import { istanbulGunu } from '@/game/gun'
+import { kabukYukle } from '@/lib/kabukKayit'
+import { useGunlukStore } from '@/store/useGunlukStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useKaydirilabilir } from './Chrome'
 
@@ -142,20 +145,38 @@ const HAZIR_ZAMAN_ASIMI = 2500
  */
 function isit(id: OyunId) {
   const ayar = useSettingsStore.getState()
-  if (id === 'sarki') {
-    void import('@/components/GameShell').catch(() => {})
-    havuzuIsit(ayar.category, ayar.tier)
-  } else if (id === 'unlu') {
-    void import('@/components/UnluShell').catch(() => {})
-    unluHavuzuIsit(ayar.unluCategory)
-  } else if (id === 'kapak') {
-    void import('@/components/KapakShell').catch(() => {})
-    kapakHavuzuIsit(ayar.kapakCategory)
-  } else {
-    // ⚠️ Açık dal: eskiden son `else` kapaktı ve bilinmeyen her oyun kapağı ısıtıyordu.
-    // Havuzlar burada ISITILMAZ — Günlük sayfası tur türüne göre kendisi indiriyor.
-    void import('@/components/GunlukShell').catch(() => {})
+  void kabukYukle(id).catch(() => {})
+  if (id === 'sarki') havuzuIsit(ayar.category, ayar.tier)
+  else if (id === 'unlu') unluHavuzuIsit(ayar.unluCategory)
+  else if (id === 'kapak') kapakHavuzuIsit(ayar.kapakCategory)
+  // Günlük: havuz ISITILMAZ — sayfa tur türüne göre kendisi indiriyor.
+}
+
+let kabuklarIsitildi = false
+
+/**
+ * İlk sayfa çizildikten sonra, tarayıcı BOŞTAYKEN diğer oyunların kabuk kodunu
+ * indirip çalıştırır.
+ *
+ * ⚠️ KAYDA YAZAR (`lib/kabukKayit`): sayfa bileşeni hazır kabuğu askıya almadan
+ * çiziyor. Yalnızca modülü indirmek yetmiyordu — `next/dynamic` yine askıya
+ * alıyor ve React geçişte ~300 ms bekletiyordu (ölçüldü, bkz. kayıt modülü).
+ *
+ * ⚠️ YALNIZCA KOD: havuzlar (şarkı 547 KB, kapak 196 KB) burada indirilmez;
+ * oynamayacağı oyunun verisini her ziyaretçiye indirtmek pahalı. Havuzlar
+ * yine üzerine gelince ısınıyor.
+ */
+function kabuklariBostaIsit(aktif: OyunId) {
+  if (kabuklarIsitildi) return
+  kabuklarIsitildi = true
+  const calistir = () => {
+    for (const o of OYUNLAR) {
+      if (o.id !== aktif) void kabukYukle(o.id).catch(() => {})
+    }
   }
+  const w = window as Window & { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number }
+  if (w.requestIdleCallback) w.requestIdleCallback(calistir, { timeout: 4000 })
+  else setTimeout(calistir, 2500)
 }
 
 type GecisliBelge = Document & { startViewTransition?: (guncelle: () => Promise<void>) => unknown }
@@ -183,9 +204,22 @@ function sahneHazir(id: OyunId): Promise<void> {
   })
 }
 
+/**
+ * Bugünün günlüğü bu cihazda bitmediyse "Günlük" segmentinde küçük bir nokta.
+ *
+ * ⚠️ YEREL BİLGİYLE: sunucuya sormak her sayfa açılışında bir istek demekti;
+ * başka cihazda oynamış olmak gibi yanılmalar bir nokta için kabul edilebilir.
+ */
+function useGunlukBekliyor(): boolean {
+  const bugun = istanbulGunu(new Date())
+  return !useGunlukStore((s) => s.gecmis.some((k) => k.gun === bugun && !k.arsiv))
+}
+
 export function OyunSeridi({ aktif }: { aktif: OyunId }) {
   const ref = useRef<HTMLElement>(null)
+  const gunlukBekliyor = useGunlukBekliyor()
   useKaydirilabilir(ref)
+  useEffect(() => kabuklariBostaIsit(aktif), [aktif])
   const router = useRouter()
 
   /**
@@ -250,12 +284,14 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                 key={o.id}
                 href={o.yol}
                 aria-current={on ? 'page' : undefined}
+                aria-label={o.id === 'gunluk' && gunlukBekliyor && !on ? `${o.ad}: bugünün soruları seni bekliyor` : undefined}
                 className="nk-oyun"
                 data-on={on ? '1' : undefined}
                 onClick={(e) => gec(e, o.id, o.yol)}
                 onPointerEnter={() => !on && isit(o.id)}
                 onFocus={() => !on && isit(o.id)}
                 style={{
+                  position: 'relative',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
@@ -274,6 +310,14 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
                   transition: on ? 'none' : 'background .15s ease',
                 }}
               >
+                {o.id === 'gunluk' && gunlukBekliyor && !on && (
+                  /*
+                   * ⚠️ Mutlak konumlu ve segmentin İÇİNDE (6 px içeride): şerit
+                   * yatay kaydırmalı ve taşan kısım kesiliyor; dışarı taşsaydı
+                   * nokta telefonda yarım görünürdü. Yükseklik de eklemiyor.
+                   */
+                  <span aria-hidden className="nk-gunluk-nokta" />
+                )}
                 <span
                   aria-hidden
                   style={{
@@ -328,6 +372,13 @@ export function OyunSeridi({ aktif }: { aktif: OyunId }) {
 
       <style>{`
         .nk-oyun:not([data-on]):hover { background: rgba(255,255,255,0.04) !important; }
+        .nk-gunluk-nokta {
+          position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%;
+          background: oklch(0.84 0.14 62); box-shadow: 0 0 0 2px #0e1013, 0 0 10px oklch(0.84 0.14 62 / 0.6);
+          animation: nk-nabiz 2.4s ease-in-out infinite;
+        }
+        @keyframes nk-nabiz { 0%, 100% { opacity: 1 } 50% { opacity: .4 } }
+        :root[data-motion='reduced'] .nk-gunluk-nokta { animation: none; }
         .nk-oyun:not([data-on]):hover .nk-oyun-ad { color: #cfd3d6 !important; }
       `}</style>
     </>

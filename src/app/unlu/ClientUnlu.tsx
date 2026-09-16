@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { unluHavuzuIsit } from '@/data/loadUnluPool'
+import { hazirKabuk, kabukYukle } from '@/lib/kabukKayit'
 import { useSettingsStore } from '@/store/useSettingsStore'
 
 /**
@@ -9,7 +10,7 @@ import { useSettingsStore } from '@/store/useSettingsStore'
  * `localStorage`'ta yaşıyor, sunucuda okunamadığı için HTML her zaman
  * varsayılanla basılır ve JS gelince gerçek seçkiye atlardı.
  */
-const UnluShell = dynamic(() => import('@/components/UnluShell').then((m) => m.UnluShell), {
+const UnluShellDinamik = dynamic(() => kabukYukle('unlu'), {
   ssr: false,
   loading: () => <Iskelet />,
 })
@@ -29,5 +30,7 @@ function Iskelet() {
 export function ClientUnlu() {
   // Havuzu, kabuk parçası inmeden indirmeye başlat.
   unluHavuzuIsit(useSettingsStore.getState().unluCategory)
+  // Kayıtta hazırsa askıya almadan doğrudan çiz (bkz. `lib/kabukKayit`).
+  const UnluShell = hazirKabuk('unlu') ?? UnluShellDinamik
   return <UnluShell />
 }
