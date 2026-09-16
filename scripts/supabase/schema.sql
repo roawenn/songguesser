@@ -799,3 +799,30 @@ begin
   delete from public.kullanici_oturum where biter < now();
   return silinen;
 end $tmz$;
+
+/*
+ * Yönetim: kullanıcı adını sıfırlar ve eski adı KALICI olarak yasaklar.
+ *
+ * Tek işlemde: yasaklama yazılıp ad silinmezse ad yaşamaya devam eder; ad
+ * silinip yasak yazılmazsa aynı kişi aynı adı hemen geri alır.
+ * `ad_degisti` de sıfırlanıyor: yeni ad seçimi 30 gün beklemesin.
+ */
+create or replace function public.kullanici_ad_sifirla(p_id uuid, p_sebep text)
+returns boolean
+language plpgsql security definer set search_path = '' as $kas$
+declare v_norm text;
+begin
+  select k.kullanici_adi_norm into v_norm from public.kullanicilar k where k.id = p_id for update;
+  if not found then return false; end if;
+  if v_norm is not null then
+    insert into public.yasakli_adlar (norm, sebep) values (v_norm, left(p_sebep, 300))
+    on conflict (norm) do nothing;
+  end if;
+  update public.kullanicilar
+     set kullanici_adi = null, kullanici_adi_norm = null, ad_degisti = null
+   where id = p_id;
+  return true;
+end $kas$;
+
+revoke execute on function public.kullanici_ad_sifirla(uuid, text) from public, anon, authenticated;
+grant  execute on function public.kullanici_ad_sifirla(uuid, text) to service_role;

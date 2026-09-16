@@ -7,6 +7,8 @@ import { cleanKey } from '@/text/keys'
 import type { SongRow } from '@/lib/supabase'
 import { govdeOku } from './govde'
 import { AddPanel } from './AddPanel'
+import { GunlukOnizleme } from './GunlukOnizleme'
+import { KullanicilarPanel } from './KullanicilarPanel'
 import { Messages } from './Messages'
 import { UnluPanel } from './UnluPanel'
 
@@ -16,7 +18,7 @@ const PAGE = 60
 
 type Filter = 'hepsi' | 'kapali' | 'yeni'
 /** Panelin üst düzey görünümü. */
-type View = 'sarkilar' | 'unluler' | 'mesajlar'
+type View = 'sarkilar' | 'unluler' | 'mesajlar' | 'kullanicilar' | 'gunluk'
 
 export function AdminPanel({ configured }: { configured: boolean }) {
   const [authed, setAuthed] = useState<boolean | null>(null)
@@ -268,10 +270,14 @@ export function AdminPanel({ configured }: { configured: boolean }) {
       <header style={S.head}>
         <div>
           <h1 style={S.h1}>
-            {view === 'sarkilar' ? 'Şarkı havuzu' : view === 'unluler' ? 'Ünlü havuzu' : 'Mesajlar'}
+            {view === 'sarkilar' ? 'Şarkı havuzu' : view === 'unluler' ? 'Ünlü havuzu' : view === 'kullanicilar' ? 'Kullanıcılar' : view === 'gunluk' ? 'Günlük' : 'Mesajlar'}
           </h1>
           <p style={S.sub}>
-            {view === 'mesajlar' ? (
+            {view === 'kullanicilar' ? (
+              <>Google ile giriş yapan oyuncular. Ban anında etki eder; ad sıfırlama eski adı kalıcı yasaklar.</>
+            ) : view === 'gunluk' ? (
+              <>Günün seti cevaplarıyla. Üstü çizili adaylar ölü medya yüzünden geçilenler.</>
+            ) : view === 'mesajlar' ? (
               <>Hakkında sayfasındaki formdan gelen mesajlar.</>
             ) : view === 'unluler' ? (
               <>
@@ -291,6 +297,12 @@ export function AdminPanel({ configured }: { configured: boolean }) {
           </button>
           <button type="button" onClick={() => setView('unluler')} style={S.tab(view === 'unluler')}>
             Ünlüler
+          </button>
+          <button type="button" onClick={() => setView('gunluk')} style={S.tab(view === 'gunluk')}>
+            Günlük
+          </button>
+          <button type="button" onClick={() => setView('kullanicilar')} style={S.tab(view === 'kullanicilar')}>
+            Kullanıcılar
           </button>
           <button type="button" onClick={() => setView('mesajlar')} style={S.tab(view === 'mesajlar')}>
             Mesajlar {unread > 0 && <span style={S.count}>{unread}</span>}
@@ -313,7 +325,11 @@ export function AdminPanel({ configured }: { configured: boolean }) {
         {err && <div style={S.errBox}>{err}</div>}
       </div>
 
-      {view === 'mesajlar' ? (
+      {view === 'kullanicilar' ? (
+        <KullanicilarPanel />
+      ) : view === 'gunluk' ? (
+        <GunlukOnizleme />
+      ) : view === 'mesajlar' ? (
         <Messages onCount={setUnread} />
       ) : view === 'unluler' ? (
         <UnluPanel onAdded={setStatus} onError={setErr} />
