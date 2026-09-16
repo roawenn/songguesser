@@ -69,6 +69,25 @@ export async function sinirAsildi(req: Request, ayar: SinirAyari): Promise<boole
   }
 }
 
+/**
+ * IP yerine verilen anahtara göre sayar — ör. oturum başına sınır.
+ *
+ * ⚠️ Anahtar TAHMİN EDİLEMEZ olmalı (oturum id'si gibi). Herkesin bildiği bir
+ * değer olsaydı başkası onun kovasını doldurup kilitleyebilirdi.
+ */
+export async function sinirAsildiAnahtar(
+  anahtar: string,
+  ayar: SinirAyari,
+): Promise<boolean> {
+  const izin = await rpc('hiz_sinir_dene', {
+    p_anahtar: `${ayar.ad}:${anahtar}`,
+    p_limit: ayar.limit,
+    p_pencere: ayar.pencere,
+  })
+  if (izin === null) return !ayar.hataVarsaIzin
+  return izin !== true
+}
+
 /** RPC yardımcısı — gövde döner, hata olursa null. */
 async function rpc(ad: string, govde: unknown): Promise<unknown | null> {
   try {

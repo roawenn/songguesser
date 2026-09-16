@@ -1,4 +1,5 @@
 import { STEPS } from './ladder'
+import { ADIM_PUANI } from './puan'
 import { judgeGuess, type Tahminlenebilir } from '@/text/match'
 
 /**
@@ -17,8 +18,8 @@ import { judgeGuess, type Tahminlenebilir } from '@/text/match'
  * izleyiciler haksız yere dışarıda kalırdı.
  */
 
-/** Kademe başına taban puan — merdivenle (`STEPS`) aynı uzunlukta. */
-export const ADIM_PUANI: readonly number[] = [100, 80, 60, 40, 20]
+// Günlük de aynı ölçeği kullanıyor; tek kaynak `puan.ts`.
+export { ADIM_PUANI }
 export const ILK_BILEN_EK = 20
 /** Bu uzunluktan uzun mesajlar tahmin sayılmaz — sohbet seli ve yapıştırma. */
 export const EN_UZUN_MESAJ = 60

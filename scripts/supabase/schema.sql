@@ -485,3 +485,30 @@ alter table public.duels add constraint duels_oyun_chk check (oyun in ('sarki', 
 -- Her oyuncu kendi ayarıyla oynasaydı biri sanatçı adıyla, diğeri yalnızca
 -- albüm adıyla bilebilirdi. Diğer oyunlarda `null`.
 alter table public.duels add column if not exists kolay boolean;
+
+-- ---------------------------------------------------------------------------
+-- Yetki sertleştirme: security definer fonksiyonlar
+-- ---------------------------------------------------------------------------
+-- ⚠️ Postgres yeni fonksiyonlarda EXECUTE yetkisini PUBLIC'e verir. Supabase'de
+-- anon anahtarı herkeste olduğundan `rpc/hiz_sinir_sil` gibi RLS'yi atlayan
+-- fonksiyonlar tarayıcıdan doğrudan çağrılabiliyordu. Yalnızca `anon`dan geri
+-- almak YETMEZ: PUBLIC üzerinden yetki sürer.
+--
+-- ⚠️ `search_path = ''`: definer fonksiyon, çağıranın yol ayarıyla gölgelenmiş
+-- bir tabloya yönlendirilemesin. Gövdeler zaten `public.` önekli.
+--
+-- KURAL: bundan sonra eklenen her security definer fonksiyon bu üç satırı alır
+-- (search_path, revoke, service_role'e grant).
+--
+-- ⚠️ `create or replace` SET ayarını sıfırladığı için `alter` tanımlardan
+-- SONRA duruyor; yetkiler değiştirmede korunur ama tekrar vermek zararsız.
+alter function public.hiz_sinir_dene(text, integer, interval) set search_path = '';
+alter function public.hiz_sinir_bak(text, integer, interval)  set search_path = '';
+alter function public.hiz_sinir_sil(text)                     set search_path = '';
+
+revoke execute on function public.hiz_sinir_dene(text, integer, interval) from public, anon, authenticated;
+revoke execute on function public.hiz_sinir_bak(text, integer, interval)  from public, anon, authenticated;
+revoke execute on function public.hiz_sinir_sil(text)                     from public, anon, authenticated;
+grant  execute on function public.hiz_sinir_dene(text, integer, interval) to service_role;
+grant  execute on function public.hiz_sinir_bak(text, integer, interval)  to service_role;
+grant  execute on function public.hiz_sinir_sil(text)                     to service_role;
