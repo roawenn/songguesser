@@ -10,14 +10,39 @@ import { girisAdresi, useHesap } from '@/hooks/useHesap'
 import { useGunlukStore } from '@/store/useGunlukStore'
 import { ANA_DUGME, CAPTION, OYUN_ADI, PuanDagilimi, gunEtiketi, sureYaz, useGeriSayim } from './GunlukParcalar'
 import { cevapBilgisi } from './GunlukTur'
+import { SiraSatiri } from './Liderlik'
 
-/** Yerel seri — girişsiz oyuncu için (girişli oyuncu Faz 4'te sunucudan). */
-export function useYerelSeri(bugun: string | null): { seri: number; enIyi: number } {
-  const gecmis = useGunlukStore((s) => s.gecmis)
-  return useMemo(
-    () => (bugun ? seriHesapla(gecmis.filter((k) => !k.arsiv).map((k) => k.gun), bugun) : { seri: 0, enIyi: 0 }),
-    [gecmis, bugun],
-  )
+/**
+ * Seri — girişliyse SUNUCU geçmişinden (cihazlar arasında aynı), değilse
+ * yerel geçmişten. Kural tek: `seriHesapla`.
+ *
+ * `tazele` değişince sunucu geçmişi yeniden okunur (oyun bitince).
+ */
+export function useSeri(bugun: string | null, tazele?: unknown): { seri: number; enIyi: number } {
+  const yerel = useGunlukStore((s) => s.gecmis)
+  const { yuklendi, kullanici } = useHesap()
+  const [sunucu, setSunucu] = useState<string[] | null>(null)
+  const eposta = kullanici?.email ?? null
+
+  useEffect(() => {
+    if (!yuklendi || !eposta) {
+      setSunucu(null)
+      return
+    }
+    let iptal = false
+    void fetch('/api/gunluk/gecmis', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((v: { gecmis?: { gun: string }[] | null }) => !iptal && setSunucu(v.gecmis ? v.gecmis.map((g) => g.gun) : null))
+      .catch(() => undefined)
+    return () => {
+      iptal = true
+    }
+  }, [yuklendi, eposta, tazele])
+
+  return useMemo(() => {
+    if (!bugun) return { seri: 0, enIyi: 0 }
+    return seriHesapla(sunucu ?? yerel.filter((k) => !k.arsiv).map((k) => k.gun), bugun)
+  }, [sunucu, yerel, bugun])
 }
 
 /** Gün dönünce durumu yeniden okur — sayfa açık kalan oyuncuya yeni gün gelsin. */
@@ -113,7 +138,7 @@ export function GunlukOzet({ g }: { g: GunlukApi }) {
   const gorunum = g.gorunum!
   const puan = gorunum.puan ?? 0
   const [dagilim, setDagilim] = useState<DagilimSatiri[] | null>(null)
-  const { seri, enIyi } = useYerelSeri(g.gun)
+  const { seri, enIyi } = useSeri(g.gun, gorunum.puan)
   const kalan = useGunDonumu(g)
 
   useEffect(() => {
@@ -152,6 +177,7 @@ export function GunlukOzet({ g }: { g: GunlukApi }) {
         </p>
       ) : null}
 
+      {!gorunum.zamanAsimi && gorunum.kullanicili && <SiraSatiri tazele={gorunum.puan} />}
       {!gorunum.zamanAsimi && <SiralamaNotu kullanicili={gorunum.kullanicili} bitti />}
 
       {dagilim && dagilim.length > 0 && (

@@ -4,6 +4,7 @@ import { useGunluk } from '@/hooks/useGunluk'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { GunlukGiris, GunlukOzet } from './gunluk/GunlukEkranlar'
 import { GunlukIlerlemeKarti, GunlukNasilKarti } from './gunluk/GunlukKartlari'
+import { LiderlikKarti } from './gunluk/Liderlik'
 import { TurSeridi } from './gunluk/GunlukParcalar'
 import { KapakTuru, SarkiTuru, TurBasligi, TurSonu, UnluTuru } from './gunluk/GunlukTur'
 import { SahneCercevesi } from './shell/SahneCercevesi'
@@ -45,7 +46,13 @@ export function GunlukShell() {
       anons={anons}
       aktifOyun="gunluk"
       atif="Şarkı önizlemeleri ve albüm kapakları Apple Music / iTunes aracılığıyla sağlanmaktadır."
-      sol={<GunlukIlerlemeKarti g={g} />}
+      sol={
+        <>
+          <GunlukIlerlemeKarti g={g} />
+          {/* Sol sütun kısa; sıralama buraya sığıyor (sağ sütun ölçek bütçesinin sınırında). */}
+          <LiderlikKarti tazele={gorunum?.durum === 'bitti' ? gorunum.puan : null} />
+        </>
+      }
       sag={
         <>
           <SettingsCard

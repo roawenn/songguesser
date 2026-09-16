@@ -826,3 +826,60 @@ end $kas$;
 
 revoke execute on function public.kullanici_ad_sifirla(uuid, text) from public, anon, authenticated;
 grant  execute on function public.kullanici_ad_sifirla(uuid, text) to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Liderlik
+-- ---------------------------------------------------------------------------
+/*
+ * Bir modun bir dönemdeki sıralaması: günlükte `p_bas = p_bit` (bugün),
+ * haftada pazartesi..pazar. Toplam puana göre; eşitlikte önce bitiren
+ * (dönem başından saniye toplamı küçük olan) üstte.
+ *
+ * GÖRÜNMEYENLER: banlılar, adı olmayanlar (seçmedi ya da yönetim sıfırladı)
+ * ve ŞÜPHELİ işaretli skorlar. Şüphe kaldırılınca skor kendiliğinden görünür.
+ *
+ * ⚠️ Materyalize tablo YOK: `(mod, donem, puan desc, bitis_sn)` indeksiyle
+ * haftalık birkaç bin satırı gruplamak ucuz; ölçek büyürse ilk bakılacak yer.
+ */
+create or replace function public.liderlik(p_mod text, p_bas date, p_bit date, p_limit integer default 50)
+returns table (sira bigint, kullanici_adi text, toplam bigint, gun_sayisi bigint)
+language sql stable security definer set search_path = '' as $ldr$
+  with t as (
+    select s.kullanici_id, sum(s.puan)::bigint as toplam, count(*)::bigint as gun_sayisi, sum(s.bitis_sn)::bigint as bitis
+      from public.skor s
+      join public.kullanicilar k on k.id = s.kullanici_id
+     where s.mod = p_mod and s.donem between p_bas and p_bit and not s.supheli
+       and k.banli_at is null and k.kullanici_adi is not null
+     group by s.kullanici_id
+  )
+  select row_number() over (order by t.toplam desc, t.bitis asc, k.kullanici_adi_norm asc) as sira,
+         k.kullanici_adi, t.toplam, t.gun_sayisi
+    from t join public.kullanicilar k on k.id = t.kullanici_id
+   order by sira
+   limit least(greatest(p_limit, 1), 100)
+$ldr$;
+
+/* Tek kullanıcının sırası ve toplam görünen oyuncu sayısı; görünmüyorsa satır yok. */
+create or replace function public.liderlik_benim(p_mod text, p_bas date, p_bit date, p_kullanici uuid)
+returns table (sira bigint, toplam bigint, gun_sayisi bigint, oyuncu bigint)
+language sql stable security definer set search_path = '' as $lbn$
+  with t as (
+    select s.kullanici_id, sum(s.puan)::bigint as toplam, count(*)::bigint as gun_sayisi, sum(s.bitis_sn)::bigint as bitis
+      from public.skor s
+      join public.kullanicilar k on k.id = s.kullanici_id
+     where s.mod = p_mod and s.donem between p_bas and p_bit and not s.supheli
+       and k.banli_at is null and k.kullanici_adi is not null
+     group by s.kullanici_id
+  ), r as (
+    select t.kullanici_id, t.toplam, t.gun_sayisi,
+           row_number() over (order by t.toplam desc, t.bitis asc, k.kullanici_adi_norm asc) as sira,
+           count(*) over () as oyuncu
+      from t join public.kullanicilar k on k.id = t.kullanici_id
+  )
+  select r.sira, r.toplam, r.gun_sayisi, r.oyuncu from r where r.kullanici_id = p_kullanici
+$lbn$;
+
+revoke execute on function public.liderlik(text, date, date, integer) from public, anon, authenticated;
+revoke execute on function public.liderlik_benim(text, date, date, uuid) from public, anon, authenticated;
+grant  execute on function public.liderlik(text, date, date, integer) to service_role;
+grant  execute on function public.liderlik_benim(text, date, date, uuid) to service_role;

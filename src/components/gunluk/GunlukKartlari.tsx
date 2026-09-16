@@ -3,11 +3,11 @@
 import { HIZ_BONUSU_EN_COK } from '@/game/gunlukPuan'
 import type { GunlukApi } from '@/hooks/useGunluk'
 import { Baslik, CAPTION, CARD, TurSeridi, sureYaz, useGeriSayim } from './GunlukParcalar'
-import { useYerelSeri } from './GunlukEkranlar'
+import { useSeri } from './GunlukEkranlar'
 
 /** Sol sütun: bugünün ilerlemesi, seri ve geri sayım. */
 export function GunlukIlerlemeKarti({ g }: { g: GunlukApi }) {
-  const { seri, enIyi } = useYerelSeri(g.gun)
+  const { seri, enIyi } = useSeri(g.gun, g.gorunum?.durum)
   const kalan = useGeriSayim(g.sonrakiGun, g.saatFarki)
   const toplam = g.gorunum?.turlar.reduce((t, k) => t + (k.sonuc?.puan ?? 0), 0) ?? 0
 
