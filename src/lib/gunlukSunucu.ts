@@ -347,6 +347,7 @@ function satirdan(r: OturumSatiri): OturumKaydi {
       id: r.id,
       gun: r.gun,
       sirali: r.sirali,
+      kullaniciId: r.kullanici_id,
       bitti: r.bitti ? Date.parse(r.bitti) : null,
       zamanAsimi: r.zaman_asimi,
       turlar: r.turlar ?? [],
@@ -385,6 +386,19 @@ export async function cihazOturumlari(gunler: Gun[], cihazOzet: string): Promise
     gun: `in.(${gunler.join(',')})`,
     sirali: 'eq.true',
     kullanici_id: 'is.null',
+  })
+  const res = await rest(`gunluk_oturum?${q}`)
+  if (!res.ok) throw new Error(`gunluk_oturum ${res.status}`)
+  return ((await res.json()) as OturumSatiri[]).map((r) => satirdan(r).oturum)
+}
+
+/** Kullanıcının verilen günlerdeki sıralamalı oturumları — cihazdan bağımsız. */
+export async function kullaniciOturumlari(gunler: Gun[], kullaniciId: string): Promise<GunlukOturum[]> {
+  const q = new URLSearchParams({
+    select: OTURUM_KOLONLARI,
+    kullanici_id: `eq.${kullaniciId}`,
+    gun: `in.(${gunler.join(',')})`,
+    sirali: 'eq.true',
   })
   const res = await rest(`gunluk_oturum?${q}`)
   if (!res.ok) throw new Error(`gunluk_oturum ${res.status}`)

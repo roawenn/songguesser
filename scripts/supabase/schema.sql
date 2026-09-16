@@ -676,3 +676,126 @@ begin
   delete from public.gunluk_oturum where basladi < now() - interval '120 days';
   return silinen;
 end $tmz$;
+
+-- ---------------------------------------------------------------------------
+-- Kullanıcılar: Google ile giriş, herkese açık ad, moderasyon
+-- ---------------------------------------------------------------------------
+-- ⚠️ VERİ EN AZ: Google'dan yalnızca `sub` (değişmeyen kimlik) ve e-posta
+-- (yönetimde tanımak ve KVKK başvurusu için). Ad soyad ve fotoğraf SAKLANMAZ;
+-- avatar kullanıcı adından türetilen harf.
+--
+-- ⚠️ `sub` ile eşleşir, e-postayla DEĞİL: Google e-postanın değişebileceğini
+-- ve tekil olmayabileceğini açıkça belirtiyor.
+create table if not exists public.kullanicilar (
+  id                  uuid        primary key default gen_random_uuid(),
+  google_sub          text        not null unique,
+  email               text        not null,
+  kullanici_adi       text,
+  kullanici_adi_norm  text        unique,
+  olusturuldu         timestamptz not null default now(),
+  son_giris           timestamptz not null default now(),
+  ad_degisti          timestamptz,
+  banli_at            timestamptz,
+  ban_sebebi          text,
+  constraint kullanici_adi_uzunluk_chk check (kullanici_adi is null or char_length(kullanici_adi) between 3 and 20),
+  constraint ban_sebebi_uzunluk_chk check (ban_sebebi is null or char_length(ban_sebebi) <= 300)
+);
+
+-- Oturum: çerezde rastgele belirteç, burada YALNIZCA sha256'sı. Tablo sızsa
+-- bile çereze çevrilemez.
+create table if not exists public.kullanici_oturum (
+  id            text        primary key,
+  kullanici_id  uuid        not null references public.kullanicilar(id) on delete cascade,
+  olusturuldu   timestamptz not null default now(),
+  biter         timestamptz not null default now() + interval '60 days'
+);
+create index if not exists kullanici_oturum_kullanici_idx on public.kullanici_oturum (kullanici_id);
+create index if not exists kullanici_oturum_biter_idx on public.kullanici_oturum (biter);
+
+-- Yönetimin sıfırladığı adlar: aynı ad (normu) bir daha alınamasın.
+create table if not exists public.yasakli_adlar (
+  norm         text        primary key,
+  sebep        text,
+  olusturuldu  timestamptz not null default now()
+);
+
+-- Sıralama skorları — MODDAN BAĞIMSIZ. Bugün yalnızca 'gunluk'; ileride diğer
+-- oyunlar kendi `mod`/`donem` anlamlarıyla aynı tabloya yazar.
+-- `bitis_sn`: dönemin başından bu yana saniye — eşitlikte önce bitiren üstte.
+create table if not exists public.skor (
+  mod           text        not null,
+  donem         date        not null,
+  kullanici_id  uuid        not null references public.kullanicilar(id) on delete cascade,
+  puan          integer     not null,
+  bitis_sn      integer     not null,
+  bitti         timestamptz not null default now(),
+  supheli       boolean     not null default false,
+  primary key (mod, donem, kullanici_id)
+);
+create index if not exists skor_siralama_idx on public.skor (mod, donem, puan desc, bitis_sn);
+create index if not exists skor_kullanici_idx on public.skor (kullanici_id, mod, donem desc);
+
+alter table public.kullanicilar     enable row level security;
+alter table public.kullanici_oturum enable row level security;
+alter table public.yasakli_adlar    enable row level security;
+alter table public.skor             enable row level security;
+
+-- Günlük oturumu kullanıcıya bağlı. Hesap silinince oturum kalır ama anonimleşir.
+do $fk$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'gunluk_oturum_kullanici_fk') then
+    alter table public.gunluk_oturum
+      add constraint gunluk_oturum_kullanici_fk
+      foreign key (kullanici_id) references public.kullanicilar(id) on delete set null;
+  end if;
+end $fk$;
+
+/*
+ * `gunluk_bitir` — skor yazan hâli. Girişli ve sıralamalı oturum bitince
+ * `skor`a da yazılır (şüpheli bayrağıyla birlikte; gizleme kararı liderlikte).
+ */
+create or replace function public.gunluk_bitir(
+  p_oturum      uuid,
+  p_surum       integer,
+  p_turlar      jsonb,
+  p_puan        integer,
+  p_zaman_asimi boolean
+) returns boolean
+language plpgsql security definer set search_path = '' as $gbt$
+declare v_gun date; v_sirali boolean; v_kullanici uuid; v_supheli boolean;
+begin
+  update public.gunluk_oturum o
+     set turlar = p_turlar, puan = p_puan, bitti = now(), zaman_asimi = p_zaman_asimi, surum = o.surum + 1
+   where o.id = p_oturum and o.surum = p_surum and o.bitti is null
+  returning o.gun, o.sirali, o.kullanici_id, o.supheli into v_gun, v_sirali, v_kullanici, v_supheli;
+  if not found then return false; end if;
+
+  if v_sirali and not p_zaman_asimi then
+    insert into public.gunluk_dagilim as d (gun, puan, adet) values (v_gun, p_puan, 1)
+    on conflict (gun, puan) do update set adet = d.adet + 1;
+
+    if v_kullanici is not null then
+      insert into public.skor (mod, donem, kullanici_id, puan, bitis_sn, supheli)
+      values (
+        'gunluk', v_gun, v_kullanici, p_puan,
+        greatest(0, extract(epoch from (now() - (v_gun::timestamp at time zone 'Europe/Istanbul')))::integer),
+        v_supheli
+      )
+      on conflict do nothing;
+    end if;
+  end if;
+  return true;
+end $gbt$;
+
+create or replace function public.temizle()
+returns integer language plpgsql as $tmz$
+declare silinen integer;
+begin
+  delete from public.duels where expires_at < now();
+  get diagnostics silinen = row_count;
+  delete from public.admin_oturum where biter < now();
+  delete from public.hiz_sinir where pencere < now() - interval '1 day';
+  delete from public.gunluk_oturum where basladi < now() - interval '120 days';
+  delete from public.kullanici_oturum where biter < now();
+  return silinen;
+end $tmz$;

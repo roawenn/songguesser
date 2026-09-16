@@ -25,7 +25,8 @@ export default function HakkindaPage() {
           <p>
             tahmin.net, Türkçe şarkıları çok kısa ses kliplerinden tahmin etmeye dayanan bir
             oyundur. Yarım saniyeyle başlar; her harcadığın adımda biraz daha uzun
-            dinlersin. Kayıt yok, hesap yok — gir ve oyna.
+            dinlersin. Üyelik gerekmez — gir ve oyna. Günlük sıralamaya girmek istersen Google ile
+            giriş yapabilirsin.
           </p>
         </section>
 
@@ -57,8 +58,16 @@ export default function HakkindaPage() {
         <section>
           <h2 className="mb-2 text-lg font-semibold text-ink-0">Çerezler ve veriler</h2>
           <p>
-            Çerez kullanmıyoruz; hesap da yok. İstatistiklerin (isabet, seri, kademe
-            dağılımı) yalnızca kendi tarayıcında durur, bize gönderilmez.
+            Üye olmadan oynarken çerez kullanmıyoruz. İstatistiklerin (isabet, seri, kademe
+            dağılımı) yalnızca kendi tarayıcında durur, bize gönderilmez. Google ile giriş
+            yaparsan yalnızca oturumunu sürdüren zorunlu bir çerez kullanılır.
+          </p>
+          <p className="mt-3">
+            Hangi verilerin neden işlendiği:{' '}
+            <Link href="/gizlilik" className="text-ink-0 underline underline-offset-4">
+              Gizlilik ve KVKK aydınlatma metni
+            </Link>
+            .
           </p>
           <p className="mt-3">
             Sitenin hangi bölümlerinin oynandığını görmek için çerezsiz ve kişiyi

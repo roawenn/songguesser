@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { enKisaTon } from '@/lib/renk'
 import { Backdrop } from '../stage/Backdrop'
 import { GunlukRozeti } from '../gunluk/GunlukRozeti'
+import { HesapDugmesi } from '../hesap/HesapDugmesi'
 import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
 import { MobilMenu } from './MobilMenu'
 import { OyunSeridi, type OyunId } from './OyunSeridi'
@@ -173,6 +174,7 @@ export function SahneCercevesi({
             {sag}
             {sol}
           </MobilMenu>
+          <HesapDugmesi />
           <Header ek={aktifOyun !== 'gunluk' ? <GunlukRozeti /> : undefined} />
           {/*
             Oyun seçici masaüstünde logonun altında: önce "hangi oyun", sonra

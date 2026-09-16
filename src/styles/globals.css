@@ -1138,3 +1138,71 @@ button {
     transform: none;
   }
 }
+
+/*
+ * --- HESAP DÜĞMESİ --- (bkz. HesapDugmesi.tsx)
+ *
+ * ⚠️ Mutlak konumlu: üst bant yüksekliği ölçek bütçesine giriyor. Masaüstünde
+ * logo hizasında sağ kenarda, telefonda menü düğmesinin simetriği.
+ */
+.nk-hesap {
+  position: absolute;
+  right: var(--nk-kenar, 28px);
+  top: 22px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.nk-hesap-dugme {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 4px;
+  border-radius: 999px;
+  color: #b6bbbf;
+  text-decoration: none;
+}
+.nk-hesap-giris {
+  padding: 0 13px 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+.nk-hesap-giris:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #e6e8ea;
+}
+.nk-hesap-yazi {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.nk-hesap-mesaj {
+  margin-top: 6px;
+  max-width: 220px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(10, 11, 13, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #d5b477;
+  text-align: right;
+}
+@media (max-width: 899px) {
+  .nk-hesap {
+    top: 12px;
+  }
+  /* Dar ekranda "Giriş" yazısı logonun yanındaki Günlük rozetine çarpıyor; yalnız G kalır. */
+  .nk-hesap-giris {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 8px;
+  }
+  .nk-hesap-giris .nk-hesap-yazi {
+    display: none;
+  }
+}

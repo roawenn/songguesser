@@ -9,6 +9,7 @@ import {
   oturumKimligiGecerli, oturumYaz, setAdayIlerlet, sonTeslimAni,
 } from '@/lib/gunlukSunucu'
 import { cokHizli, sinirAsildiAnahtar } from '@/lib/hizSinir'
+import { oturumKullanici } from '@/lib/kullaniciAuth'
 
 /**
  * Günlük hamlesi — tahmin, seçim, pas, ipucu, sıradaki tur, ölü medya.
@@ -75,7 +76,6 @@ export async function POST(req: Request) {
   if (!istek) return NextResponse.json({ error: 'Geçersiz istek.' }, { status: 400 })
 
   const cihaz = cihazOzeti(req.headers.get('x-gunluk-cihaz'))
-  if (!cihaz) return NextResponse.json({ error: 'Cihaz tanınmadı.' }, { status: 401 })
 
   const bosSinir = () =>
     sinirAsildiAnahtar(istek.oturum, { ad: 'gunluk-bos', limit: 60, pencere: '10 minutes', hataVarsaIzin: true })
@@ -83,8 +83,18 @@ export async function POST(req: Request) {
   try {
     for (let deneme = 0; deneme < 2; deneme++) {
       const kayit = await oturumGetir(istek.oturum)
-      // ⚠️ Başkasının oturumu ile yok olan oturum AYNI yanıtı alır: kimlik tahmini ipucu vermesin.
-      if (!kayit || kayit.cihazOzet !== cihaz) {
+      /*
+       * Sahiplik: önce cihaz (çerez okumadan, ucuz), tutmazsa hesaba bağlı
+       * oturumda girişli kullanıcı — başka cihazdan devam edebilsin.
+       *
+       * ⚠️ Başkasının oturumu ile yok olan oturum AYNI yanıtı alır: kimlik
+       * tahmini ipucu vermesin.
+       */
+      const sahip =
+        kayit !== null &&
+        ((cihaz !== null && kayit.cihazOzet === cihaz) ||
+          (kayit.kullaniciId !== null && (await oturumKullanici())?.id === kayit.kullaniciId))
+      if (!kayit || !sahip) {
         return NextResponse.json({ error: 'Oturum bulunamadı.' }, { status: 404 })
       }
       const { oturum } = kayit

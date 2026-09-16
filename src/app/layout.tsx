@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     template: '%s · tahmin.net',
   },
   description:
-    'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı. Kayıt yok, reklam yok, anında oyna.',
+    'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı. Üyelik gerekmez, reklam yok, anında oyna.',
   keywords: [
     'şarkı tahmin oyunu',
     'türkçe müzik oyunu',

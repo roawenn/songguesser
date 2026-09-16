@@ -116,6 +116,11 @@ export interface GunlukOturum {
   id: string
   gun: Gun
   sirali: boolean
+  /**
+   * Oturum AÇILIRKEN girişli olan kullanıcı. Oyun sırasında giriş yapmak buraya
+   * yazılmaz — cevabı girişsiz görüp girişli puan toplamak mümkün olmasın.
+   */
+  kullaniciId: string | null
   /** Bitiş anı (epoch ms) — bitmediyse null. */
   bitti: number | null
   zamanAsimi: boolean

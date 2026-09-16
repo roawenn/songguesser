@@ -4,6 +4,7 @@ import {
   belkiTemizle, cihazOzeti, gorunum, gunlukSetiGetir, gunlukSimdi, hakemGetir, oturumAc, yeniCihazGizlisi,
 } from '@/lib/gunlukSunucu'
 import { cokHizli, ipOzeti, sinirAsildi } from '@/lib/hizSinir'
+import { oturumKullanici } from '@/lib/kullaniciAuth'
 import { supabaseReady } from '@/lib/supabase'
 
 /**
@@ -12,6 +13,9 @@ import { supabaseReady } from '@/lib/supabase'
  * Cihaz gizlisi yoksa burada üretilir ve YALNIZCA BU YANITTA döner; istemci
  * `localStorage`'a yazar, sonraki her istekte `x-gunluk-cihaz` başlığında
  * gönderir. Veritabanında yalnızca özeti durur.
+ *
+ * ⚠️ KULLANICI BURADA, YALNIZCA BURADA bağlanır: oturum girişliyken açılırsa
+ * sıralamaya girer. Oyunun ortasında giriş yapmak mevcut oturumu değiştirmez.
  *
  * ⚠️ Oturum açmak tur AÇMAZ. Hız saati ilk turun medyası istendiğinde
  * (`hamle: sonraki`) başlar — oyuncu "Başla"ya basıp sekmeyi bıraksa bile
@@ -34,10 +38,11 @@ export async function POST(req: Request) {
     const set = await gunlukSetiGetir(gun, { olustur: true })
     if (!set) return NextResponse.json({ error: 'Günün soruları hazırlanamadı.' }, { status: 503 })
 
+    const kullanici = await oturumKullanici()
     const oturum = await oturumAc({
       gun,
       cihazOzet: cihazOzeti(gizli)!,
-      kullaniciId: null,
+      kullaniciId: kullanici?.id ?? null,
       sirali: true,
       ipOzet: ipOzeti(req),
     })

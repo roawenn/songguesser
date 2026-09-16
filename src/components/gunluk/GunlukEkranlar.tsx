@@ -6,6 +6,7 @@ import { GUNLUK_SIRASI } from '@/game/gunluk'
 import { seriHesapla } from '@/game/gunlukGecmis'
 import { EN_YUKSEK_PUAN } from '@/game/gunlukPuan'
 import type { GunlukApi } from '@/hooks/useGunluk'
+import { girisAdresi, useHesap } from '@/hooks/useHesap'
 import { useGunlukStore } from '@/store/useGunlukStore'
 import { ANA_DUGME, CAPTION, OYUN_ADI, PuanDagilimi, gunEtiketi, sureYaz, useGeriSayim } from './GunlukParcalar'
 import { cevapBilgisi } from './GunlukTur'
@@ -31,6 +32,39 @@ function useGunDonumu(g: GunlukApi) {
     }
   }, [kalan, yenile])
   return kalan
+}
+
+/**
+ * Sıralama durumu satırı.
+ *
+ * ⚠️ Giriş oyun BAŞLAMADAN yapılmalı (oturum açılışta hesaba bağlanıyor);
+ * metin bunu açıkça söylüyor ki oyuncu bitirdikten sonra girip şaşırmasın.
+ */
+function SiralamaNotu({ kullanicili, bitti }: { kullanicili: boolean | null; bitti: boolean }) {
+  const { yuklendi, girisAcik, kullanici } = useHesap()
+  if (!yuklendi) return null
+  const stil = { margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 1.7, color: '#8c9297', textAlign: 'center' as const }
+  const bag = { color: 'var(--acc)', textDecoration: 'underline', textUnderlineOffset: 3 }
+
+  if (kullanicili) {
+    return kullanici && !kullanici.ad ? (
+      <p style={stil}>
+        Sonucun kaydedildi. Sıralamada görünmek için <a href="/hesap?ad=sec&donus=/gunluk" style={bag}>kullanıcı adını seç</a>.
+      </p>
+    ) : (
+      <p style={stil}>Sonucun {kullanici?.ad ? <strong style={{ color: '#d5d9dc' }}>{kullanici.ad}</strong> : 'hesabın'} adıyla sıralamaya yazıldı.</p>
+    )
+  }
+  if (kullanici) {
+    return bitti ? <p style={stil}>Bu oyun giriş yapmadan başladığı için sıralamaya girmedi. Yarın giriş yapmış olarak başla.</p> : null
+  }
+  if (!girisAcik) return null
+  return (
+    <p style={stil}>
+      {bitti ? 'Sıralamaya girmek için yarın oyuna başlamadan ' : 'Sıralamaya girmek için başlamadan önce '}
+      <a href={girisAdresi()} style={bag}>Google ile giriş yap</a>.
+    </p>
+  )
 }
 
 export function GunlukGiris({ g }: { g: GunlukApi }) {
@@ -70,6 +104,7 @@ export function GunlukGiris({ g }: { g: GunlukApi }) {
       <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 10.5, color: '#5c6267', lineHeight: 1.7 }}>
         Her gün bir kez oynanır. Süre, her turun görseli ya da klibi geldiğinde başlar.
       </p>
+      {!devam && <SiralamaNotu kullanicili={null} bitti={false} />}
     </div>
   )
 }
@@ -116,6 +151,8 @@ export function GunlukOzet({ g }: { g: GunlukApi }) {
           Bugünün ilk oyuncularındansın — sıralama birkaç kişi daha oynayınca belirir.
         </p>
       ) : null}
+
+      {!gorunum.zamanAsimi && <SiralamaNotu kullanicili={gorunum.kullanicili} bitti />}
 
       {dagilim && dagilim.length > 0 && (
         <div style={{ width: '100%' }}>

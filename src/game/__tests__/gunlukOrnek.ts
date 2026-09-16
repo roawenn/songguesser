@@ -79,6 +79,7 @@ export function yeniOturum(): GunlukOturum {
     id: '00000000-0000-4000-8000-000000000001',
     gun: '2026-09-16',
     sirali: true,
+    kullaniciId: null,
     bitti: null,
     zamanAsimi: false,
     turlar: [],

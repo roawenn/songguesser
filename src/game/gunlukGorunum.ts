@@ -57,6 +57,8 @@ export interface GunlukGorunum {
   gun: Gun
   oturum: string
   sirali: boolean
+  /** Oturum bir hesaba bağlı mı — sıralamaya girip girmeyeceği. */
+  kullanicili: boolean
   durum: 'oynaniyor' | 'bitti'
   zamanAsimi: boolean
   puan: number | null
@@ -139,6 +141,7 @@ export function gorunumOlustur(
     gun: oturum.gun,
     oturum: oturum.id,
     sirali: oturum.sirali,
+    kullanicili: oturum.kullaniciId !== null,
     durum: oturum.bitti !== null ? 'bitti' : 'oynaniyor',
     zamanAsimi: oturum.zamanAsimi,
     puan: oturum.puan,
