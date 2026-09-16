@@ -5,7 +5,8 @@ import { useSettingsStore } from '@/store/useSettingsStore'
 import { GunlukGiris, GunlukOzet } from './gunluk/GunlukEkranlar'
 import { GunlukIlerlemeKarti, GunlukNasilKarti } from './gunluk/GunlukKartlari'
 import { LiderlikKarti } from './gunluk/Liderlik'
-import { TurSeridi } from './gunluk/GunlukParcalar'
+import Link from 'next/link'
+import { TurSeridi, gunEtiketi } from './gunluk/GunlukParcalar'
 import { KapakTuru, SarkiTuru, TurBasligi, TurSonu, UnluTuru } from './gunluk/GunlukTur'
 import { SahneCercevesi } from './shell/SahneCercevesi'
 import { LinksCard, SettingsCard } from './shell/SidePanels'
@@ -21,8 +22,8 @@ import { LinksCard, SettingsCard } from './shell/SidePanels'
 
 const GUNLUK_TON = 62
 
-export function GunlukShell() {
-  const g = useGunluk()
+export function GunlukShell({ arsivGun = null }: { arsivGun?: string | null }) {
+  const g = useGunluk(arsivGun)
   const settings = useSettingsStore()
   const { gorunum, aktif, aktifIndex } = g
 
@@ -79,7 +80,22 @@ export function GunlukShell() {
             </div>
           )}
 
-          {!g.hazir ? (
+          {arsivGun && (
+            <div
+              role="status"
+              style={{ display: 'flex', gap: 12, alignItems: 'center', fontFamily: 'var(--font-mono)', fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', color: '#d5b477' }}
+            >
+              <span>Arşiv · {gunEtiketi(arsivGun, false)} · sıralamasız</span>
+              <Link href="/gunluk" style={{ color: '#8c9297' }}>bugüne dön →</Link>
+            </div>
+          )}
+
+          {g.arsivYok ? (
+            <div role="status" style={{ color: '#8c9297', fontSize: 14, padding: 30, textAlign: 'center', lineHeight: 1.7 }}>
+              Bu gün arşivde yok.{' '}
+              <Link href="/gunluk/arsiv" style={{ color: 'var(--acc)' }}>Geçmiş günler</Link>
+            </div>
+          ) : !g.hazir ? (
             <div role="status" style={{ color: '#6a7075', fontFamily: 'var(--font-mono)', fontSize: 12, padding: 40 }}>
               Yükleniyor…
             </div>

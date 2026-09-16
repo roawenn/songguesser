@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { HIZ_BONUSU_EN_COK } from '@/game/gunlukPuan'
 import type { GunlukApi } from '@/hooks/useGunluk'
 import { Baslik, CAPTION, CARD, TurSeridi, sureYaz, useGeriSayim } from './GunlukParcalar'
@@ -12,8 +13,8 @@ export function GunlukIlerlemeKarti({ g }: { g: GunlukApi }) {
   const toplam = g.gorunum?.turlar.reduce((t, k) => t + (k.sonuc?.puan ?? 0), 0) ?? 0
 
   return (
-    <section style={CARD} aria-label="Bugün">
-      <Baslik>Bugün</Baslik>
+    <section style={CARD} aria-label={g.arsivGun ? 'Arşiv' : 'Bugün'}>
+      <Baslik>{g.arsivGun ? 'Arşiv' : 'Bugün'}</Baslik>
       <TurSeridi gorunum={g.gorunum} aktifIndex={g.aktifIndex} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
         <div>
@@ -32,6 +33,9 @@ export function GunlukIlerlemeKarti({ g }: { g: GunlukApi }) {
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#6a7075', textAlign: 'center' }}>
         yeni sorular {kalan === null ? '—' : sureYaz(kalan)} sonra
       </div>
+      <Link href="/gunluk/arsiv" style={{ ...CAPTION, textAlign: 'center', color: '#8c9297', textDecoration: 'none' }}>
+        geçmiş günler →
+      </Link>
     </section>
   )
 }

@@ -23,6 +23,7 @@ function Iskelet() {
   )
 }
 
-export function ClientGunluk() {
-  return <GunlukShell />
+export function ClientGunluk({ arsivGun }: { arsivGun: string | null }) {
+  // `key`: bugünden arşive (ya da günler arası) geçişte hook durumu sıfırdan kurulsun.
+  return <GunlukShell key={arsivGun ?? 'bugun'} arsivGun={arsivGun} />
 }

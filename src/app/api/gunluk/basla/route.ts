@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server'
-import { istanbulGunu } from '@/game/gun'
+import { gunGecerli, istanbulGunu } from '@/game/gun'
+import { arsivSiniri } from '@/game/gunlukArsiv'
 import {
   belkiTemizle, cihazOzeti, gorunum, gunlukSetiGetir, gunlukSimdi, hakemGetir, oturumAc, yeniCihazGizlisi,
 } from '@/lib/gunlukSunucu'
@@ -33,17 +34,30 @@ export async function POST(req: Request) {
   const yeni = gizli === null
   gizli ??= yeniCihazGizlisi()
 
+  /*
+   * ARŞİV: gövdede `gun` varsa geçmiş bir günün SIRALAMASIZ oturumu. Gün son
+   * teslimi geçmiş olmalı ve seti o gün kurulmuş olmalı (arşiv seti KURMAZ).
+   */
+  const govde = (await req.json().catch(() => ({}))) as { gun?: unknown }
+  const simdi = gunlukSimdi()
+  const arsiv = govde.gun !== undefined
+  if (arsiv && (!gunGecerli(govde.gun) || govde.gun > arsivSiniri(simdi))) {
+    return NextResponse.json({ error: 'Bu gün arşivde yok.' }, { status: 404 })
+  }
+
   try {
-    const gun = istanbulGunu(new Date(gunlukSimdi()))
-    const set = await gunlukSetiGetir(gun, { olustur: true })
-    if (!set) return NextResponse.json({ error: 'Günün soruları hazırlanamadı.' }, { status: 503 })
+    const gun = arsiv ? (govde.gun as string) : istanbulGunu(new Date(simdi))
+    const set = await gunlukSetiGetir(gun, { olustur: !arsiv })
+    if (!set) {
+      return NextResponse.json({ error: arsiv ? 'Bu gün arşivde yok.' : 'Günün soruları hazırlanamadı.' }, { status: arsiv ? 404 : 503 })
+    }
 
     const kullanici = await oturumKullanici()
     const oturum = await oturumAc({
       gun,
       cihazOzet: cihazOzeti(gizli)!,
       kullaniciId: kullanici?.id ?? null,
-      sirali: true,
+      sirali: !arsiv,
       ipOzet: ipOzeti(req),
     })
     if (!oturum) return NextResponse.json({ error: 'Oturum açılamadı.' }, { status: 502 })

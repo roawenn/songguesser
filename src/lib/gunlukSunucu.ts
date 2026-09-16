@@ -2,7 +2,8 @@ import 'server-only'
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { artworkAt } from '@/data/schema'
 import { unluGorselYolu } from '@/data/unlu'
-import { gunBaslangici, gunEkle, istanbulGunu, type Gun } from '@/game/gun'
+import { gunEkle, istanbulGunu, type Gun } from '@/game/gun'
+import { ARSIV_GUN, sonTeslimAni } from '@/game/gunlukArsiv'
 import {
   GUNLUK_TUR, ogeKimligi,
   type GunlukOge, type GunlukOturum, type GunlukSet, type GunlukSlot, type GunlukTurKaydi,
@@ -55,18 +56,8 @@ export function gunlukSimdi(): number {
   return Date.now()
 }
 
-/**
- * Sıralamaya sayılan en geç bitiş: ertesi gün 03:00 (İstanbul).
- *
- * 23:58'de başlayan oyuncu gece yarısında kesilmesin. Arşiv o gün için ancak
- * bu andan sonra açılır — yoksa arşivden cevaba bakıp sıralamalı oturumu
- * bitirmek mümkün olurdu.
- */
-export const SON_TESLIM_PAYI_MS = 3 * 3600_000
-
-export function sonTeslimAni(gun: Gun): number {
-  return gunBaslangici(gunEkle(gun, 1)).getTime() + SON_TESLIM_PAYI_MS
-}
+// Son teslim ve arşiv sınırı saf modülde (testli); rotalar buradan alıyor.
+export { sonTeslimAni } from '@/game/gunlukArsiv'
 
 // --- cihaz --------------------------------------------------------------
 
@@ -378,13 +369,13 @@ export async function oturumGetir(id: string): Promise<OturumKaydi | null> {
   return satir ? satirdan(satir) : null
 }
 
-/** Cihazın verilen günlerdeki girişsiz, sıralamalı oturumları. */
-export async function cihazOturumlari(gunler: Gun[], cihazOzet: string): Promise<GunlukOturum[]> {
+/** Cihazın verilen günlerdeki girişsiz oturumları (sıralamalı ya da arşiv). */
+export async function cihazOturumlari(gunler: Gun[], cihazOzet: string, sirali = true): Promise<GunlukOturum[]> {
   const q = new URLSearchParams({
     select: OTURUM_KOLONLARI,
     cihaz_ozet: `eq.${cihazOzet}`,
     gun: `in.(${gunler.join(',')})`,
-    sirali: 'eq.true',
+    sirali: `eq.${sirali}`,
     kullanici_id: 'is.null',
   })
   const res = await rest(`gunluk_oturum?${q}`)
@@ -392,13 +383,13 @@ export async function cihazOturumlari(gunler: Gun[], cihazOzet: string): Promise
   return ((await res.json()) as OturumSatiri[]).map((r) => satirdan(r).oturum)
 }
 
-/** Kullanıcının verilen günlerdeki sıralamalı oturumları — cihazdan bağımsız. */
-export async function kullaniciOturumlari(gunler: Gun[], kullaniciId: string): Promise<GunlukOturum[]> {
+/** Kullanıcının verilen günlerdeki oturumları — cihazdan bağımsız. */
+export async function kullaniciOturumlari(gunler: Gun[], kullaniciId: string, sirali = true): Promise<GunlukOturum[]> {
   const q = new URLSearchParams({
     select: OTURUM_KOLONLARI,
     kullanici_id: `eq.${kullaniciId}`,
     gun: `in.(${gunler.join(',')})`,
-    sirali: 'eq.true',
+    sirali: `eq.${sirali}`,
   })
   const res = await rest(`gunluk_oturum?${q}`)
   if (!res.ok) throw new Error(`gunluk_oturum ${res.status}`)
@@ -466,6 +457,16 @@ export function gorunum(oturum: GunlukOturum, set: GunlukSet): GunlukGorunum {
     sonTeslim: sonTeslimAni(oturum.gun),
     gorselAdresi: (tur, aday, adim) => gorselAdresi(set.gun, tur, aday, adim),
   })
+}
+
+// --- arşiv --------------------------------------------------------------
+
+/** Seti kurulmuş (en az bir kişinin başladığı) geçmiş günler, yeniden eskiye. */
+export async function arsivGunleri(sinir: Gun): Promise<Gun[]> {
+  const q = new URLSearchParams({ select: 'gun', gun: `lte.${sinir}`, order: 'gun.desc', limit: String(ARSIV_GUN) })
+  const res = await rest(`gunluk?${q}`)
+  if (!res.ok) throw new Error(`gunluk ${res.status}`)
+  return ((await res.json()) as { gun: string }[]).map((r) => r.gun)
 }
 
 // --- dağılım ------------------------------------------------------------

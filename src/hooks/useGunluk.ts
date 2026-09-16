@@ -25,9 +25,9 @@ import { useSettingsStore } from '@/store/useSettingsStore'
  * sunucuya gider ve dönen görünüm TEK DOĞRU KAYNAK olur. Yerelde tutulan tek
  * oyun bilgisi dinleme sayacı (kural değil, gösterge).
  *
- * ⚠️ TEK İSTEK KUYRUĞU: bir hamle uçuştayken yenisi gönderilmez (girdi de
- * kilitli). Sunucu zaten idempotent (`sira`), ama sıra dışı gönderilen iki
- * hamlenin ikincisi 409 alıp oyuncuya anlamsız bir hata gösterirdi.
+ * ⚠️ TEK İSTEK KUYRUĞU: bir hamle uçuştayken yenisi GÖNDERİLMEZ, bekletilir
+ * (bkz. `bekleyen`). Sunucu zaten idempotent (`sira`), ama aynı `sira` ile
+ * gönderilen iki hamlenin ikincisi 409 alıp oyuncuya anlamsız hata gösterirdi.
  */
 
 export type SesDurumu = 'yok' | 'hazirlaniyor' | 'hazir' | 'takildi' | 'desteklenmiyor'
@@ -48,7 +48,7 @@ async function istek(yol: string, govde?: unknown): Promise<{ status: number; ve
   if (cihaz) basliklar['x-gunluk-cihaz'] = cihaz
   if (govde !== undefined) basliklar['Content-Type'] = 'application/json'
   const res = await fetch(yol, {
-    method: govde === undefined && yol === '/api/gunluk' ? 'GET' : 'POST',
+    method: govde === undefined ? 'GET' : 'POST',
     headers: basliklar,
     body: govde === undefined ? undefined : JSON.stringify(govde),
     cache: 'no-store',
@@ -93,6 +93,10 @@ function useIndeksler(): GunlukIndeksleri {
 export interface GunlukApi {
   /** İlk durum okuması bitti mi. */
   hazir: boolean
+  /** Arşivden oynanan gün; bugünse null. Arşiv oturumu sıralamaya girmez. */
+  arsivGun: string | null
+  /** Arşiv günü bulunamadı (son teslimi geçmemiş, seti yok). */
+  arsivYok: boolean
   gun: string | null
   /** Sunucu saati − istemci saati (ms): geri sayım ve hız çubuğu için. */
   saatFarki: number
@@ -126,8 +130,9 @@ export interface GunlukApi {
   onYanlis: (fn: () => void) => void
 }
 
-export function useGunluk(): GunlukApi {
+export function useGunluk(arsivGun: string | null = null): GunlukApi {
   const [hazir, setHazir] = useState(false)
+  const [arsivYok, setArsivYok] = useState(false)
   const [gun, setGun] = useState<string | null>(null)
   const [saatFarki, setSaatFarki] = useState(0)
   const [sonrakiGun, setSonrakiGun] = useState<number | null>(null)
@@ -160,8 +165,9 @@ export function useGunluk(): GunlukApi {
   // --- durum okuma ---
   const yenile = useCallback(() => {
     const once = Date.now()
-    void istek('/api/gunluk')
-      .then(({ veri }) => {
+    void istek(arsivGun ? `/api/gunluk?gun=${arsivGun}` : '/api/gunluk')
+      .then(({ status, veri }) => {
+        if (arsivGun && status === 404) setArsivYok(true)
         const v = veri as Yanit & { gun?: string; sunucuZamani?: number; sonrakiGun?: number }
         if (v.gun) setGun(v.gun)
         if (typeof v.sunucuZamani === 'number') {
@@ -174,7 +180,7 @@ export function useGunluk(): GunlukApi {
       })
       .catch(() => setHata('Bağlantı kurulamadı. Sayfayı yenileyip tekrar dene.'))
       .finally(() => setHazir(true))
-  }, [])
+  }, [arsivGun])
 
   useEffect(() => {
     yenile()
@@ -266,13 +272,13 @@ export function useGunluk(): GunlukApi {
     setHata(null)
     void (async () => {
       try {
-        const { status, veri } = await istek('/api/gunluk/basla', {})
+        const { status, veri } = await istek('/api/gunluk/basla', arsivGun ? { gun: arsivGun } : {})
         if (veri.cihaz) cihazYaz(veri.cihaz)
         if (!veri.gorunum) {
           setHata(status === 429 ? 'Çok fazla deneme. Biraz bekle.' : (veri.error ?? 'Günlük şu an açılamıyor.'))
           return
         }
-        olay('gunluk_basladi', { arsiv: false })
+        olay('gunluk_basladi', { arsiv: arsivGun !== null })
         let g = veri.gorunum
         setGorunum(g)
         // Yeni oturumsa ilk turu hemen iste — "Başla" tek dokunuş olsun.
@@ -290,7 +296,7 @@ export function useGunluk(): GunlukApi {
         setBekliyor(false)
       }
     })()
-  }, [])
+  }, [arsivGun])
 
   // --- ses ---
   const aktifSarki = aktif?.oyun === 'sarki' && aktif.durum === 'oynaniyor' ? aktif : null
@@ -368,14 +374,18 @@ export function useGunluk(): GunlukApi {
 
   // --- bitiş kaydı ---
   useEffect(() => {
-    if (!gorunum || gorunum.durum !== 'bitti' || !gorunum.sirali || gorunum.zamanAsimi) return
+    if (!gorunum || gorunum.durum !== 'bitti' || gorunum.zamanAsimi) return
     const puan = gorunum.puan ?? 0
-    kaydet({ gun: gorunum.gun, puan, turlar: gorunum.turlar.map((t) => t.sonuc?.puan ?? 0), arsiv: false })
-    olayBirKez(`gunluk:${gorunum.gun}`, 'gunluk_bitti', { puan_kova: Math.floor(puan / 60) * 60, arsiv: false })
+    const arsiv = !gorunum.sirali
+    // Arşiv sonucu da yerelde tutuluyor (arşiv listesinde görünsün) ama seriye sayılmıyor.
+    kaydet({ gun: gorunum.gun, puan, turlar: gorunum.turlar.map((t) => t.sonuc?.puan ?? 0), arsiv })
+    olayBirKez(`gunluk:${gorunum.gun}:${arsiv}`, 'gunluk_bitti', { puan_kova: Math.floor(puan / 60) * 60, arsiv })
   }, [gorunum, kaydet])
 
   return {
     hazir,
+    arsivGun,
+    arsivYok,
     gun,
     saatFarki,
     sonrakiGun,

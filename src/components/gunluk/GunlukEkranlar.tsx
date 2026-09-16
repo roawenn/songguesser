@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { yuzdelik, toplamOyuncu, type DagilimSatiri } from '@/game/dagilim'
 import { GUNLUK_SIRASI } from '@/game/gunluk'
@@ -96,12 +97,13 @@ export function GunlukGiris({ g }: { g: GunlukApi }) {
   const devam = g.gorunum !== null && g.gorunum.turlar.length === 0
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22, maxWidth: 440, textAlign: 'center', padding: '10px 4px' }}>
-      {g.gun && <div style={{ ...CAPTION, color: '#8c9297' }}>{gunEtiketi(g.gun)}</div>}
+      {(g.arsivGun ?? g.gun) && <div style={{ ...CAPTION, color: '#8c9297' }}>{gunEtiketi((g.arsivGun ?? g.gun)!)}</div>}
       <h2 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 38, color: '#f2f4f5' }}>
-        Günün altı sorusu
+        {g.arsivGun ? 'O günün altı sorusu' : 'Günün altı sorusu'}
       </h2>
       <p style={{ margin: 0, color: '#9aa0a5', fontSize: 14.5, lineHeight: 1.7 }}>
-        İki şarkı, iki ünlü, iki albüm kapağı. Bugün herkes aynı soruları çözüyor.
+        İki şarkı, iki ünlü, iki albüm kapağı.{' '}
+        {g.arsivGun ? 'O gün herkes aynı soruları çözdü.' : 'Bugün herkes aynı soruları çözüyor.'}{' '}
         Ne kadar erken bilirsen o kadar çok puan; hızlı olana bonus.
       </p>
       <ul style={{ display: 'flex', gap: 8, listStyle: 'none', padding: 0, margin: 0 }}>
@@ -129,7 +131,12 @@ export function GunlukGiris({ g }: { g: GunlukApi }) {
       <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 10.5, color: '#5c6267', lineHeight: 1.7 }}>
         Her gün bir kez oynanır. Süre, her turun görseli ya da klibi geldiğinde başlar.
       </p>
-      {!devam && <SiralamaNotu kullanicili={null} bitti={false} />}
+      {!devam && !g.arsivGun && <SiralamaNotu kullanicili={null} bitti={false} />}
+      {g.arsivGun && (
+        <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: '#8c9297' }}>
+          Arşiv oyunu sıralamaya ve seriye girmez; o günün oyuncularıyla kıyas yalnızca bilgi amaçlı.
+        </p>
+      )}
     </div>
   )
 }
@@ -156,7 +163,7 @@ export function GunlukOzet({ g }: { g: GunlukApi }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%', maxWidth: 460 }}>
-      <div style={{ ...CAPTION, color: '#8c9297' }}>{gunEtiketi(gorunum.gun)} · bitti</div>
+      <div style={{ ...CAPTION, color: '#8c9297' }}>{gunEtiketi(gorunum.gun)} · {gorunum.sirali ? 'bitti' : 'arşiv'}</div>
 
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 54, lineHeight: 1, color: 'var(--acc)' }}>{puan}</div>
@@ -169,16 +176,20 @@ export function GunlukOzet({ g }: { g: GunlukApi }) {
         </p>
       ) : oran !== null ? (
         <p style={{ margin: 0, color: '#d5d9dc', fontSize: 15, textAlign: 'center' }}>
-          Bugün oynayanların <strong style={{ color: 'var(--acc)' }}>%{oran}</strong>’inden iyisin
+          {gorunum.sirali ? 'Bugün oynayanların ' : 'O gün oynayanların '}
+          <strong style={{ color: 'var(--acc)' }}>%{oran}</strong>
+          {gorunum.sirali ? '’inden iyisin' : '’inden iyi olurdun'}
         </p>
       ) : dagilim ? (
         <p style={{ margin: 0, color: '#8c9297', fontSize: 13.5, textAlign: 'center' }}>
-          Bugünün ilk oyuncularındansın — sıralama birkaç kişi daha oynayınca belirir.
+          {gorunum.sirali
+            ? 'Bugünün ilk oyuncularındansın — sıralama birkaç kişi daha oynayınca belirir.'
+            : 'O gün kıyaslanacak kadar oyuncu yoktu.'}
         </p>
       ) : null}
 
-      {!gorunum.zamanAsimi && gorunum.kullanicili && <SiraSatiri tazele={gorunum.puan} />}
-      {!gorunum.zamanAsimi && <SiralamaNotu kullanicili={gorunum.kullanicili} bitti />}
+      {gorunum.sirali && !gorunum.zamanAsimi && gorunum.kullanicili && <SiraSatiri tazele={gorunum.puan} />}
+      {gorunum.sirali && !gorunum.zamanAsimi && <SiralamaNotu kullanicili={gorunum.kullanicili} bitti />}
 
       {dagilim && dagilim.length > 0 && (
         <div style={{ width: '100%' }}>
@@ -230,6 +241,10 @@ export function GunlukOzet({ g }: { g: GunlukApi }) {
           <div style={CAPTION}>yeni sorular</div>
         </div>
       </div>
+
+      <Link href="/gunluk/arsiv" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8c9297' }}>
+        Geçmiş günler →
+      </Link>
     </div>
   )
 }

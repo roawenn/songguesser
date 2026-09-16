@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { gunGecerli } from '@/game/gun'
 import { ClientGunluk } from './ClientGunluk'
 
 export const metadata: Metadata = {
@@ -15,6 +16,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function GunlukPage() {
-  return <ClientGunluk />
+/** `?gun=YYYY-MM-DD` → arşivden, sıralamasız. Geçerliliği ve sınırı sunucu denetliyor. */
+export default async function GunlukPage({ searchParams }: { searchParams: Promise<{ gun?: string }> }) {
+  const { gun } = await searchParams
+  return <ClientGunluk arsivGun={gunGecerli(gun) ? gun : null} />
 }
