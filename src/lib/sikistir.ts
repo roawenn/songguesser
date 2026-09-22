@@ -22,7 +22,14 @@ import { brotliCompressSync, constants, gzipSync } from 'node:zlib'
  * fonksiyon yalnızca önbellek soğukken çağrılıyor.
  */
 
-/** Bu süre boyunca kayıt taze sayılır. */
+/**
+ * Bu süre boyunca kayıt taze sayılır — VARSAYILAN.
+ *
+ * ⚠️ Çağıran kısaltabilir. Havuzun büyüklüğü uç noktaya göre değişiyor: şarkı
+ * ve kapak yanıtları yüz KB'larla ölçülüyor, ünlü havuzu ise ~700 BAYT. Küçük
+ * bir havuzu dakikalarca önbellekte tutmanın kazancı yok, bedeli var:
+ * küratör yeni bir ünlü ekledikten sonra oyunda görünmesi dakikaları buluyordu.
+ */
 const TTL_MS = 60_000
 /**
  * Tazelik bittikten sonra kaydın BAYAT olarak servis edilebileceği süre.
@@ -65,14 +72,23 @@ async function uretVeYaz(anahtar: string, uret: () => Promise<unknown>): Promise
   return kayit
 }
 
-async function kayitAl(anahtar: string, uret: () => Promise<unknown>): Promise<Kayit> {
+export interface Omur {
+  /** Kayıt kaç ms taze sayılsın. */
+  tazeMs?: number
+  /** Tazelik bittikten sonra kaç ms bayat servis edilebilsin. */
+  bayatMs?: number
+}
+
+async function kayitAl(anahtar: string, uret: () => Promise<unknown>, omur: Omur): Promise<Kayit> {
+  const tazeMs = omur.tazeMs ?? TTL_MS
+  const bayatMs = omur.bayatMs ?? BAYAT_MS
   const eski = onbellek.get(anahtar)
   if (!eski) return uretVeYaz(anahtar, uret)
 
   const yas = Date.now() - eski.zaman
-  if (yas < TTL_MS) return eski
+  if (yas < tazeMs) return eski
 
-  if (yas < BAYAT_MS) {
+  if (yas < bayatMs) {
     // Bayat ama servis edilebilir: tazelemeyi arkada başlat, beklemeden dön.
     eski.yenileniyor ??= uretVeYaz(anahtar, uret)
       .then(() => undefined)
@@ -96,8 +112,9 @@ export async function sikistirilmisJson(
   anahtar: string,
   uret: () => Promise<unknown>,
   basliklar: Record<string, string> = {},
+  omur: Omur = {},
 ): Promise<Response> {
-  const kayit = await kayitAl(anahtar, uret)
+  const kayit = await kayitAl(anahtar, uret, omur)
 
   const temel: Record<string, string> = {
     'Content-Type': 'application/json; charset=utf-8',

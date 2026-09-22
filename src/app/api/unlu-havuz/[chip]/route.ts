@@ -17,8 +17,20 @@ import { unluSatirlari } from '@/lib/unluHavuzSunucu'
  * `snapshot.ts`'e ünlü dalı eklenebilir.
  */
 
-/** Tarayıcı ve CDN tazelik ömrü. */
-const ISTEMCI_TAZE = 60
+/**
+ * Tarayıcı ve CDN tazelik ömrü — KASITLI OLARAK KISA.
+ *
+ * ⚠️ 60 saniyeydi ve `stale-while-revalidate=600` ile birlikte, panelden
+ * eklenen bir ünlünün oyunda görünmesi DAKİKALARI buluyordu. Yayınlama
+ * (`revalidateTag('unluhavuz')`) yalnızca Next'in veri önbelleğini düşürüyor;
+ * tarayıcı, CDN ve `sikistir` belleği ondan habersiz eski gövdeyi servis
+ * etmeye devam ediyordu.
+ *
+ * ⚠️ Kısaltmanın bedeli YOK, çünkü bu yanıt ~700 BAYT (beş ünlü). Şarkı
+ * (275 KB) ve kapak (944 KB) havuzlarında aynı şeyi yapmak egress'i
+ * uçururdu; onlar 60 saniyede kalıyor.
+ */
+const ISTEMCI_TAZE = 10
 
 export function generateStaticParams() {
   return UNLU_CHIPS.map((c) => ({ chip: c.id }))
@@ -48,7 +60,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ chip: string }>
       return { v: UNLU_HAVUZ_SURUM, chip, kaynak, unluler }
     },
     {
-      'Cache-Control': `public, max-age=${ISTEMCI_TAZE}, s-maxage=${ISTEMCI_TAZE}, stale-while-revalidate=600`,
+      'Cache-Control': `public, max-age=${ISTEMCI_TAZE}, s-maxage=${ISTEMCI_TAZE}, stale-while-revalidate=30`,
     },
+    // `sikistir` belleği de kısa: aksi hâlde etiket düşse bile 10 dakika bayat servis ederdi.
+    { tazeMs: 5_000, bayatMs: 20_000 },
   )
 }
