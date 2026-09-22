@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BOS, isabet, KADEME, sanitize, uygula, type Istatistik } from '../stats'
+import { BOS, birlestir, isabet, KADEME, sanitize, uygula, type Istatistik } from '../stats'
+import type { Difficulty } from '@/data/categories'
 
 const tur = (o: Partial<Parameters<typeof uygula>[1]> = {}) => ({
   won: true,
@@ -146,5 +147,40 @@ describe('sanitize', () => {
     expect(sanitize({ sonOynama: '2026-09-13T00:00:00.000Z' }).sonOynama).toBe(
       '2026-09-13T00:00:00.000Z',
     )
+  })
+})
+
+describe('birlestir', () => {
+  const tur = (won: boolean, tier: Difficulty, heardSeconds: number) =>
+    ({ won, tier, heardSeconds, listens: 1 }) as const
+
+  it('sayaçları toplar, rekorları en iyiden alır', () => {
+    const a = uygula(uygula(BOS, tur(true, 1, 0.5), new Date('2026-01-01')), tur(false, 2, 10), new Date('2026-01-02'))
+    const b = uygula(BOS, tur(true, 3, 2), new Date('2026-03-01'))
+
+    const c = birlestir(a, b)
+    expect(c.oynanan).toBe(3)
+    expect(c.kazanilan).toBe(2)
+    expect(c.kademeDagilimi).toEqual([1, 0, 1, 0, 0])
+    expect(c.toplamDinleme).toBe(3)
+    // En iyi saniye KÜÇÜK olan, en iyi seri BÜYÜK olan.
+    expect(c.enIyiSaniye).toBe(0.5)
+    expect(c.enIyiSeri).toBe(1)
+    // Süren seri ve son oynama, en son oynanan taraftan.
+    expect(c.seri).toBe(1)
+    expect(c.sonOynama).toBe(b.sonOynama)
+  })
+
+  it('boşla birleşmek kimliği bozmaz', () => {
+    const a = uygula(BOS, tur(true, 2, 1), new Date('2026-02-02'))
+    expect(birlestir(a, BOS)).toEqual(a)
+    expect(birlestir(BOS, a)).toEqual(a)
+  })
+
+  it('sonuç sanitize süzgecinden geçer (tutarlı kalır)', () => {
+    const a = uygula(BOS, tur(true, 1, 0), new Date('2026-01-01'))
+    const b = uygula(BOS, tur(false, 1, 10), new Date('2026-01-02'))
+    const c = birlestir(a, b)
+    expect(sanitize(c)).toEqual(c)
   })
 })

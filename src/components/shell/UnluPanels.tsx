@@ -4,6 +4,9 @@ import { SERIT } from '@/data/unlu'
 import { TIER_LABELS, TIERS } from '@/data/categories'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useUnluStatsStore } from '@/store/useUnluStatsStore'
+import {
+  BASLIK_DUGME, IstatistikCagrisi, IstatistikYukleniyor, useIstatistikGorunum,
+} from '@/components/hesap/IstatistikParcalari'
 
 /**
  * Ünlü oyununun yan kartları.
@@ -122,16 +125,31 @@ export function UnluAyarKarti() {
 
 export function UnluIstatistikKarti() {
   const s = useUnluStatsStore()
+  const gorunum = useIstatistikGorunum()
+
+  // Kartın ne zaman çizildiği `shell/SidePanels`'te anlatıldı: misafire çağrı,
+  // okuma sürerken yer tutucu, hiç tur yoksa hiçbir şey.
+  if (gorunum === 'misafir') return <IstatistikCagrisi stil={CARD} />
+  if (gorunum === 'yukleniyor') return <IstatistikYukleniyor stil={CARD} />
   if (s.oynanan === 0) return null
 
   const isabet = Math.round((s.kazanilan / s.oynanan) * 100)
   const enCok = Math.max(1, ...s.kademeDagilimi)
 
   return (
-    <section style={CARD} aria-label="İstatistik">
-      <div style={{ ...CAPTION, display: 'flex', justifyContent: 'space-between', paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    /* Aralık kartın varsayılanından küçük ve sıfırla başlıkta — bkz. `shell/SidePanels`. */
+    <section style={{ ...CARD, gap: 14 }} aria-label="İstatistik">
+      <div style={{ ...CAPTION, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <span>İstatistik</span>
-        <span>Bu tarayıcıda</span>
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm('Ünlü istatistiklerin sıfırlansın mı?')) s.sifirla()
+          }}
+          style={BASLIK_DUGME}
+        >
+          sıfırla
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 8 }}>
@@ -163,19 +181,8 @@ export function UnluIstatistikKarti() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', ...CAPTION, fontSize: 9 }}>
-        <span>
-          {s.seri} seri · rekor {s.enIyiSeri}
-        </span>
-        <button
-          type="button"
-          onClick={() => {
-            if (confirm('Ünlü istatistiklerin sıfırlansın mı?')) s.sifirla()
-          }}
-          style={{ ...CAPTION, fontSize: 9, background: 'none', border: 0, cursor: 'pointer', padding: 0 }}
-        >
-          sıfırla
-        </button>
+      <div style={{ ...CAPTION, fontSize: 9 }}>
+        {s.seri} seri · rekor {s.enIyiSeri}
       </div>
     </section>
   )
@@ -238,30 +245,12 @@ export function UnluNasilKarti() {
         ))}
       </div>
 
-      <div>
-        <div style={CAPTION}>Şeritler</div>
-        <div
-          style={{
-            display: 'flex',
-            gap: 5,
-            marginTop: 9,
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            color: '#8d9398',
-          }}
-        >
-          <span>saç</span>
-          <span style={{ color: '#4e5459' }}>→</span>
-          <span>alın</span>
-          <span style={{ color: '#4e5459' }}>→</span>
-          <span>gözler</span>
-          <span style={{ color: '#4e5459' }}>→</span>
-          <span>ağız</span>
-          <span style={{ color: '#4e5459' }}>→</span>
-          <span>tamamı</span>
-        </div>
-      </div>
-
+      {/*
+        ⚠️ "Şeritler: saç → alın → gözler → ağız → tamamı" şeridi KALDIRILDI.
+        Oyuncu şeritlerin sırasını zaten ekranda görüyor: her yanlış tahminde
+        bir bant daha açılıyor. Yazıyla anlatmak hem yeri dolduruyor hem de
+        görselin kendisinden daha az anlatıyordu.
+      */}
       <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: '#7b8186' }}>
         Beşinci şerit açılınca tur biter. Türkçe karakter şart değil —
         &ldquo;yilmaz&rdquo; yazsan da &ldquo;Yılmaz&rdquo; kabul edilir.

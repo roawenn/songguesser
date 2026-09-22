@@ -13,6 +13,7 @@ import { useStatsStore } from '@/store/useStatsStore'
 import { olay } from '@/lib/olay'
 import { Confetti } from './Confetti'
 import { useSonrakiKilit } from './sonrakiKilit'
+import { useHesap } from '@/hooks/useHesap'
 
 interface Props {
   song: Song
@@ -140,6 +141,7 @@ export function ResultPanel({
   const istatistik = useStatsStore(
     useShallow((s) => ({ oynanan: s.oynanan, kazanilan: s.kazanilan, seri: s.seri })),
   )
+  const { kullanici } = useHesap()
   /*
    * Görsel adresi turun kendisinden türüyor; sunucuya hiçbir şey yazılmıyor.
    * Aynı kod hem yatay OG kartını hem bu dikey Story görselini besliyor.
@@ -353,8 +355,12 @@ export function ResultPanel({
       >
         <MarkRow marks={grid} reduce={reduce} />
 
-        {/* Kişisel sayaçlar — yalnızca bu tarayıcıda, sunucuda karşılığı yok. */}
-        {istatistik.oynanan > 0 && (
+        {/*
+          Kişisel sayaçlar — YALNIZCA GİRİŞLİYE. Girişsiz oyuncunun sayaçları
+          hiçbir yere yazılmıyor, sayfa yenilenince sıfırlanıyor (bkz.
+          `store/useStatsStore`); yarım bir sayıyı göstermek yanıltıyor.
+        */}
+        {kullanici && istatistik.oynanan > 0 && (
           <div
             style={{
               display: 'flex',

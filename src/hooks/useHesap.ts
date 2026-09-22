@@ -11,11 +11,15 @@ import { useCallback, useEffect, useState } from 'react'
  */
 
 export interface HesapKullanici {
+  /**
+   * Google profilindeki ad. Yalnızca kişinin KENDİSİNE gösterilir; başka
+   * oyunculara hiçbir yerde çizilmez (bkz. `components/gunluk/Liderlik`).
+   *
+   * `null` olabilir: yönetim adı sıfırlamışsa ya da Google'dan kullanılabilir
+   * bir ad gelmemişse. O hesap oynar, yalnızca sıralamada görünmez.
+   */
   ad: string | null
   email: string
-  adGerekli: boolean
-  /** Ad bu tarihe kadar değiştirilemez (ISO); değişebiliyorsa null. */
-  adDegisebilir: string | null
 }
 
 export interface HesapDurumu {

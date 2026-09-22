@@ -50,8 +50,13 @@ export function Header() {
           Alan adının uzantısı markanın parçası: seçili kategorinin renginde.
           `--acc` kategoriye göre kayıyor (bkz. `SahneCercevesi`), yazı da onunla
           birlikte kayıyor — ayrı bir geçiş tanımlanmasına gerek yok.
+
+          ⚠️ RENKTEN BAŞKA HİÇBİR ŞEY GEÇİLMİYOR. Punto, italik ve harf aralığı
+          `<h1>`'den MİRAS alınmalı: ayrı `fontSize: 25`, `fontStyle: 'normal'`
+          ve `letterSpacing: '.02em'` yazılıydı ve ".in" markanın kendisinden
+          kopuk, dik ve küçük görünüyordu. Tek yazı tipi, tek eğim, tek punto.
         */}
-        <span style={{ color: 'var(--acc)', fontStyle: 'normal', fontSize: 25, letterSpacing: '.02em' }}>.in</span>
+        <span style={{ color: 'var(--acc)' }}>.in</span>
       </h1>
     </header>
   )

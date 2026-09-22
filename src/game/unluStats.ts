@@ -113,3 +113,23 @@ export function unluSanitize(v: unknown): UnluIstatistik {
     sonOynama: typeof raw.sonOynama === 'string' ? raw.sonOynama : null,
   }
 }
+
+/**
+ * İki sayaç kümesini birleştirir — `stats.ts`'teki `birlestir` ile aynı kural
+ * ve aynı gerekçe (ilk girişte tarayıcıdaki ilerleme hesaba taşınır).
+ *
+ * ⚠️ `enIyiSerit` KÜÇÜK olan iyidir (az şeritle bilmek), `enIyiSeri` büyük.
+ */
+export function unluBirlestir(a: UnluIstatistik, b: UnluIstatistik): UnluIstatistik {
+  const yeni = (a.sonOynama ?? '') >= (b.sonOynama ?? '') ? a : b
+  const enAz = (x: number | null, y: number | null) => (x === null ? y : y === null ? x : Math.min(x, y))
+  return {
+    oynanan: a.oynanan + b.oynanan,
+    kazanilan: a.kazanilan + b.kazanilan,
+    kademeDagilimi: Array.from({ length: KADEME }, (_, i) => (a.kademeDagilimi[i] ?? 0) + (b.kademeDagilimi[i] ?? 0)),
+    enIyiSerit: enAz(a.enIyiSerit, b.enIyiSerit),
+    seri: yeni.seri,
+    enIyiSeri: Math.max(a.enIyiSeri, b.enIyiSeri),
+    sonOynama: yeni.sonOynama,
+  }
+}

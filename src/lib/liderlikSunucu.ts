@@ -1,6 +1,6 @@
 import 'server-only'
 import type { Gun } from '@/game/gun'
-import type { LiderlikModu, LiderlikSatiri } from '@/game/liderlik'
+import type { LiderlikModu } from '@/game/liderlik'
 import { restHeaders, restUrl } from '@/lib/supabase'
 
 /** Liderlik RPC'leri — gizli anahtarla; e-posta ya da kullanıcı kimliği DÖNMEZ. */
@@ -16,15 +16,11 @@ async function rpc(ad: string, govde: unknown) {
   return res.json()
 }
 
-export async function liderlikGetir(mod: LiderlikModu, bas: Gun, bit: Gun, limit = 50): Promise<LiderlikSatiri[]> {
-  const satirlar = (await rpc('liderlik', { p_mod: mod, p_bas: bas, p_bit: bit, p_limit: limit })) as {
-    sira: number
-    kullanici_adi: string
-    toplam: number
-    gun_sayisi: number
-  }[]
-  return satirlar.map((r) => ({ sira: Number(r.sira), ad: r.kullanici_adi, toplam: Number(r.toplam), gunSayisi: Number(r.gun_sayisi) }))
-}
+/*
+ * ⚠️ `liderlikGetir` KALDIRILDI ve `liderlik()` RPC'si şemadan düşürüldü.
+ * Herkese açık ilk-50 listesi, adlar Google profilinden geldiği için gerçek
+ * ad soyad listesi demekti. Geriye yalnızca kişinin KENDİ sırası kalıyor.
+ */
 
 export interface BenimSiram {
   sira: number

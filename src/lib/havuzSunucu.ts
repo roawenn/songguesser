@@ -32,8 +32,15 @@ import {
  * 60 saniyeydi. Havuz 15358 satıra çıkınca bunun bedeli ölçüldü: trafik olan
  * bir sitede dakikada bir tam okuma, günde ~1440 kez ~4 MB = 5+ GB — Supabase
  * ücretsiz planın AYLIK 5 GB kotası bir günde biterdi.
+ *
+ * ⚠️ 1 saatten 6 saate ÇIKARILDI. Yirmi iki önbellek anahtarı (11 seçki ×
+ * şarkı + kapak) saat başı tazelendiğinde bu tek başına ayda ~2,2 GB'dı
+ * (gzip'li ölçümle); 6 saatte ~0,4 GB. Tazelik bundan etkilenmiyor: panelden
+ * yapılan her değişiklik `revalidateTag('havuz')` ile ANINDA yayınlanıyor.
+ * Zamanlayıcının yakaladığı tek şey panel dışından (doğrudan veritabanından)
+ * yapılan düzenlemeler.
  */
-const SUPABASE_TAZELE = 3600
+const SUPABASE_TAZELE = 6 * 3600
 
 /** Bellekteki satırların taze sayıldığı süre — `lib/sikistir` ile aynı. */
 const TTL_MS = 60_000

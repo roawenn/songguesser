@@ -57,9 +57,40 @@ tazelenir.
 
 Oyunun okuduğu `/api/havuz/<çip>` rotası Next'in veri önbelleğinde
 `havuz` etiketiyle tutulur ve derleme sırasında önceden üretilir. Yani
-oyuncular Supabase'e değil CDN'e vurur — ücretsiz plandaki 5 GB/ay bant
-genişliği tükenmez. Panelden bir değişiklik yapıldığında etiket
-geçersizleştiği için yayın yine **anında** olur.
+oyuncular Supabase'e değil CDN'e vurur. Panelden bir değişiklik yapıldığında
+etiket geçersizleştiği için yayın yine **anında** olur.
+
+Ücretsiz planın kotası **5 GB sıkıştırılmamış + 5 GB CDN önbellekli** egress.
+Kotanın iki katına çıktığı (9,99 GB, %99,9'u PostgREST) bir ay sonrası ölçülen
+dört kaynak ve alınan önlemler:
+
+1. **Havuz okumaları veri önbelleğine HİÇ girmiyordu.** `next: { revalidate,
+   tags }` yazılıydı ama Next yalnızca `200` dönen yanıtları saklıyor
+   (`patch-fetch.js`), sayfalama ise `Prefer: count=exact` yüzünden
+   `206 Partial Content` alıyordu. Sonuç: `.next/cache/fetch-cache` içinde tek
+   bir havuz girdisi yok ve SOĞUK her istek 16 sayfalık tam okuma. Tek
+   koruma, süreç ömrü kadar yaşayan bellek önbellekleriydi; HMR'de ve her yeni
+   sunucu örneğinde sıfırlanıyordu. Sayım artık ~200 baytlık ayrı bir isteğe
+   alındı, sayfalar `200` dönüyor ve önbelleğe giriyor (ölçüldü: aynı uç nokta
+   2,8 sn → 0,03 sn, 16 sayfa önbellekte).
+2. **Sıkıştırma yoktu.** Node'un `fetch`'i, tarayıcının aksine,
+   `Accept-Encoding` başlığını KENDİLİĞİNDEN göndermiyor; Supabase de
+   istenmedikçe sıkıştırmıyor. Yani her okuma ham JSON iniyordu. Ölçüm (1000
+   satır, `POOL_COLUMNS`): **333 KB → 47 KB**. Tam "Karışık" havuz 5,1 MB →
+   722 KB; yönetim panelinin listesi 12 MB → 2 MB. Başlık artık
+   `restHeaders` içinde, yani BÜTÜN okuma ve yazmalar sıkıştırılmış geliyor.
+3. **Zamanlayıcı fazla sıktı.** 11 seçki × (şarkı + kapak) = 22 önbellek
+   anahtarı saat başı tazeleniyordu: tek başına ayda ~2,2 GB. Aralık 6 saate
+   çıkarıldı (~0,4 GB). Tazelik etkilenmez — yayın `revalidateTag` ile anında.
+4. **Depo görselleri `no-cache` ile duruyordu.** Supabase Storage yükleme
+   sırasında `Cache-Control` verilmezse nesneye `no-cache` yazıyor: tarayıcı
+   görseli her turda yeniden doğruluyor. Yükleme artık bir yıllık `immutable`
+   başlık yazıyor (adreste `?v=<image_ver>` olduğu için güvenli).
+
+⚠️ Panelden yapılan **her** kayıt `revalidateTag('havuz')` çağırıyor ve bu 22
+anahtarın hepsini düşürüyor; yani yoğun küratörlük yapılan bir günde havuz
+defalarca yeniden okunuyor (sıkıştırmayla okuma başına ~3 MB). Kota yine
+zorlanırsa sıradaki adım etiketi seçki başına bölmek (`havuz:<çip>`).
 
 ### Veritabanı kesintisi
 

@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { adDenetle, adHarfi, adNormu, adTonu, denetimMetni } from '../kullaniciAdi'
+import {
+  adDenetle, adHarfi, adNormu, adTonu, denetimMetni,
+  epostaAdi, gorunenAdDenetle, gorunenAdDuzelt, GORUNEN_AD_EN_UZUN,
+} from '../kullaniciAdi'
 import { uygunsuzMu } from '@/lib/uygunsuz'
 
 const hata = (ad: string) => {
@@ -81,5 +84,37 @@ describe('avatar', () => {
     expect(adTonu('ali')).toBeLessThan(360)
     expect(adHarfi('ilkay')).toBe('İ')
     expect(adHarfi('34_ali')).toBe('A')
+  })
+})
+
+describe('görünen ad (Google profilinden)', () => {
+  it('gerçek adlar geçer — boşluk, tire, kesme işareti, aksan', () => {
+    for (const ad of ['Ahmet Yılmaz', 'Ayşe Nur Öztürk', "Ahmet O'Brien", 'Jean-Luc Picard', 'Иван Петров']) {
+      expect([ad, gorunenAdDenetle(ad, uygunsuzMu).ok]).toEqual([ad, true])
+    }
+  })
+
+  it('boşluk sadeleşir, kırpılır ve 40 karakterde kesilir', () => {
+    expect(gorunenAdDuzelt('  Ahmet   Yılmaz \n')).toBe('Ahmet Yılmaz')
+    expect(Array.from(gorunenAdDuzelt('a'.repeat(80))).length).toBe(GORUNEN_AD_EN_UZUN)
+    // Kontrol karakterleri düşer.
+    expect(gorunenAdDuzelt('Ah\u0000met')).toBe('Ahmet')
+  })
+
+  it('küfürlü ad reddedilir — çok kelimeli hâlde de', () => {
+    for (const ad of ['orospu cocugu', 'Ahmet Siktir', 'fuck you', 'amk']) {
+      expect([ad, gorunenAdDenetle(ad, uygunsuzMu).ok]).toEqual([ad, false])
+    }
+  })
+
+  it('kısa ya da harfsiz ad kullanılamaz', () => {
+    expect(gorunenAdDenetle('A').ok).toBe(false)
+    expect(gorunenAdDenetle('   ').ok).toBe(false)
+    expect(gorunenAdDenetle('🙂🙂').ok).toBe(false)
+  })
+
+  it('e-postadan ad: @ öncesi, ayraçlar boşluk olur', () => {
+    expect(epostaAdi('ahmet.yilmaz@gmail.com')).toBe('ahmet yilmaz')
+    expect(epostaAdi('beftli@futbolist.co')).toBe('beftli')
   })
 })

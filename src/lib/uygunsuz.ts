@@ -4,9 +4,12 @@ import { leetAc } from '@/text/kullaniciAdi'
 /**
  * Terlik ile uygunsuzluk denetimi — kullanıcı adına özel.
  *
- * ⚠️ İSTEMCİYE GİRMEMELİ: sözlük onlarca KB. Yalnızca sunucu rotaları
- * (`api/hesap/ad`) içe aktarıyor; `server-only` yazılmadı çünkü testler de
- * gerçek sözlükle çalışıyor.
+ * ⚠️ İSTEMCİYE GİRMEMELİ: sözlük onlarca KB. Yalnızca giriş rotası
+ * (`api/giris/google/donus`) içe aktarıyor; `server-only` yazılmadı çünkü
+ * testler de gerçek sözlükle çalışıyor.
+ *
+ * ⚠️ Artık ELLE GİRİLEN adı değil, GOOGLE PROFİLİNDEKİ adı deniyor ve sonucu
+ * sert: uygunsuz bulunursa hesap hiç açılmıyor (bkz. `adBelirle`).
  *
  * Bir ad birkaç biçimiyle denetleniyor: ham hâli, alt çizgileri boşluk
  * yapılmış hâli ("pic_kurusu" → iki kelime), rakamları atılmış hâli

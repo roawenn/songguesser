@@ -73,9 +73,15 @@ function SiralamaNotu({ kullanicili, bitti }: { kullanicili: boolean | null; bit
   const bag = { color: 'var(--acc)', textDecoration: 'underline', textUnderlineOffset: 3 }
 
   if (kullanicili) {
+    /*
+     * ⚠️ "Kullanıcı adını seç" BAĞLANTISI KALKTI: ad Google profilinden
+     * geliyor, seçilecek bir şey yok. Adsız hesap (yönetim sıfırlamışsa)
+     * oynar ve puanı yazılır ama sıralamada görünmez — bunu açıkça söyle.
+     */
     return kullanici && !kullanici.ad ? (
       <p style={stil}>
-        Sonucun kaydedildi. Sıralamada görünmek için <a href="/hesap?ad=sec&donus=/gunluk" style={bag}>kullanıcı adını seç</a>.
+        Sonucun kaydedildi. Hesabında görünen bir ad olmadığı için sıralamada yer almıyorsun —{' '}
+        <a href="/hesap" style={bag}>hesabına bak</a>.
       </p>
     ) : (
       <p style={stil}>Sonucun {kullanici?.ad ? <strong style={{ color: '#d5d9dc' }}>{kullanici.ad}</strong> : 'hesabın'} adıyla sıralamaya yazıldı.</p>

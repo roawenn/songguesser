@@ -1,61 +1,39 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { guvenliDepo } from './guvenliDepo'
-import {
-  UNLU_BOS, unluSanitize, unluUygula, type UnluIstatistik, type UnluTurSonucu,
-} from '@/game/unluStats'
+import { UNLU_BOS, unluUygula, type UnluIstatistik, type UnluTurSonucu } from '@/game/unluStats'
 
 /**
- * Ünlü oyununun kişisel istatistiği.
+ * Ünlü tanıma oyununun kişisel istatistiği — BELLEKTE, kalıcılık HESAPTA.
  *
- * ⚠️ Şarkı istatistiğine (`tahmin:istatistik:v1`) HİÇ DOKUNULMUYOR — ayrı
- * anahtar, sıfır göç, sıfır veri kaybı. Aynı depoda tutmak "en iyi saniye" ve
- * "toplam dinleme" gibi ses alanlarını ünlü turlarında anlamsız bırakır,
- * yüzdeleri de karıştırırdı.
+ * ⚠️ `persist` KALDIRILDI: gerekçesi `useStatsStore`'da yazılı — tarayıcı
+ * deposu sayaçları habire sıfırlıyordu. Tek kalıcı yer hesap.
  *
- * `guvenliDepo` paylaşılıyor: tek kuyruk, tek `pagehide` boşaltması.
+ * ⚠️ Mantık `unluStats.ts`'ten PAYLAŞILIYOR: iki oyunun kuralı aynı (beş adım,
+ * en az adımla bilmek rekor) ve sayma orada testli.
  */
 
 interface UnluStatsStore extends UnluIstatistik {
-  /**
-   * ⚠️ KALICI DEĞİL (`partialize` dışında). React StrictMode efektleri iki kez
-   * çalıştırıyor; bileşen içindeki bir `ref` yeniden bağlanmada sıfırlandığı
-   * için tur iki kez sayılıyordu. Depo bileşenden uzun yaşadığı için koruma
-   * burada. Diske yazılsaydı aynı kişiyi günler sonra tekrar bilen oyuncunun
-   * turu sessizce yutulurdu.
-   */
+  /** StrictMode çift etki koruması (bkz. `useStatsStore`). */
   sonTur: string | null
+  /** Sayaçların hangi hesaptan geldiği — diske YAZILMAZ. */
+  hesapId: string | null
 
   kaydet: (turId: string, t: UnluTurSonucu) => void
+  /** Sunucudan gelen (ya da onunla birleştirilmiş) sayaçları yerleştirir. */
+  yerlestir: (veri: UnluIstatistik, hesapId: string) => void
   sifirla: () => void
 }
 
-export const useUnluStatsStore = create<UnluStatsStore>()(
-  persist(
-    (set, get) => ({
-      ...UNLU_BOS,
-      sonTur: null,
+export const useUnluStatsStore = create<UnluStatsStore>()((set, get) => ({
+  ...UNLU_BOS,
+  sonTur: null,
+  hesapId: null,
 
-      kaydet: (turId, t) => {
-        if (get().sonTur === turId) return
-        set({ ...unluUygula(get(), t), sonTur: turId })
-      },
+  kaydet: (turId, t) => {
+    if (get().sonTur === turId) return
+    set({ ...unluUygula(get(), t), sonTur: turId })
+  },
 
-      sifirla: () => set({ ...UNLU_BOS, sonTur: null }),
-    }),
-    {
-      name: 'tahmin:unlu-istatistik:v1',
-      storage: guvenliDepo,
-      partialize: (s) => ({
-        oynanan: s.oynanan,
-        kazanilan: s.kazanilan,
-        kademeDagilimi: s.kademeDagilimi,
-        enIyiSerit: s.enIyiSerit,
-        seri: s.seri,
-        enIyiSeri: s.enIyiSeri,
-        sonOynama: s.sonOynama,
-      }),
-      merge: (persisted, current) => ({ ...current, ...unluSanitize(persisted) }),
-    },
-  ),
-)
+  yerlestir: (veri, hesapId) => set({ ...veri, hesapId }),
+
+  sifirla: () => set({ ...UNLU_BOS, sonTur: null }),
+}))

@@ -10,10 +10,9 @@ import type { StateStorage } from 'zustand/middleware'
  * ara katmanı her `set()` çağrısında eşzamanlı `storage.setItem` yapıyor ve
  * `createJSONStorage` yalnızca `window.localStorage`'a *erişimi* koruyor,
  * yazmayı değil. Safari Gizli Gezinti'de ve kota dolduğunda `setItem`
- * `QuotaExceededError` fırlatıyor; ilk tur bitince istatistik yazması bir
- * efektin içinden geldiği için hata efektten dışarı çıkıyor, hata sınırı
- * olmadığından React tüm ağacı söküyor ve oyuncu **oyun ortasında boş sayfa**
- * görüyordu.
+ * `QuotaExceededError` fırlatıyor; yazma bir efektin içinden geldiği için hata
+ * efektten dışarı çıkıyor, hata sınırı olmadığından React tüm ağacı söküyor ve
+ * oyuncu **oyun ortasında boş sayfa** görüyordu.
  *
  * ⚠️ **Her `set()` diske yazıyordu.** Ses kaydırıcısı sürüklenirken bu, işaretçi
  * olayı hızında (120-1000 Hz) eşzamanlı, ana iş parçacığını bloklayan bir disk
@@ -89,5 +88,11 @@ const adaptor: StateStorage = {
   },
 }
 
-/** Her iki kalıcı depo da bunu paylaşır — tek kuyruk, tek `pagehide` dinleyicisi. */
+/**
+ * Kalıcı depolar (ayarlar, günlük) bunu paylaşır — tek kuyruk, tek `pagehide`
+ * dinleyicisi.
+ *
+ * ⚠️ İSTATİSTİK DEPOLARI ARTIK BURAYA YAZMIYOR: sayaçlar tarayıcıda değil
+ * hesapta duruyor (bkz. `store/useStatsStore`).
+ */
 export const guvenliDepo = createJSONStorage(() => adaptor)

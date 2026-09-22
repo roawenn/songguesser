@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { SERIT } from '@/data/unlu'
 import { useUnluStatsStore } from '@/store/useUnluStatsStore'
+import { useHesap } from '@/hooks/useHesap'
 import { Confetti } from './Confetti'
 import { useSonrakiKilit } from './sonrakiKilit'
 
@@ -36,6 +37,12 @@ export function UnluSonucPanel({ ad, gorselUrl, kazandi, acilan, reduce, onSonra
     useShallow((s) => ({ oynanan: s.oynanan, kazanilan: s.kazanilan, seri: s.seri })),
   )
   const isabet = oynanan === 0 ? 0 : Math.round((kazanilan / oynanan) * 100)
+  /*
+   * ⚠️ Şerit YALNIZCA GİRİŞLİYE. Girişsiz oyuncunun sayaçları hiçbir yere
+   * yazılmıyor; sayfa yenilenince sıfırlanacak bir "12 tur"u göstermek tam da
+   * tarayıcı deposundan vazgeçme sebebimizdi (bkz. `store/useStatsStore`).
+   */
+  const { kullanici } = useHesap()
 
   return (
     <div
@@ -98,14 +105,16 @@ export function UnluSonucPanel({ ad, gorselUrl, kazandi, acilan, reduce, onSonra
         </div>
       </div>
 
-      {/* İstatistik şeridi */}
-      <div style={{ ...MONO, marginTop: 16, color: '#6a7075', display: 'flex', gap: 14 }}>
-        <span>%{isabet} isabet</span>
-        <span>·</span>
-        <span>{oynanan} tur</span>
-        <span>·</span>
-        <span>{seri} seri</span>
-      </div>
+      {/* İstatistik şeridi — hesabı olana. */}
+      {kullanici && (
+        <div style={{ ...MONO, marginTop: 16, color: '#6a7075', display: 'flex', gap: 14 }}>
+          <span>%{isabet} isabet</span>
+          <span>·</span>
+          <span>{oynanan} tur</span>
+          <span>·</span>
+          <span>{seri} seri</span>
+        </div>
+      )}
 
       <button
         type="button"

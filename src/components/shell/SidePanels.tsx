@@ -6,6 +6,9 @@ import { STEPS, tr } from '@/game/ladder'
 import { isabet, KADEME } from '@/game/stats'
 import { TIER_LABELS, type Difficulty } from '@/data/categories'
 import { useStatsStore } from '@/store/useStatsStore'
+import {
+  BASLIK_DUGME, IstatistikCagrisi, IstatistikYukleniyor, useIstatistikGorunum,
+} from '@/components/hesap/IstatistikParcalari'
 
 /**
  * Şarkı oyununun yan kartları.
@@ -260,29 +263,70 @@ export function SettingsCard({
 /**
  * Kişisel sayaçlar.
  *
- * ⚠️ Hepsi YALNIZCA bu tarayıcıda. Hesap yok, sunucuda karşılığı yok, başka
- * kimse göremiyor — liderlik tablosu bilinçli olarak kapsam dışı bırakıldı.
- * Veri kullanıcının olduğu için silme düğmesi de burada duruyor.
+ * ⚠️ BAŞKA KİMSE GÖREMİYOR ve YALNIZCA GİRİŞLİDE VAR: sayaçlar hesapta
+ * duruyor, tarayıcıda değil (bkz. `hooks/useIstatistikSenkron`). Veri kişinin kendisine
+ * ait — silme düğmesi bu yüzden kartın kendi başlığında duruyor.
  */
 export function StatsCard() {
   const s = useStatsStore()
   const sifirla = useStatsStore((x) => x.sifirla)
   const [soruyor, setSoruyor] = useState(false)
+  const gorunum = useIstatistikGorunum()
 
   /*
-   * ⚠️ Hiç oynamamış birine boş bir tablo göstermenin anlamı yok; blok ilk
-   * tur bitene kadar hiç çıkmıyor. `oynanan` sunucudan değil `localStorage`'dan
-   * geldiği için ilk render'da da doğru (zustand persist senkron okuyor).
+   * ⚠️ MİSAFİRE SAYAÇ ÇİZİLMEZ, giriş çağrısı çizilir: girişsiz oyuncunun
+   * sayaçları hiçbir yere yazılmıyor ve sayfa yenilenince kayboluyor.
+   *
+   * ⚠️ Yükleniyor durumu da ayrı: sayaçlar artık hesaptan geliyor ve ilk okuma
+   * bitene kadar `oynanan` sıfır görünüyor. Yer tutucu olmasaydı kart her
+   * sayfa açılışında bir an yok olup sonra belirirdi.
+   *
+   * Hiç oynamamış GİRİŞLİ oyuncuda hiçbir şey çizilmiyor: boş bir tablo
+   * göstermenin anlamı yok.
    */
+  if (gorunum === 'misafir') return <IstatistikCagrisi stil={CARD} />
+  if (gorunum === 'yukleniyor') return <IstatistikYukleniyor stil={CARD} />
   if (s.oynanan === 0) return null
 
   const enYuksek = Math.max(1, ...s.kademeDagilimi)
 
   return (
-    <section style={CARD} aria-label="İstatistik">
-      <div style={{ display: 'flex', justifyContent: 'space-between', ...CAPTION, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    /*
+     * ⚠️ `gap` KARTIN VARSAYILANINDAN (24) KÜÇÜK. Bu kartta dört blok var —
+     * sayaçlar, dağılım, seri, çağrı — ve 24'lük aralık üstüne bir de blokların
+     * kendi `marginTop`'ları biniyordu: aradaki boşluk 38-39 px'e çıkıyor,
+     * kart bomboş görünüyordu. Aralık tek yerden veriliyor, blokların kendi
+     * üst payı yok.
+     */
+    <section style={{ ...CARD, gap: 14 }} aria-label="İstatistik">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', ...CAPTION, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <span>İstatistik</span>
-        <span style={{ color: '#8d9398' }}>bu tarayıcıda</span>
+        {/*
+          Sıfırla BAŞLIKTA: altta "seri" yazısının yanında duruyordu ve kartın
+          en dip satırı iki işi birden taşıyordu. Başlığın sağı zaten boştaydı
+          ("bu tarayıcıda" yazısı kaldırıldı).
+        */}
+        {soruyor ? (
+          <span style={{ display: 'flex', gap: 10 }}>
+            <button
+              type="button"
+              onClick={() => {
+                sifirla()
+                setSoruyor(false)
+              }}
+              style={{ ...BASLIK_DUGME, color: '#d09a9a' }}
+            >
+              sil
+            </button>
+            <button type="button" onClick={() => setSoruyor(false)} style={BASLIK_DUGME}>
+              vazgeç
+            </button>
+          </span>
+        ) : (
+          <button type="button" onClick={() => setSoruyor(true)} style={BASLIK_DUGME}>
+            sıfırla
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: 8 }}>
@@ -295,7 +339,7 @@ export function StatsCard() {
       </div>
 
       {/* Kademe dağılımı: hangi zorlukta kaç tur bilindi. */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 15 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         {Array.from({ length: KADEME }, (_, i) => {
           const n = s.kademeDagilimi[i] ?? 0
           return (
@@ -346,52 +390,9 @@ export function StatsCard() {
         })}
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 10,
-          marginTop: 14,
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          color: '#6d7378',
-        }}
-      >
-        <span>
-          {s.seri > 0 ? `${s.seri} seri` : 'seri yok'}
-          {s.enIyiSeri > 0 && ` · rekor ${s.enIyiSeri}`}
-        </span>
-
-        {soruyor ? (
-          <span style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => {
-                sifirla()
-                setSoruyor(false)
-              }}
-              style={{ color: '#d09a9a', fontFamily: 'inherit', fontSize: 'inherit' }}
-            >
-              sil
-            </button>
-            <button
-              type="button"
-              onClick={() => setSoruyor(false)}
-              style={{ color: '#6d7378', fontFamily: 'inherit', fontSize: 'inherit' }}
-            >
-              vazgeç
-            </button>
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setSoruyor(true)}
-            style={{ color: '#5c6267', fontFamily: 'inherit', fontSize: 'inherit' }}
-          >
-            sıfırla
-          </button>
-        )}
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6d7378' }}>
+        {s.seri > 0 ? `${s.seri} seri` : 'seri yok'}
+        {s.enIyiSeri > 0 && ` · rekor ${s.enIyiSeri}`}
       </div>
     </section>
   )

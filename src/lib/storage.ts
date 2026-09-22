@@ -27,6 +27,21 @@ function yazUrl(kova: string, yol: string): string {
 }
 
 /**
+ * Depoya yüklenen dosyanın önbellek ömrü.
+ *
+ * ⚠️ VARSAYILAN `no-cache`'TİR ve bu ölçüldü: kovadaki beş ünlü görselinin
+ * hepsi `cache-control: no-cache` ile duruyordu. Yani tarayıcı görseli her
+ * turda yeniden doğruluyor, Supabase CDN'i de kaydı taze tutmuyordu —
+ * ücretsiz plandaki depo egress'ini boşuna yiyen bir varsayılan.
+ *
+ * ⚠️ `immutable` GÜVENLİ ÇÜNKÜ ADRESTE SÜRÜM VAR: okuma adresi
+ * `unluGorselYolu` ile `?v=<image_ver>` taşıyor (bkz. `data/unlu.ts`).
+ * Bir görsel yeniden yüklenecekse `image_ver` MUTLAKA artırılmalı; yoksa
+ * eski görsel tarayıcılarda bir yıl boyunca asılı kalır.
+ */
+const ONBELLEK = 'public, max-age=31536000, immutable'
+
+/**
  * Görseli depoya yazar. Aynı yol varsa ÜZERİNE yazar.
  *
  * ⚠️ `x-upsert` şart: küratör bir ünlüyü yeniden kırptığında yol değişmiyor
@@ -41,7 +56,12 @@ export async function storageYukle(
   try {
     const res = await fetch(yazUrl(kova, yol), {
       method: 'POST',
-      headers: { ...restHeaders({ secret: true, tip }), 'x-upsert': 'true' },
+      headers: {
+        ...restHeaders({ secret: true, tip }),
+        'x-upsert': 'true',
+        // Depo bu başlığı nesnenin üstünde saklar ve okumada aynen döner (ölçüldü).
+        'Cache-Control': ONBELLEK,
+      },
       body: govde as BodyInit,
       cache: 'no-store',
     })

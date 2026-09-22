@@ -146,3 +146,41 @@ export function sanitize(v: unknown): Istatistik {
     sonOynama,
   }
 }
+
+/** İki "en iyi" değerinden küçüğü; ikisi de yoksa `null`. */
+function enAz(a: number | null, b: number | null): number | null {
+  if (a === null) return b
+  if (b === null) return a
+  return Math.min(a, b)
+}
+
+/**
+ * İki sayaç kümesini birleştirir.
+ *
+ * ⚠️ İLK GİRİŞTE BİR KEZ çalışır: tarayıcıdaki (misafirken oynanmış) sayaçlar
+ * hesaptakilerle toplanır, sonra hesap tek kaynak olur. Depo hangi hesaba
+ * taşındığını `hesapId` ile hatırlıyor; olmasaydı her sayfa yenilemesi aynı
+ * turları bir kez daha toplar ve "142 tur" bir anda "284 tur" olurdu.
+ *
+ * Sayaçlar TOPLANIR, rekorlar EN İYİ alınır. `seri` toplanamaz (üst üste
+ * kazanma iki cihazda birleştirilemez), o yüzden en son oynanan taraftan
+ * gelir — "şu an devam eden seri" anlamı böyle korunur.
+ */
+export function birlestir(a: Istatistik, b: Istatistik): Istatistik {
+  const yeni = (a.sonOynama ?? '') >= (b.sonOynama ?? '') ? a : b
+  return {
+    oynanan: a.oynanan + b.oynanan,
+    kazanilan: a.kazanilan + b.kazanilan,
+    kademeDagilimi: Array.from({ length: KADEME }, (_, i) => (a.kademeDagilimi[i] ?? 0) + (b.kademeDagilimi[i] ?? 0)),
+    enIyiSaniye: enAz(a.enIyiSaniye, b.enIyiSaniye),
+    toplamDinleme: a.toplamDinleme + b.toplamDinleme,
+    seri: yeni.seri,
+    enIyiSeri: Math.max(a.enIyiSeri, b.enIyiSeri),
+    sonOynama: yeni.sonOynama,
+  }
+}
+
+/** Hiç oynanmamış mı? Boş kayıt sunucuya yazılmasın. */
+export function bosMu(s: Pick<Istatistik, 'oynanan'>): boolean {
+  return s.oynanan === 0
+}

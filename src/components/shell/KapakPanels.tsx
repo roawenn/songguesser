@@ -4,6 +4,9 @@ import { KAPAK_ADIM, KAPAK_BOYUTLARI } from '@/data/kapak'
 import { TIER_LABELS, TIERS } from '@/data/categories'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useKapakStatsStore } from '@/store/useKapakStatsStore'
+import {
+  BASLIK_DUGME, IstatistikCagrisi, IstatistikYukleniyor, useIstatistikGorunum,
+} from '@/components/hesap/IstatistikParcalari'
 
 /**
  * Kapaktan Albüm oyununun yan kartları.
@@ -130,16 +133,31 @@ export function KapakAyarKarti() {
 
 export function KapakIstatistikKarti() {
   const s = useKapakStatsStore()
+  const gorunum = useIstatistikGorunum()
+
+  // Kartın ne zaman çizildiği `shell/SidePanels`'te anlatıldı: misafire çağrı,
+  // okuma sürerken yer tutucu, hiç tur yoksa hiçbir şey.
+  if (gorunum === 'misafir') return <IstatistikCagrisi stil={CARD} />
+  if (gorunum === 'yukleniyor') return <IstatistikYukleniyor stil={CARD} />
   if (s.oynanan === 0) return null
 
   const isabet = Math.round((s.kazanilan / s.oynanan) * 100)
   const enCok = Math.max(1, ...s.kademeDagilimi)
 
   return (
-    <section style={CARD} aria-label="İstatistik">
-      <div style={{ ...CAPTION, display: 'flex', justifyContent: 'space-between', paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    /* Aralık kartın varsayılanından küçük ve sıfırla başlıkta — bkz. `shell/SidePanels`. */
+    <section style={{ ...CARD, gap: 14 }} aria-label="İstatistik">
+      <div style={{ ...CAPTION, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <span>İstatistik</span>
-        <span>Bu tarayıcıda</span>
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm('Kapak istatistiklerin sıfırlansın mı?')) s.sifirla()
+          }}
+          style={BASLIK_DUGME}
+        >
+          sıfırla
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 8 }}>
@@ -170,19 +188,8 @@ export function KapakIstatistikKarti() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', ...CAPTION, fontSize: 9 }}>
-        <span>
-          {s.seri} seri · rekor {s.enIyiSeri}
-        </span>
-        <button
-          type="button"
-          onClick={() => {
-            if (confirm('Kapak istatistiklerin sıfırlansın mı?')) s.sifirla()
-          }}
-          style={{ ...CAPTION, fontSize: 9, background: 'none', border: 0, cursor: 'pointer', padding: 0 }}
-        >
-          sıfırla
-        </button>
+      <div style={{ ...CAPTION, fontSize: 9 }}>
+        {s.seri} seri · rekor {s.enIyiSeri}
       </div>
     </section>
   )

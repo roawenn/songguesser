@@ -62,11 +62,13 @@ export default function GizlilikPage() {
           <p>Sıralamaya girmek isteğe bağlıdır. Giriş yaparsan şu veriler işlenir:</p>
           <ul className="list-disc pl-5">
             <li>Google hesap kimliğin (değişmeyen bir numara) ve e-posta adresin,</li>
-            <li>seçtiğin kullanıcı adı (sıralamada herkese açık görünür),</li>
-            <li>günlük sonuçların (puan, bitiş zamanı) ve oturum bilgisi.</li>
+            <li>Google profilindeki adın (hesabında ve oyun içi bildirimlerde yalnızca sana gösterilir),</li>
+            <li>günlük sonuçların (puan, bitiş zamanı), oyun istatistiklerin ve oturum bilgisi.</li>
           </ul>
           <p>
-            Google&rsquo;daki adın, soyadın ve profil fotoğrafın <strong className="text-ink-0">alınmaz ve saklanmaz</strong>.
+            Adın <strong className="text-ink-0">başka oyunculara gösterilmez</strong>: sıralamada yalnızca
+            kendi sıranı ve toplam oyuncu sayısını görürsün, herkese açık bir isim listesi yoktur.
+            Profil fotoğrafın <strong className="text-ink-0">alınmaz ve saklanmaz</strong>.
           </p>
         </Bolum>
 
@@ -77,8 +79,8 @@ export default function GizlilikPage() {
               sözleşmenin kurulması ve ifası (KVKK md. 5/2-c).
             </li>
             <li>
-              Hile ve kötüye kullanımın önlenmesi, hız sınırı, uygunsuz kullanıcı adlarının
-              engellenmesi — meşru menfaat (KVKK md. 5/2-f).
+              Hile ve kötüye kullanımın önlenmesi, hız sınırı, uygunsuz adların engellenmesi —
+              meşru menfaat (KVKK md. 5/2-f).
             </li>
           </ul>
           <p>Bu işlemler için açık rızan istenmez; yukarıdaki hukuki sebeplere dayanır.</p>
@@ -101,7 +103,7 @@ export default function GizlilikPage() {
           <ul className="list-disc pl-5">
             <li>Günlük oturum ayrıntıları (tahminler dahil): 120 gün.</li>
             <li>Oturum çerezi: 60 gün ya da çıkış yapana kadar.</li>
-            <li>Hesap, kullanıcı adı ve sıralama sonuçları: hesabını silene kadar.</li>
+            <li>Hesap, ad, istatistikler ve sıralama sonuçları: hesabını silene kadar.</li>
             <li>Hız sınırı sayaçları: en fazla 1 gün.</li>
           </ul>
         </Bolum>

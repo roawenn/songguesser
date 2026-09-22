@@ -21,6 +21,14 @@ describe('yonlendirmeAdresi', () => {
     expect(yonlendirmeAdresi('http://localhost:3000', {})).toBe('http://localhost:3000/api/giris/google/donus')
     expect(yonlendirmeAdresi('https://tahmin-git-x.vercel.app', {})).toBeNull()
   })
+
+  it('geliştirmede her yerel port açık, üretimde değil', () => {
+    expect(yonlendirmeAdresi('http://localhost:3001', {})).toBe('http://localhost:3001/api/giris/google/donus')
+    expect(yonlendirmeAdresi('http://127.0.0.1:3002', {})).toBe('http://127.0.0.1:3002/api/giris/google/donus')
+    // Üretimde liste dışındaki hiçbir köken açılmaz — yerel bile olsa.
+    expect(yonlendirmeAdresi('http://localhost:3001', { NODE_ENV: 'production' })).toBeNull()
+    expect(yonlendirmeAdresi('https://localhost.evil.com', {})).toBeNull()
+  })
 })
 
 describe('yetkiAdresi', () => {
@@ -45,7 +53,16 @@ describe('id_token', () => {
   })
 
   it('geçerli iddialar', () => {
-    expect(idTokenDogrula(iyi, { clientId: 'cid', simdi })).toEqual({ ok: true, sub: '1234567890', email: 'a@b.com' })
+    expect(idTokenDogrula(iyi, { clientId: 'cid', simdi })).toEqual({ ok: true, sub: '1234567890', email: 'a@b.com', ad: null })
+  })
+
+  it('ad: önce name, sonra given_name, yoksa null', () => {
+    const d = (x: object) => idTokenDogrula({ ...iyi, ...x }, { clientId: 'cid', simdi })
+    expect(d({ name: 'Ahmet Yılmaz', given_name: 'Ahmet' })).toMatchObject({ ok: true, ad: 'Ahmet Yılmaz' })
+    expect(d({ given_name: 'Ahmet' })).toMatchObject({ ok: true, ad: 'Ahmet' })
+    // Boşluktan ibaret ad yok sayılır — çağıran e-postaya düşsün.
+    expect(d({ name: '   ' })).toMatchObject({ ok: true, ad: null })
+    expect(d({ name: 42 })).toMatchObject({ ok: true, ad: null })
   })
 
   it('her alan ayrı reddedilir', () => {

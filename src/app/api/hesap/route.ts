@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { yonlendirmeAdresi } from '@/lib/googleKimlik'
 import { sinirAsildi, cokHizli } from '@/lib/hizSinir'
 import { KULLANICI_COOKIE, ayniKoken, cerezAyari, oturumKullanici } from '@/lib/kullaniciAuth'
-import { adDegisebilirTarih, kullaniciSil } from '@/lib/kullaniciStore'
+import { kullaniciSil } from '@/lib/kullaniciStore'
 
 /**
  * Hesap durumu ve hesap silme.
@@ -16,14 +16,13 @@ export async function GET(req: Request) {
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && yonlendirmeAdresi(origin, process.env),
   )
   const k = await oturumKullanici({ taze: true })
-  const tarih = k ? adDegisebilirTarih(k.adDegisti) : null
+  /*
+   * ⚠️ `adGerekli` / `adDegisebilir` KALDIRILDI. Ad artık Google profilinden
+   * geliyor (bkz. `api/giris/google/donus`), elle seçilmiyor; "ad seç" adımı
+   * ve 30 günlük değişim sınırı diye bir şey kalmadı.
+   */
   return NextResponse.json(
-    {
-      girisAcik,
-      kullanici: k
-        ? { ad: k.ad, email: k.email, adGerekli: k.ad === null, adDegisebilir: tarih ? tarih.toISOString() : null }
-        : null,
-    },
+    { girisAcik, kullanici: k ? { ad: k.ad, email: k.email } : null },
     { headers: { 'Cache-Control': 'no-store' } },
   )
 }

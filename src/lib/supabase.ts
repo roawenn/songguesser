@@ -98,7 +98,23 @@ export function restHeaders(
   const key = opts.secret
     ? (process.env.SUPABASE_SECRET_KEY ?? '')
     : SUPABASE_ANON
-  const h: Record<string, string> = { apikey: key, Authorization: `Bearer ${key}` }
+  const h: Record<string, string> = {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    /*
+     * ⚠️ `Accept-Encoding` ŞART: Node'un `fetch`'i (undici) tarayıcının
+     * aksine bunu KENDİLİĞİNDEN göndermiyor. Başlıksız her okuma
+     * sıkıştırılmamış iniyordu ve Supabase egress'i yedi katına çıkıyordu.
+     *
+     * Ölçüldü (1000 satır, `POOL_COLUMNS`): 333 KB → 47 KB. Tam "Karışık"
+     * havuz okuması 5,1 MB → 722 KB, yönetim panelinin listesi 12 MB → 2 MB.
+     * Gövdeyi undici saydam açıyor; çağrı yerlerinin hiçbiri değişmiyor.
+     *
+     * `br` %6 daha küçük ama Node sürümüne göre açılmayabiliyor; gzip her
+     * yerde çalışıyor ve kazancın tamamına yakınını veriyor.
+     */
+    'Accept-Encoding': 'gzip',
+  }
   /*
    * ⚠️ `Content-Type` artık SABİT DEĞİL. Görsel yükleme `image/webp` istiyor;
    * `application/json` başlığıyla gönderilen bir WebP depoya bozuk yazılır.
@@ -130,56 +146,105 @@ export const REST_SAYFA = 1000
  * ilk 1000 satırını gördü — geri kalan %80'i oyunda hiç çıkmadı, panelde hiç
  * görünmedi, tekrar kontrolüne hiç girmedi.
  *
- * Toplam satır sayısı `content-range`'in paydasından okunuyor, o yüzden kaç
+ * Toplam satır sayısı AYRI bir istekle okunuyor (`toplamSayi`), o yüzden kaç
  * sayfa gerektiğini tahmin etmeye gerek yok — ilk sayfadan sonra kalanlar
- * PARALEL çekilebiliyor.
+ * PARALEL çekilebiliyor. Sayımın neden sayfalardan ayrıldığı `sayfaCek`'in
+ * başında yazıyor: 206 dönen bir yanıt Next'in veri önbelleğine giremiyor.
  */
 /** Aynı anda açık sayfa isteği sayısı. */
 const ES_ZAMANLI = 6
 
+/**
+ * Tek sayfa — VERİ ÖNBELLEĞİNE GİREBİLİR.
+ *
+ * ⚠️ `Prefer: count=exact` BURADA OLMAMALI, ne kadar masum görünürse görünsün.
+ * PostgREST toplamı bilince yanıtı `206 Partial Content` yapıyor; Next'in veri
+ * önbelleği ise YALNIZCA `200` saklıyor (`patch-fetch.js`: `res.status === 200
+ * && incrementalCache && …`). Başlık oradayken havuzun 16 sayfası önbelleğe
+ * hiç girmiyordu: `next: { revalidate, tags }` yazılıydı, `.next/cache/
+ * fetch-cache` içinde tek bir havuz girdisi yoktu ve SOĞUK her istek 5 MB'lık
+ * tam okumaya dönüyordu. Ücretsiz plandaki 5 GB'ın günde birkaç GB'ını yiyen
+ * şey buydu.
+ *
+ * Toplam artık ayrı ve ~200 baytlık bir istekle okunuyor (`toplamSayi`).
+ */
 async function sayfaCek<T>(
   path: string,
   init: RequestInit & { headers?: Record<string, string> },
   bas: number,
-): Promise<{ satirlar: T[]; toplam: number }> {
+): Promise<T[]> {
   const res = await fetch(restUrl(path), {
     ...init,
     headers: {
       ...init.headers,
       Range: `${bas}-${bas + REST_SAYFA - 1}`,
       'Range-Unit': 'items',
-      Prefer: 'count=exact',
     },
   })
-  if (!res.ok && res.status !== 206) throw new Error(`Supabase ${res.status}`)
-  const satirlar = (await res.json()) as T[]
+  if (!res.ok) throw new Error(`Supabase ${res.status}`)
+  return (await res.json()) as T[]
+}
+
+/**
+ * Sorgunun toplam satır sayısı — tek satırlık, sayfalamayı paralelleştirmek için.
+ *
+ * ⚠️ Bu istek ÖNBELLEĞE GİRMEZ (206 döner) ve girmesine gerek de yok: `select`
+ * `id`'ye indirildiği ve `Range: 0-0` istendiği için gövde ~200 bayt. Pahalı
+ * olan sayfaların kendisiydi ve onlar artık önbellekte.
+ *
+ * ⚠️ `next` seçeneği TEMİZLENİYOR: `cache: 'no-store'` ile `next.revalidate`
+ * aynı anda verilemez, Next hata fırlatır.
+ */
+async function toplamSayi(
+  path: string,
+  init: RequestInit & { headers?: Record<string, string> },
+): Promise<number> {
+  const [yol, sorgu = ''] = path.split('?')
+  const params = new URLSearchParams(sorgu)
+  params.set('select', 'id')
+  // Sayım sıralamadan etkilenmez; sıralatmak boşuna iş.
+  params.delete('order')
+  const { next: _next, ...kalan } = init as RequestInit & { next?: unknown }
+
+  const res = await fetch(restUrl(`${yol}?${params}`), {
+    ...kalan,
+    cache: 'no-store',
+    headers: { ...init.headers, Range: '0-0', 'Range-Unit': 'items', Prefer: 'count=exact' },
+  })
+  if (!res.ok && res.status !== 206) return NaN
+  // Gövde okunmazsa bağlantı açık kalır.
+  await res.arrayBuffer()
   const toplam = Number(res.headers.get('content-range')?.split('/')[1])
-  return { satirlar, toplam: Number.isFinite(toplam) ? toplam : NaN }
+  return Number.isFinite(toplam) ? toplam : NaN
 }
 
 export async function restTumSatirlar<T>(
   path: string,
   init: RequestInit & { headers?: Record<string, string> },
 ): Promise<T[]> {
-  const ilk = await sayfaCek<T>(path, init, 0)
-  if (ilk.satirlar.length < REST_SAYFA) return ilk.satirlar
+  // İlk sayfa ve toplam PARALEL: sayım küçük, ilk sayfayı bekletmesin.
+  const [ilk, toplam] = await Promise.all([
+    sayfaCek<T>(path, init, 0),
+    toplamSayi(path, init).catch(() => NaN),
+  ])
+  if (ilk.length < REST_SAYFA) return ilk
 
   /*
    * Toplam okunamadıysa (ör. `count` kapalıysa) eski ardışık davranışa dön:
    * kaç sayfa gerektiğini bilmeden paralel istek atmak ya eksik okur ya da
    * boşuna istek yakar.
    */
-  if (!Number.isFinite(ilk.toplam)) {
-    const hepsi = [...ilk.satirlar]
+  if (!Number.isFinite(toplam)) {
+    const hepsi = [...ilk]
     for (let b = REST_SAYFA; ; b += REST_SAYFA) {
-      const { satirlar } = await sayfaCek<T>(path, init, b)
+      const satirlar = await sayfaCek<T>(path, init, b)
       hepsi.push(...satirlar)
       if (satirlar.length < REST_SAYFA) return hepsi
     }
   }
 
   const baslangiclar: number[] = []
-  for (let b = REST_SAYFA; b < ilk.toplam; b += REST_SAYFA) baslangiclar.push(b)
+  for (let b = REST_SAYFA; b < toplam; b += REST_SAYFA) baslangiclar.push(b)
 
   /*
    * Sayfalar SIRAYLA birleştiriliyor ama ARDIŞIK çekilmiyor. Havuz 15358
@@ -194,12 +259,12 @@ export async function restTumSatirlar<T>(
     for (;;) {
       const i = sonraki++
       if (i >= baslangiclar.length) return
-      parcalar[i] = (await sayfaCek<T>(path, init, baslangiclar[i])).satirlar
+      parcalar[i] = await sayfaCek<T>(path, init, baslangiclar[i])
     }
   }
   await Promise.all(Array.from({ length: Math.min(ES_ZAMANLI, baslangiclar.length) }, isci))
 
-  return [ilk.satirlar, ...parcalar].flat()
+  return [ilk, ...parcalar].flat()
 }
 
 /**

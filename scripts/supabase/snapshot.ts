@@ -57,6 +57,10 @@ async function tumSatirlar(url: string, key: string, cat: CategoryId): Promise<S
         apikey: key,
         Authorization: `Bearer ${key}`,
         Range: `${bas}-${bas + SAYFA - 1}`,
+        // ⚠️ Node'un `fetch`'i bunu kendiliğinden göndermiyor; başlıksız
+        // anlık görüntü ~12 MB Supabase egress'i demek, gzip ile ~2 MB
+        // (bkz. `lib/supabase.ts` → `restHeaders`).
+        'Accept-Encoding': 'gzip',
       },
     })
     if (!res.ok) throw new Error(`${cat}: Supabase ${res.status}`)

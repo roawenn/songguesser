@@ -680,9 +680,17 @@ end $tmz$;
 -- ---------------------------------------------------------------------------
 -- Kullanıcılar: Google ile giriş, herkese açık ad, moderasyon
 -- ---------------------------------------------------------------------------
--- ⚠️ VERİ EN AZ: Google'dan yalnızca `sub` (değişmeyen kimlik) ve e-posta
--- (yönetimde tanımak ve KVKK başvurusu için). Ad soyad ve fotoğraf SAKLANMAZ;
--- avatar kullanıcı adından türetilen harf.
+-- ⚠️ VERİ EN AZ: Google'dan `sub` (değişmeyen kimlik), e-posta (yönetimde
+-- tanımak ve KVKK başvurusu için) ve PROFİLDEKİ AD. Fotoğraf saklanmaz;
+-- avatar addan türetilen harf.
+--
+-- ⚠️ AD ARTIK GOOGLE'DAN. Oyuncu kendi kullanıcı adını seçmiyordu diye değil:
+-- seçtiriyorduk ve giriş akışı zorunlu bir forma düşüyordu. Ad her girişte
+-- Google profilinden tazeleniyor (bkz. `lib/kullaniciStore`). Bu, gizlilik
+-- metnini değiştiren bir karar — `app/gizlilik` ile birlikte güncellendi.
+--
+-- ⚠️ AD BAŞKA OYUNCULARA GÖSTERİLMEZ: liderlik yalnızca kişinin KENDİ sırasını
+-- ve toplam oyuncu sayısını döndürüyor (bkz. `liderlik_benim`).
 --
 -- ⚠️ `sub` ile eşleşir, e-postayla DEĞİL: Google e-postanın değişebileceğini
 -- ve tekil olmayabileceğini açıkça belirtiyor.
@@ -691,13 +699,14 @@ create table if not exists public.kullanicilar (
   google_sub          text        not null unique,
   email               text        not null,
   kullanici_adi       text,
-  kullanici_adi_norm  text        unique,
+  -- ⚠️ BENZERSİZ DEĞİL: ad Google'dan geliyor, iki kişi aynı adı taşıyabilir.
+  kullanici_adi_norm  text,
   olusturuldu         timestamptz not null default now(),
   son_giris           timestamptz not null default now(),
   ad_degisti          timestamptz,
   banli_at            timestamptz,
   ban_sebebi          text,
-  constraint kullanici_adi_uzunluk_chk check (kullanici_adi is null or char_length(kullanici_adi) between 3 and 20),
+  constraint kullanici_adi_uzunluk_chk check (kullanici_adi is null or char_length(kullanici_adi) between 2 and 40),
   constraint ban_sebebi_uzunluk_chk check (ban_sebebi is null or char_length(ban_sebebi) <= 300)
 );
 
@@ -735,10 +744,61 @@ create table if not exists public.skor (
 create index if not exists skor_siralama_idx on public.skor (mod, donem, puan desc, bitis_sn);
 create index if not exists skor_kullanici_idx on public.skor (kullanici_id, mod, donem desc);
 
+/*
+ * Oyun istatistikleri — cihazdan bağımsız, hesaba bağlı.
+ *
+ * ⚠️ GÖVDE `jsonb`, kolon kolon DEĞİL. Üç oyunun sayaçları farklı ("en iyi
+ * saniye" şarkıda, "en iyi şerit" ünlü ve kapakta) ve kural zaten saf
+ * modüllerde testli (`game/stats.ts`, `game/unluStats.ts`). Kolonlara
+ * bölmek aynı doğrulamayı ikinci kez, bu kez SQL'de yazmak olurdu; yazılan
+ * her şey sunucuda `sanitize`'dan geçiyor (bkz. `api/istatistik`).
+ *
+ * ⚠️ TEK KALICI YER BURASI. Girişsiz oyuncunun sayaçları hiçbir yere
+ * yazılmıyor: tarayıcı deposu (`localStorage`) sayıları habire sıfırladığı
+ * için kaldırıldı (bkz. `store/useStatsStore`). Eski kayıtları olanlarda ilk
+ * girişte tarayıcıdaki sayaçlar buradakilerle bir kez toplanıp siliniyor.
+ */
+create table if not exists public.oyun_istatistik (
+  kullanici_id uuid        not null references public.kullanicilar(id) on delete cascade,
+  oyun         text        not null,
+  veri         jsonb       not null,
+  guncellendi  timestamptz not null default now(),
+  primary key (kullanici_id, oyun),
+  constraint oyun_istatistik_oyun_chk check (oyun in ('sarki', 'unlu', 'kapak'))
+);
+
+alter table public.oyun_istatistik  enable row level security;
 alter table public.kullanicilar     enable row level security;
 alter table public.kullanici_oturum enable row level security;
 alter table public.yasakli_adlar    enable row level security;
 alter table public.skor             enable row level security;
+
+/*
+ * Google adına geçişin şema göçü.
+ *
+ * ⚠️ `create table if not exists` var olan tabloyu DEĞİŞTİRMEZ; bu yüzden iki
+ * kural burada elle güncelleniyor:
+ *
+ *   1. `kullanici_adi_norm` üzerindeki BENZERSİZLİK kalkıyor. Ad artık
+ *      seçilmiyor, Google'dan geliyor: iki "Ahmet Yılmaz" olması olağan ve
+ *      benzersizlik ikincisinin GİRİŞİNİ engellerdi. Kimse kimsenin adını
+ *      görmediği için taklit sorunu da yok.
+ *   2. Uzunluk 3-20 → 2-40. Gerçek adlar boşluklu ve uzun ("Ayşe Nur
+ *      Öztürk"); eski sınır bunları reddederdi.
+ */
+do $ad$
+begin
+  alter table public.kullanicilar drop constraint if exists kullanicilar_kullanici_adi_norm_key;
+  alter table public.kullanicilar drop constraint if exists kullanici_adi_uzunluk_chk;
+  if not exists (select 1 from pg_constraint where conname = 'kullanici_adi_uzunluk_chk') then
+    alter table public.kullanicilar
+      add constraint kullanici_adi_uzunluk_chk
+      check (kullanici_adi is null or char_length(kullanici_adi) between 2 and 40);
+  end if;
+end $ad$;
+
+-- Aynı ad birden çok kişide olabildiği için indeks arama içindir, benzersizlik değil.
+create index if not exists kullanicilar_ad_norm_idx on public.kullanicilar (kullanici_adi_norm);
 
 -- Günlük oturumu kullanıcıya bağlı. Hesap silinince oturum kalır ama anonimleşir.
 do $fk$
@@ -841,23 +901,14 @@ grant  execute on function public.kullanici_ad_sifirla(uuid, text) to service_ro
  * ⚠️ Materyalize tablo YOK: `(mod, donem, puan desc, bitis_sn)` indeksiyle
  * haftalık birkaç bin satırı gruplamak ucuz; ölçek büyürse ilk bakılacak yer.
  */
-create or replace function public.liderlik(p_mod text, p_bas date, p_bit date, p_limit integer default 50)
-returns table (sira bigint, kullanici_adi text, toplam bigint, gun_sayisi bigint)
-language sql stable security definer set search_path = '' as $ldr$
-  with t as (
-    select s.kullanici_id, sum(s.puan)::bigint as toplam, count(*)::bigint as gun_sayisi, sum(s.bitis_sn)::bigint as bitis
-      from public.skor s
-      join public.kullanicilar k on k.id = s.kullanici_id
-     where s.mod = p_mod and s.donem between p_bas and p_bit and not s.supheli
-       and k.banli_at is null and k.kullanici_adi is not null
-     group by s.kullanici_id
-  )
-  select row_number() over (order by t.toplam desc, t.bitis asc, k.kullanici_adi_norm asc) as sira,
-         k.kullanici_adi, t.toplam, t.gun_sayisi
-    from t join public.kullanicilar k on k.id = t.kullanici_id
-   order by sira
-   limit least(greatest(p_limit, 1), 100)
-$ldr$;
+/*
+ * ⚠️ `liderlik()` DÜŞÜRÜLDÜ. Herkese açık ilk-50 listesi döndürüyordu; ad
+ * artık Google profilinden geldiği için bu, gerçek ad soyadların listesi
+ * demekti. Oyuncu yalnızca kendi sırasını görüyor (`liderlik_benim`).
+ * Fonksiyonun yalnızca arayüzden çağrılmaması yetmezdi: `service_role` ile
+ * hâlâ çağrılabilirdi, o yüzden tamamen kaldırılıyor.
+ */
+drop function if exists public.liderlik(text, date, date, integer);
 
 /* Tek kullanıcının sırası ve toplam görünen oyuncu sayısı; görünmüyorsa satır yok. */
 create or replace function public.liderlik_benim(p_mod text, p_bas date, p_bit date, p_kullanici uuid)
@@ -879,7 +930,5 @@ language sql stable security definer set search_path = '' as $lbn$
   select r.sira, r.toplam, r.gun_sayisi, r.oyuncu from r where r.kullanici_id = p_kullanici
 $lbn$;
 
-revoke execute on function public.liderlik(text, date, date, integer) from public, anon, authenticated;
 revoke execute on function public.liderlik_benim(text, date, date, uuid) from public, anon, authenticated;
-grant  execute on function public.liderlik(text, date, date, integer) to service_role;
 grant  execute on function public.liderlik_benim(text, date, date, uuid) to service_role;

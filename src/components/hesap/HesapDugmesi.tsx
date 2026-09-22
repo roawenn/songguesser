@@ -19,6 +19,7 @@ const GIRIS_MESAJI: Record<string, string> = {
   hata: 'Giriş yapılamadı. Tekrar dene.',
   iptal: 'Giriş iptal edildi.',
   askida: 'Bu hesap askıya alınmış.',
+  'uygunsuz-ad': 'Google hesabındaki ad uygun değil, bu hesapla giriş yapılamıyor. Google’daki ad soyadını değiştirip tekrar dene.',
   kapali: 'Giriş şu an kapalı.',
   'cok-hizli': 'Çok fazla deneme. Biraz bekle.',
 }
@@ -72,10 +73,15 @@ export function HesapDugmesi() {
         <Link
           href="/hesap"
           className="nk-hesap-dugme"
-          aria-label={kullanici.ad ? `Hesabım: ${kullanici.ad}` : 'Hesabım — kullanıcı adı seç'}
-          title={kullanici.ad ?? 'Kullanıcı adı seç'}
+          aria-label={kullanici.ad ? `Hesabım: ${kullanici.ad}` : 'Hesabım'}
+          title={kullanici.ad ?? 'Hesabım'}
         >
-          {kullanici.ad ? <HarfAvatari ad={kullanici.ad} /> : <span className="nk-hesap-yazi">Ad seç</span>}
+          {/*
+            ⚠️ "Ad seç" YAZISI KALKTI: ad artık Google profilinden geliyor,
+            seçilecek bir şey yok. Ad yoksa (yönetim sıfırlamışsa) avatar
+            e-postanın ilk harfinden türer — düğme boş kalmasın.
+          */}
+          <HarfAvatari ad={kullanici.ad ?? kullanici.email} />
         </Link>
       ) : (
         <a href={girisAdresi()} className="nk-hesap-dugme nk-hesap-giris">

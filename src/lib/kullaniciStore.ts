@@ -5,9 +5,6 @@ import { restHeaders, restUrl } from '@/lib/supabase'
  * Kullanıcı kayıtları — yalnızca sunucuda, gizli anahtarla.
  */
 
-/** Ad değişikliği aralığı. İLK seçim bu sınıra tabi değil. */
-export const AD_DEGISIM_GUN = 30
-
 async function rest(path: string, init?: RequestInit) {
   return fetch(restUrl(path), {
     ...init,
@@ -22,67 +19,57 @@ export interface GoogleKaydi {
   banli: boolean
 }
 
+/** Google'dan gelip denetimden geçmiş ad. */
+export interface YazilacakAd {
+  ad: string
+  norm: string
+}
+
+/** Yönetimin sıfırladığı bir ad mı? Hata hâlinde "değil" sayılır (giriş engellenmesin). */
+async function yasakliMi(norm: string): Promise<boolean> {
+  const res = await rest(`yasakli_adlar?norm=eq.${encodeURIComponent(norm)}&select=norm`)
+  if (!res.ok) return false
+  return ((await res.json()) as unknown[]).length > 0
+}
+
 /**
- * `sub` ile bulur ya da oluşturur.
+ * `sub` ile bulur ya da oluşturur; adı Google profilinden yazar.
  *
- * ⚠️ Gövdede YALNIZCA `google_sub`, `email`, `son_giris`: `merge-duplicates`
- * gönderilen kolonları günceller; ad gönderilseydi her girişte ezilirdi.
+ * ⚠️ AD HER GİRİŞTE TAZELENİR. Eskiden gövdede ad YOKTU, çünkü oyuncu onu elle
+ * seçiyordu ve `merge-duplicates` her girişte seçimi ezerdi. Artık ad Google'ın
+ * adı; kişi Google'da adını düzeltince burası da düzelmeli.
+ *
+ * ⚠️ Yönetimin sıfırladığı ad (`yasakli_adlar`) GERİ GELMEZ: o durumda ad
+ * yazılmaz, kayıt adsız kalır. Adsız hesap oynayabilir, yalnızca sıralamada
+ * görünmez (bkz. `liderlik_benim`).
+ *
+ * ⚠️ 409 geri düşüşü bilinçli: `kullanici_adi_norm` üzerindeki BENZERSİZLİK
+ * kısıtı kaldırıldı (aynı adlı iki kişi olabilir, kimse kimsenin adını
+ * görmüyor), ama şeması güncellenmemiş bir veritabanında yazma çakışırsa giriş
+ * çökmesin — ad olmadan tekrar denenir.
  */
-export async function googleIleBul(sub: string, email: string): Promise<GoogleKaydi> {
-  const res = await rest('kullanicilar?on_conflict=google_sub&select=id,kullanici_adi,banli_at', {
-    method: 'POST',
-    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
-    body: JSON.stringify({ google_sub: sub, email, son_giris: new Date().toISOString() }),
-  })
+export async function googleIleBul(sub: string, email: string, yeniAd: YazilacakAd | null): Promise<GoogleKaydi> {
+  const adYazilir = yeniAd && !(await yasakliMi(yeniAd.norm)) ? yeniAd : null
+
+  const yaz = async (ad: YazilacakAd | null) =>
+    rest('kullanicilar?on_conflict=google_sub&select=id,kullanici_adi,banli_at', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify({
+        google_sub: sub,
+        email,
+        son_giris: new Date().toISOString(),
+        ...(ad ? { kullanici_adi: ad.ad, kullanici_adi_norm: ad.norm } : {}),
+      }),
+    })
+
+  let res = await yaz(adYazilir)
+  if (res.status === 409 && adYazilir) res = await yaz(null)
   if (!res.ok) throw new Error(`kullanicilar ${res.status}`)
+
   const [r] = (await res.json()) as { id: string; kullanici_adi: string | null; banli_at: string | null }[]
   if (!r) throw new Error('kullanıcı dönmedi')
   return { id: r.id, ad: r.kullanici_adi, banli: r.banli_at !== null }
-}
-
-export function adDegisebilirTarih(adDegisti: string | null): Date | null {
-  if (!adDegisti) return null
-  const t = new Date(Date.parse(adDegisti) + AD_DEGISIM_GUN * 86_400_000)
-  return t.getTime() > Date.now() ? t : null
-}
-
-export type AdAyarSonucu = 'ok' | 'alinmis' | 'erken' | 'yasakli' | 'hata'
-
-/**
- * Adı yazar.
- *
- * ⚠️ İLK AD `ad_degisti`'ye yazılmaz: yeni gelen oyuncu yazım hatası yaptıysa
- * 30 gün beklemesin. Var olan ad değişince tarih yazılır.
- *
- * ⚠️ 30 gün sınırı PATCH'in KOŞULUNDA: okuyup sonra yazmak iki eşzamanlı
- * istekle aşılabilirdi.
- */
-export async function adAyarla(
-  kullanici: { id: string; ad: string | null },
-  ad: string,
-  norm: string,
-): Promise<AdAyarSonucu> {
-  const yasak = await rest(`yasakli_adlar?norm=eq.${encodeURIComponent(norm)}&select=norm`)
-  if (!yasak.ok) return 'hata'
-  if (((await yasak.json()) as unknown[]).length > 0) return 'yasakli'
-
-  const sinir = new Date(Date.now() - AD_DEGISIM_GUN * 86_400_000).toISOString()
-  const q = new URLSearchParams({ id: `eq.${kullanici.id}` })
-  if (kullanici.ad !== null) q.set('or', `(ad_degisti.is.null,ad_degisti.lt.${sinir})`)
-
-  const res = await rest(`kullanicilar?${q}`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal,count=exact' },
-    body: JSON.stringify({
-      kullanici_adi: ad,
-      kullanici_adi_norm: norm,
-      ...(kullanici.ad !== null ? { ad_degisti: new Date().toISOString() } : {}),
-    }),
-  })
-  if (res.status === 409) return 'alinmis'
-  if (!res.ok) return 'hata'
-  const n = Number(res.headers.get('content-range')?.split('/')[1])
-  return n === 1 ? 'ok' : 'erken'
 }
 
 /**

@@ -34,16 +34,28 @@ export function yetkiAdresi(p: { clientId: string; redirectUri: string; state: s
   return `${GOOGLE_YETKI}?${q}`
 }
 
+/** Geliştirmede herhangi bir yerel port — `http://localhost:3001` gibi. */
+const YEREL_DESEN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/
+
 /**
  * Yönlendirme adresi. `GOOGLE_REDIRECT_URI` verilmişse o; yoksa yalnızca
  * izinli kökenlerde türetilir. `null` → bu ortamda giriş kapalı.
  *
  * ⚠️ `SITE_URL` KULLANILMIYOR: yerelde canlı adrese çözülüyor, giriş dönüşü
  * canlı siteye giderdi.
+ *
+ * ⚠️ GELİŞTİRMEDE HER YEREL PORT AÇIK. Liste yalnızca `:3000` içeriyordu;
+ * ikinci bir `next dev` 3001'e düşünce `girisAcik` false oluyor ve giriş
+ * düğmesi SESSİZCE kayboluyordu — "giriş yapma kayboldu" tam olarak buydu.
+ * Gevşetme yalnızca `NODE_ENV !== 'production'` için: üretimde köken listesi
+ * aynen geçerli. Google Console'da o portun dönüş adresi kayıtlı değilse akış
+ * yine `redirect_uri_mismatch` verir — bu kontrol düğmeyi göstermek içindir.
  */
 export function yonlendirmeAdresi(origin: string, env: Record<string, string | undefined>): string | null {
   if (env.GOOGLE_REDIRECT_URI) return env.GOOGLE_REDIRECT_URI
-  return IZINLI_KOKENLER.includes(origin) ? `${origin}${DONUS_YOLU}` : null
+  if (IZINLI_KOKENLER.includes(origin)) return `${origin}${DONUS_YOLU}`
+  if (env.NODE_ENV !== 'production' && YEREL_DESEN.test(origin)) return `${origin}${DONUS_YOLU}`
+  return null
 }
 
 /**
@@ -83,8 +95,17 @@ export function idTokenGovdesi(jwt: string): Record<string, unknown> | null {
   }
 }
 
+/**
+ * ⚠️ `ad` ARTIK OKUNUYOR. `GOOGLE_KAPSAM` zaten `profile` istiyordu, yani
+ * `name` iddiası hep geliyordu ama atılıyordu; kullanıcı adını oyuncuya elle
+ * seçtirmek yerine buradan alıyoruz. Gelmezse `given_name`, o da yoksa
+ * `null` — çağıran e-postadan türetiyor (bkz. `epostaAdi`).
+ *
+ * Bu, gizlilik metnini DEĞİŞTİREN bir karar: "ad soyad alınmaz" taahhüdü
+ * güncellendi (bkz. `app/gizlilik`, `schema.sql`).
+ */
 export type KimlikSonucu =
-  | { ok: true; sub: string; email: string }
+  | { ok: true; sub: string; email: string; ad: string | null }
   | { ok: false; sebep: 'iss' | 'aud' | 'exp' | 'email' | 'sub' }
 
 export function idTokenDogrula(
@@ -97,5 +118,10 @@ export function idTokenDogrula(
   if (typeof iddia.exp !== 'number' || iddia.exp * 1000 <= secenek.simdi) return { ok: false, sebep: 'exp' }
   if (iddia.email_verified !== true || typeof iddia.email !== 'string' || !iddia.email) return { ok: false, sebep: 'email' }
   if (typeof iddia.sub !== 'string' || !/^[0-9A-Za-z_-]{1,255}$/.test(iddia.sub)) return { ok: false, sebep: 'sub' }
-  return { ok: true, sub: iddia.sub, email: iddia.email }
+  const ham = typeof iddia.name === 'string' && iddia.name.trim()
+    ? iddia.name
+    : typeof iddia.given_name === 'string' && iddia.given_name.trim()
+      ? iddia.given_name
+      : null
+  return { ok: true, sub: iddia.sub, email: iddia.email, ad: ham }
 }

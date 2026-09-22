@@ -37,9 +37,8 @@ export function istenenGun(ham: string | null, bugun: Gun): Gun {
   return gunGecerli(ham) && ham <= bugun ? ham : bugun
 }
 
-export interface LiderlikSatiri {
-  sira: number
-  ad: string
-  toplam: number
-  gunSayisi: number
-}
+/*
+ * ⚠️ `LiderlikSatiri` KALDIRILDI. Sıralama listesi (sıra + ad + puan) diye bir
+ * şey yok: oyuncuya yalnızca KENDİ sırası gösteriliyor ve o `liderlik_benim`
+ * RPC'sinden adsız geliyor. Bkz. `components/gunluk/Liderlik`.
+ */

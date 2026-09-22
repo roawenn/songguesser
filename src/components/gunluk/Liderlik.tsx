@@ -1,18 +1,21 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import type { LiderlikDonemi, LiderlikSatiri } from '@/game/liderlik'
-import { useHesap } from '@/hooks/useHesap'
-import { HarfAvatari } from '../hesap/HesapDugmesi'
+import type { LiderlikDonemi } from '@/game/liderlik'
+import { girisAdresi, useHesap } from '@/hooks/useHesap'
 import { Baslik, CAPTION, CARD } from './GunlukParcalar'
 
 /**
- * Günlük sıralaması — Bugün / Bu hafta.
+ * Günlük sıralaması — YALNIZCA KENDİ SIRAN.
  *
- * Liste kenar önbellekli (60 sn) geliyor; oyuncunun KENDİ sırası ayrı ve
- * önbelleksiz. Yeni bitiren biri listede henüz görünmese de kendi sırasını
- * hemen görür; listede yoksa altta sabitlenir.
+ * ⚠️ BAŞKA OYUNCULARIN ADI HİÇBİR YERDE ÇİZİLMEZ. Burada ilk 10'un (ve ayrı
+ * sayfada 50'nin) adı ve puanı listeleniyordu; ad artık Google profilinden
+ * geldiği için o liste gerçek ad soyadların herkese açık listesi olurdu.
+ * Listeyi besleyen `/api/liderlik` ve `/gunluk/liderlik` sayfası da kaldırıldı
+ * — uç nokta dursaydı arayüz çizmese bile adlar tek istekle okunabilirdi.
+ *
+ * Geriye yarışın ölçülebilir kısmı kalıyor: kaçıncı sıradasın ve kaç kişi
+ * arasında. Bu bilgi `liderlik_benim` RPC'sinden geliyor ve tek satır.
  *
  * `tazele`: değişince yeniden okunur (oyun bittiğinde kabuk artırıyor).
  */
@@ -25,39 +28,33 @@ interface Siram {
 }
 
 export function useLiderlik(donem: LiderlikDonemi, tazele: unknown) {
-  const { kullanici, yuklendi } = useHesap()
-  const [satirlar, setSatirlar] = useState<LiderlikSatiri[] | null>(null)
+  const { kullanici, girisAcik, yuklendi } = useHesap()
   const [siram, setSiram] = useState<Siram | null>(null)
-  const [hata, setHata] = useState(false)
+  const [durum, setDurum] = useState<'yukleniyor' | 'hazir' | 'hata'>('yukleniyor')
 
   useEffect(() => {
-    let iptal = false
-    setHata(false)
-    void fetch(`/api/liderlik?mod=gunluk&donem=${donem}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((v: { satirlar: LiderlikSatiri[] }) => !iptal && setSatirlar(v.satirlar))
-      .catch(() => !iptal && setHata(true))
-    return () => {
-      iptal = true
-    }
-  }, [donem, tazele])
-
-  useEffect(() => {
-    if (!yuklendi || !kullanici) {
+    if (!yuklendi) return
+    if (!kullanici) {
       setSiram(null)
+      setDurum('hazir')
       return
     }
     let iptal = false
+    setDurum('yukleniyor')
     void fetch(`/api/liderlik/benim?mod=gunluk&donem=${donem}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((v: { siram: Siram | null }) => !iptal && setSiram(v.siram ?? null))
-      .catch(() => undefined)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('istek'))))
+      .then((v: { siram: Siram | null }) => {
+        if (iptal) return
+        setSiram(v.siram ?? null)
+        setDurum('hazir')
+      })
+      .catch(() => !iptal && setDurum('hata'))
     return () => {
       iptal = true
     }
   }, [donem, tazele, yuklendi, kullanici])
 
-  return { satirlar, siram, hata, benimAdim: kullanici?.ad ?? null }
+  return { siram, durum, girisli: Boolean(kullanici), girisAcik, yuklendi }
 }
 
 function Sekmeler({ donem, setDonem }: { donem: LiderlikDonemi; setDonem: (d: LiderlikDonemi) => void }) {
@@ -91,82 +88,66 @@ function Sekmeler({ donem, setDonem }: { donem: LiderlikDonemi; setDonem: (d: Li
   )
 }
 
-function Satir({ s, benim, siraGenislik = 26 }: { s: Pick<LiderlikSatiri, 'sira' | 'ad' | 'toplam'>; benim: boolean; siraGenislik?: number }) {
+const BILGI = { margin: 0, fontSize: 12.5, color: '#8c9297', lineHeight: 1.6 } as const
+
+/** Sıranın kendisi: büyük rakam, altında kaç kişi arasında olduğun. */
+function Sira({ siram, donem }: { siram: Siram; donem: LiderlikDonemi }) {
   return (
-    <li
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 9,
-        padding: '4px 6px',
-        borderRadius: 5,
-        background: benim ? 'oklch(0.81 0.12 var(--hue) / 0.10)' : 'transparent',
-        fontSize: 13,
-      }}
-    >
-      <span style={{ width: siraGenislik, flex: 'none', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 11, color: s.sira <= 3 ? 'var(--acc)' : '#6a7075' }}>
-        {s.sira}
-      </span>
-      <HarfAvatari ad={s.ad} boyut={20} />
-      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: benim ? '#f2f4f5' : '#c3c8cc' }}>
-        {s.ad}
-      </span>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#e6e8ea' }}>{s.toplam}</span>
-    </li>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 30, lineHeight: 1.1, color: 'var(--acc)' }}>
+        {siram.sira}.
+      </div>
+      <div style={{ ...CAPTION, marginTop: 4 }}>{siram.oyuncu} oyuncu arasında</div>
+      <div style={{ marginTop: 8, fontSize: 13, color: '#c3c8cc' }}>
+        {siram.toplam} puan
+        {donem === 'hafta' && ` · ${siram.gunSayisi} gün`}
+      </div>
+    </div>
   )
 }
 
-export function LiderlikListesi({ sinir, tazele, donemBaslangic = 'gun' }: { sinir: number; tazele?: unknown; donemBaslangic?: LiderlikDonemi }) {
+export function SiraPaneli({ tazele, donemBaslangic = 'gun' }: { tazele?: unknown; donemBaslangic?: LiderlikDonemi }) {
   const [donem, setDonem] = useState<LiderlikDonemi>(donemBaslangic)
-  const { satirlar, siram, hata, benimAdim } = useLiderlik(donem, tazele)
-  const gorunen = satirlar?.slice(0, sinir) ?? null
-  const listedeyim = benimAdim !== null && gorunen?.some((s) => s.ad === benimAdim)
+  const { siram, durum, girisli, girisAcik, yuklendi } = useLiderlik(donem, tazele)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <Sekmeler donem={donem} setDonem={setDonem} />
-      {hata ? (
-        <p style={{ margin: 0, fontSize: 12.5, color: '#d09a9a' }}>Sıralama yüklenemedi.</p>
-      ) : !gorunen ? (
+      {!yuklendi ? (
         <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: '#6a7075' }}>Yükleniyor…</p>
-      ) : gorunen.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 12.5, color: '#8c9297', lineHeight: 1.6 }}>
-          {donem === 'gun' ? 'Bugün henüz sıralamaya giren yok.' : 'Bu hafta henüz sıralamaya giren yok.'}
+      ) : !girisli ? (
+        <p style={BILGI}>
+          Sıralamaya girmek için{' '}
+          {girisAcik ? (
+            <a href={girisAdresi()} style={{ color: 'var(--acc)', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              Google ile giriş yap
+            </a>
+          ) : (
+            'giriş yap'
+          )}
+          . Sıran yalnızca sana gösterilir.
+        </p>
+      ) : durum === 'hata' ? (
+        <p style={{ margin: 0, fontSize: 12.5, color: '#d09a9a' }}>Sıralama yüklenemedi.</p>
+      ) : durum === 'yukleniyor' ? (
+        <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: '#6a7075' }}>Yükleniyor…</p>
+      ) : !siram ? (
+        <p style={BILGI}>
+          {donem === 'gun' ? 'Bugün henüz sıralamaya girmedin.' : 'Bu hafta henüz sıralamaya girmedin.'}
         </p>
       ) : (
-        <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {gorunen.map((s) => (
-            <Satir key={`${s.sira}:${s.ad}`} s={s} benim={s.ad === benimAdim} />
-          ))}
-        </ol>
-      )}
-      {siram && !listedeyim && benimAdim && (
-        <ol style={{ listStyle: 'none', margin: 0, padding: '6px 0 0', borderTop: '1px dashed rgba(255,255,255,0.10)' }}>
-          <Satir s={{ sira: siram.sira, ad: benimAdim, toplam: siram.toplam }} benim />
-        </ol>
-      )}
-      {siram && (
-        <div style={{ ...CAPTION, textAlign: 'center' }}>
-          {siram.oyuncu} oyuncu arasında {siram.sira}.
-        </div>
+        <Sira siram={siram} donem={donem} />
       )}
     </div>
   )
 }
 
-/** Sol sütun kartı: ilk 10. */
+/** Sol sütun kartı. */
 export function LiderlikKarti({ tazele }: { tazele?: unknown }) {
   return (
-    <section style={CARD} aria-label="Sıralama">
-      <Baslik>
-        <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-          Sıralama
-          <Link href="/gunluk/liderlik" style={{ color: '#8c9297', textDecoration: 'none' }}>
-            tümü →
-          </Link>
-        </span>
-      </Baslik>
-      <LiderlikListesi sinir={10} tazele={tazele} />
+    <section style={CARD} aria-label="Sıralamadaki yerin">
+      <Baslik>Senin sıran</Baslik>
+      <SiraPaneli tazele={tazele} />
     </section>
   )
 }
@@ -177,10 +158,7 @@ export function SiraSatiri({ tazele }: { tazele?: unknown }) {
   if (!siram) return null
   return (
     <p style={{ margin: 0, fontSize: 14.5, color: '#d5d9dc', textAlign: 'center' }}>
-      Bugün <strong style={{ color: 'var(--acc)' }}>{siram.sira}.</strong> sıradasın · {siram.oyuncu} oyuncu{' '}
-      <Link href="/gunluk/liderlik" style={{ color: '#8c9297', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-        sıralama →
-      </Link>
+      Bugün <strong style={{ color: 'var(--acc)' }}>{siram.sira}.</strong> sıradasın · {siram.oyuncu} oyuncu
     </p>
   )
 }

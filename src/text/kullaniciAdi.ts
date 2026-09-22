@@ -120,6 +120,70 @@ export function adDenetle(ham: string, uygunsuzMu?: (ad: string) => boolean): Ad
   return { ok: true, ad, norm: adNormu(ad) }
 }
 
+// ---------------------------------------------------------------------------
+// Görünen ad — Google hesabından gelen gerçek ad
+// ---------------------------------------------------------------------------
+
+/**
+ * Google'dan gelen ad için ayrı bir denetim.
+ *
+ * ⚠️ `adDenetle` BURADA KULLANILAMAZ: onun deseni boşluk kabul etmiyor
+ * (`AD_DESENI`), yani "Ahmet Yılmaz" biçimindeki her gerçek ad "karakter"
+ * hatasına düşerdi. Kullanıcı adı ARTIK ELLE SEÇİLMİYOR; ad Google profilinden
+ * geliyor, dolayısıyla kurallar da gerçek adlara göre: boşluk, kesme işareti
+ * ve tire serbest, uzunluk 40'a kadar.
+ *
+ * ⚠️ REZERVE listeleri uygulanmıyor. O listeler herkese açık bir sıralamada
+ * "admin" gibi görünen taklitleri engellemek içindi; ad artık yalnızca kişinin
+ * KENDİSİNE gösteriliyor (bkz. liderlik: başkasının adı çizilmiyor).
+ *
+ * Uygunsuzluk denetimi ise AYNEN duruyor ve sonucu serttir: giriş engellenir.
+ */
+export const GORUNEN_AD_EN_KISA = 2
+export const GORUNEN_AD_EN_UZUN = 40
+
+/** Harf (her alfabe), birleşen im, rakam, boşluk, nokta, kesme işareti, tire. */
+const GORUNEN_DESEN = /^[\p{L}\p{M}0-9 .'’-]+$/u
+
+/**
+ * Ham adı görüntülenebilir hâle getirir: NFC, kontrol karakterleri atılır,
+ * boşluk dizileri tek boşluğa iner, kırpılır ve 40 karaktere kesilir.
+ *
+ * ⚠️ Kesme GRAFEM sayısına göre (`Array.from`): `slice` bir emoji ya da
+ * birleşik karakteri ortadan bölüp bozuk bir ad yazabilirdi.
+ */
+export function gorunenAdDuzelt(ham: string): string {
+  const temiz = Array.from(ham.normalize('NFC'))
+    .filter((c) => c.charCodeAt(0) >= 32 && c.charCodeAt(0) !== 127)
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return Array.from(temiz).slice(0, GORUNEN_AD_EN_UZUN).join('').trim()
+}
+
+/** E-postanın @ öncesi — Google adı hiç gelmezse son çare. */
+export function epostaAdi(email: string): string {
+  return gorunenAdDuzelt(email.split('@')[0]?.replace(/[._-]+/g, ' ') ?? '')
+}
+
+export type GorunenAdHatasi = 'bos' | 'karakter' | 'uygunsuz'
+
+export type GorunenAdSonucu =
+  | { ok: true; ad: string; norm: string }
+  | { ok: false; hata: GorunenAdHatasi }
+
+/**
+ * Google adını denetler. `uygunsuzMu` sunucuda terlik'i bağlar (bkz.
+ * `lib/uygunsuz.ts`); kök listesi her hâlükârda çalışır.
+ */
+export function gorunenAdDenetle(ham: string, uygunsuzMu?: (ad: string) => boolean): GorunenAdSonucu {
+  const ad = gorunenAdDuzelt(ham)
+  if (Array.from(ad).length < GORUNEN_AD_EN_KISA) return { ok: false, hata: 'bos' }
+  if (!GORUNEN_DESEN.test(ad)) return { ok: false, hata: 'karakter' }
+  if (kokKontrol(ad) || uygunsuzMu?.(ad)) return { ok: false, hata: 'uygunsuz' }
+  return { ok: true, ad, norm: adNormu(ad) }
+}
+
 /** Harf avatarının tonu — addan kararlı biçimde. */
 export function adTonu(ad: string): number {
   let h = 0

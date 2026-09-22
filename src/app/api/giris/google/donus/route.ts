@@ -7,7 +7,9 @@ import {
 import {
   KULLANICI_COOKIE, OAUTH_COOKIE, OTURUM_SURESI_SN, cerezAyari, oturumAc,
 } from '@/lib/kullaniciAuth'
-import { googleIleBul } from '@/lib/kullaniciStore'
+import { googleIleBul, type YazilacakAd } from '@/lib/kullaniciStore'
+import { uygunsuzMu } from '@/lib/uygunsuz'
+import { epostaAdi, gorunenAdDenetle } from '@/text/kullaniciAdi'
 
 /**
  * Google dönüşü: state denetimi → kod takası (PKCE) → kimlik → oturum.
@@ -32,6 +34,27 @@ function yonlendir(url: URL, yol: string, ek?: string) {
   res.cookies.set(OAUTH_COOKIE, '', cerezAyari(0))
   res.headers.set('Cache-Control', 'no-store')
   return res
+}
+
+/**
+ * Hesapta görünecek adı seçer.
+ *
+ * ⚠️ UYGUNSUZ AD GİRİŞİ ENGELLER ve e-postaya GERİ DÜŞMEZ: kural "bu hesapla
+ * kayıt olamazsın, Google'daki adını düzelt" — sessizce başka bir ad üretmek
+ * kuralı etkisiz kılardı.
+ *
+ * Google adı biçim yüzünden kullanılamıyorsa (yalnızca emoji, boş) e-postanın
+ * @ öncesi denenir. O da olmazsa hesap ADSIZ açılır: oyun oynanır, yalnızca
+ * sıralamada görünmez.
+ */
+function adBelirle(googleAd: string | null, email: string): { engel: true } | { engel: false; ad: YazilacakAd | null } {
+  for (const aday of [googleAd, epostaAdi(email)]) {
+    if (!aday) continue
+    const s = gorunenAdDenetle(aday, uygunsuzMu)
+    if (s.ok) return { engel: false, ad: { ad: s.ad, norm: s.norm } }
+    if (s.hata === 'uygunsuz') return { engel: true }
+  }
+  return { engel: false, ad: null }
 }
 
 export async function GET(req: Request) {
@@ -85,13 +108,21 @@ export async function GET(req: Request) {
     const kimlik = idTokenDogrula(govde, { clientId, simdi: Date.now() })
     if (!kimlik.ok) return hata(`iddia-${kimlik.sebep}`)
 
-    const kayit = await googleIleBul(kimlik.sub, kimlik.email)
+    const secim = adBelirle(kimlik.ad, kimlik.email)
+    if (secim.engel) {
+      console.warn('[giris] uygunsuz-ad')
+      return yonlendir(url, donus, 'giris=uygunsuz-ad')
+    }
+
+    const kayit = await googleIleBul(kimlik.sub, kimlik.email, secim.ad)
     if (kayit.banli) return yonlendir(url, donus, 'giris=askida')
 
+    /*
+     * ⚠️ "Ad seç" YÖNLENDİRMESİ KALKTI. Oyuncu girişten sonra doğrudan
+     * geldiği yere döner; ad zaten Google profilinden yazıldı.
+     */
     const belirtec = await oturumAc(kayit.id)
-    const res = kayit.ad
-      ? yonlendir(url, donus)
-      : yonlendir(url, `/hesap?ad=sec&donus=${encodeURIComponent(donus)}`)
+    const res = yonlendir(url, donus)
     res.cookies.set(KULLANICI_COOKIE, belirtec, cerezAyari(OTURUM_SURESI_SN))
     return res
   } catch {

@@ -9,6 +9,7 @@ import { MobilMenu } from './MobilMenu'
 import { OyunSeridi, gecisGirisiTuket, gecisGirisiVar, type OyunId } from './OyunSeridi'
 import { useOlcek } from './useOlcek'
 import { olay } from '@/lib/olay'
+import { useIstatistikSenkron } from '@/hooks/useIstatistikSenkron'
 
 /**
  * İki oyunun paylaştığı dış iskelet.
@@ -75,6 +76,12 @@ export function SahneCercevesi({
   atif,
   sanatciModu,
 }: Props) {
+  /*
+   * İstatistikleri hesapla eşitle — dört oyun kabuğu da bu çerçeveden
+   * geçiyor, yani tek çağrı hepsini kapsıyor. Misafirde hiçbir şey yapmaz.
+   */
+  useIstatistikSenkron()
+
   /**
    * ⚠️ Sistemin `prefers-reduced-motion` tercihi KASITLI olarak okunmuyor.
    *
