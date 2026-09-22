@@ -12,7 +12,7 @@ import { accentHex, chipLabel, decodeShare, verdictLine, type Mark } from '@/gam
  *   - gömülü olmayan yazı tipi yoktur → fontlar diskten okunup veriliyor
  *   - her `div` açıkça `display: flex` olmalı, yoksa çocukları üst üste biner
  */
-export const alt = 'tahmin.net sonucu'
+export const alt = 'tahmin.in sonucu'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -144,7 +144,7 @@ export default async function ShareImage({ params }: { params: Promise<{ kod: st
         >
           <div style={{ display: 'flex' }}>0,5 → 1 → 2 → 5 → 10 saniye</div>
           <div style={{ display: 'flex' }}>
-            {r ? `${r.listens} kez dinledim` : 'tahmin.net'}
+            {r ? `${r.listens} kez dinledim` : 'tahmin.in'}
           </div>
         </div>
       </div>

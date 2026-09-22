@@ -361,12 +361,38 @@ export function oturumKimligiGecerli(s: unknown): s is string {
   return typeof s === 'string' && UUID_DESENI.test(s)
 }
 
-export async function oturumGetir(id: string): Promise<OturumKaydi | null> {
+/**
+  * Bu örneğin EN SON YAZDIĞI oturum — hamle başına bir gidiş-dönüş kazandırır.
+  *
+  * ⚠️ Ölçüldü: hamle ~200 ms sürüyordu ve neredeyse tamamı iki Supabase
+  * turuydu (oku + yaz). Art arda gelen hamleler çoğunlukla aynı örneğe düşüyor;
+  * o örnek kendi yazdığı satırı zaten biliyor.
+  *
+  * ⚠️ GÜVENLİ: yazma her hâlükârda `surum` ile CAS. Başka bir örnek araya
+  * girdiyse bellekteki sürüm eskidir, yazma tutmaz ve rota TAZE okuyup
+  * yeniden dener (bkz. `api/gunluk/hamle`).
+  */
+const OTURUM_BELLEK_MS = 60_000
+const oturumBellek = new Map<string, { zaman: number; kayit: OturumKaydi }>()
+
+function oturumBellegeYaz(kayit: OturumKaydi) {
+  oturumBellek.set(kayit.oturum.id, { zaman: Date.now(), kayit })
+  if (oturumBellek.size > 300) oturumBellek.delete(oturumBellek.keys().next().value!)
+}
+
+export async function oturumGetir(id: string, secenek: { taze?: boolean } = {}): Promise<OturumKaydi | null> {
   if (!oturumKimligiGecerli(id)) return null
+  if (!secenek.taze) {
+    const hazir = oturumBellek.get(id)
+    if (hazir && Date.now() - hazir.zaman < OTURUM_BELLEK_MS) return hazir.kayit
+  }
   const res = await rest(`gunluk_oturum?id=eq.${id}&select=${OTURUM_KOLONLARI}`)
   if (!res.ok) throw new Error(`gunluk_oturum ${res.status}`)
   const [satir] = (await res.json()) as OturumSatiri[]
-  return satir ? satirdan(satir) : null
+  if (!satir) return null
+  const kayit = satirdan(satir)
+  oturumBellegeYaz(kayit)
+  return kayit
 }
 
 /** Cihazın verilen günlerdeki girişsiz oturumları (sıralamalı ya da arşiv). */
@@ -424,6 +450,15 @@ export async function oturumAc(g: {
  * `false` → araya başka bir yazma girdi; çağıran yeniden okuyup denemeli.
  */
 export async function oturumYaz(eski: GunlukOturum, yeni: GunlukOturum): Promise<boolean> {
+  /*
+   * ⚠️ Sahiplik alanları (cihaz özeti, kullanıcı) yazmadan ÖNCE alınmalı:
+   * bellek girdisi silindikten sonra okunuyordu ve yerine boş cihaz özeti
+   * yazılıyordu. Sonuç: sıradaki hamle "oturum bulunamadı" (404) alıyordu.
+   */
+  const sahip = oturumBellek.get(eski.id)?.kayit
+  // Yazma sonucu ne olursa olsun bellekteki kopya artık güvenilmez.
+  oturumBellek.delete(eski.id)
+
   if (yeni.bitti !== null) {
     const res = await rest('rpc/gunluk_bitir', {
       method: 'POST',
@@ -449,7 +484,15 @@ export async function oturumYaz(eski: GunlukOturum, yeni: GunlukOturum): Promise
     }),
   })
   if (!res.ok) throw new Error(`gunluk_oturum yazılamadı ${res.status}`)
-  return etkilenen(res) === 1
+  if (etkilenen(res) !== 1) return false
+
+  // Yazdığımız hâli sakla: sıradaki hamle okumadan devam edebilsin.
+  // Sahiplik bilinmiyorsa (bellek boştu) saklamayız — yanlış sahiple saklamak
+  // oyuncunun kendi oturumunu kaybetmesi demek.
+  if (sahip) {
+    oturumBellegeYaz({ ...sahip, oturum: { ...yeni, surum: eski.surum + 1 } })
+  }
+  return true
 }
 
 export function gorunum(oturum: GunlukOturum, set: GunlukSet): GunlukGorunum {

@@ -46,6 +46,12 @@ export function Header() {
         }}
       >
         tahmin
+        {/*
+          Alan adının uzantısı markanın parçası: seçili kategorinin renginde.
+          `--acc` kategoriye göre kayıyor (bkz. `SahneCercevesi`), yazı da onunla
+          birlikte kayıyor — ayrı bir geçiş tanımlanmasına gerek yok.
+        */}
+        <span style={{ color: 'var(--acc)', fontStyle: 'normal', fontSize: 25, letterSpacing: '.02em' }}>.in</span>
       </h1>
     </header>
   )

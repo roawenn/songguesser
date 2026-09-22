@@ -7,7 +7,7 @@ import { SITE_URL } from '@/lib/siteUrl'
 export const revalidate = 3600
 
 /**
- * ⚠️ Alan adı SABİT KODLANMAZ. Önceden burada `tahmin.net` yazılıydı, yani her
+ * ⚠️ Alan adı SABİT KODLANMAZ. Önceden burada `tahmin.in` yazılıydı, yani her
  * Vercel önizlemesi canlı adresi işaret eden bir sitemap yayınlıyordu.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

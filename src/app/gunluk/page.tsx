@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    siteName: 'tahmin.net',
-    title: 'Günlük · tahmin.net',
+    siteName: 'tahmin.in',
+    title: 'Günlük · tahmin.in',
     description: 'Her gün herkese aynı 6 soru: şarkı, ünlü, albüm kapağı. Bugün kaç puan alacaksın?',
   },
 }

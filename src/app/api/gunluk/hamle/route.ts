@@ -82,7 +82,8 @@ export async function POST(req: Request) {
 
   try {
     for (let deneme = 0; deneme < 2; deneme++) {
-      const kayit = await oturumGetir(istek.oturum)
+      // İlk deneme bellekten olabilir; çakışma olduysa ikinci deneme taze okur.
+      const kayit = await oturumGetir(istek.oturum, { taze: deneme > 0 })
       /*
        * Sahiplik: önce cihaz (çerez okumadan, ucuz), tutmazsa hesaba bağlı
        * oturumda girişli kullanıcı — başka cihazdan devam edebilsin.

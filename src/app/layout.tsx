@@ -52,8 +52,8 @@ export const metadata: Metadata = {
    * `metadata`'sını export ediyor; buradaki yalnızca site geneli.
    */
   title: {
-    default: 'tahmin.net — Türkçe Tahmin Oyunları',
-    template: '%s · tahmin.net',
+    default: 'tahmin.in — Türkçe Tahmin Oyunları',
+    template: '%s · tahmin.in',
   },
   description:
     'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı. Üyelik gerekmez, reklam yok, anında oyna.',
@@ -63,18 +63,18 @@ export const metadata: Metadata = {
     'şarkıyı bil',
     'ünlü tahmin oyunu',
     'türkçe heardle',
-    'tahmin.net',
+    'tahmin.in',
   ],
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    siteName: 'tahmin.net',
-    title: 'tahmin.net — Türkçe Tahmin Oyunları',
+    siteName: 'tahmin.in',
+    title: 'tahmin.in — Türkçe Tahmin Oyunları',
     description: 'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'tahmin.net — Türkçe Tahmin Oyunları',
+    title: 'tahmin.in — Türkçe Tahmin Oyunları',
     description: 'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı.',
   },
   robots: { index: true, follow: true },

@@ -5,7 +5,7 @@ import { ContactForm } from './ContactForm'
 export const metadata: Metadata = {
   title: 'Hakkında',
   description:
-    'tahmin.net nasıl çalışır, şarkı önizlemeleri nereden gelir ve içerik kaldırma talepleri nasıl iletilir.',
+    'tahmin.in nasıl çalışır, şarkı önizlemeleri nereden gelir ve içerik kaldırma talepleri nasıl iletilir.',
 }
 
 export default function HakkindaPage() {
@@ -21,9 +21,9 @@ export default function HakkindaPage() {
 
       <div className="mt-8 flex flex-col gap-8 text-ink-2 leading-relaxed">
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-ink-0">tahmin.net nedir?</h2>
+          <h2 className="mb-2 text-lg font-semibold text-ink-0">tahmin.in nedir?</h2>
           <p>
-            tahmin.net, Türkçe şarkıları çok kısa ses kliplerinden tahmin etmeye dayanan bir
+            tahmin.in, Türkçe şarkıları çok kısa ses kliplerinden tahmin etmeye dayanan bir
             oyundur. Yarım saniyeyle başlar; her harcadığın adımda biraz daha uzun
             dinlersin. Üyelik gerekmez — gir ve oyna. Günlük sıralamaya girmek istersen Google ile
             giriş yapabilirsin.

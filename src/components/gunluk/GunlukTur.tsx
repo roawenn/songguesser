@@ -12,6 +12,7 @@ import type { GunlukApi } from '@/hooks/useGunluk'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { GuessInput, type OneriSatiri } from '../guess/GuessInput'
 import { GuessLog } from '../guess/GuessLog'
+import { Cassette, type CassetteHandle } from '../stage/Cassette'
 import { KapakKare, type KapakKareHandle } from '../stage/KapakKare'
 import { StepIndicator } from '../stage/StepIndicator'
 import { Transport } from '../stage/Transport'
@@ -76,10 +77,30 @@ function Eylemler({ children }: { children: React.ReactNode }) {
 
 export function SarkiTuru({ g, tur }: { g: GunlukApi; tur: Tur<'sarki'> }) {
   const easySearch = useSettingsStore((s) => s.easySearch)
+  const reduce = useSettingsStore((s) => s.reduce)
   const ipucuAcik = tur.ipuclari.length < IPUCU_SAYISI && tur.attempt + 1 < ATTEMPTS && !g.bekliyor
+
+  const kaset = useRef<CassetteHandle>(null)
+  const { onYanlis } = g
+  useEffect(() => onYanlis(() => kaset.current?.shake()), [onYanlis])
 
   return (
     <>
+      {/*
+        Kaset şarkı oyunundakiyle aynı — Günlük'te de şarkı turu aynı görünmeli.
+
+        ⚠️ Etiketteki numara şarkı kimliğinden TÜRETİLEMEZ: Günlük'te kimlik
+        istemciye hiç gelmiyor (cevabı ele verirdi). Medyanın verildiği andan
+        türeyen opak bir numara kullanılıyor — tur başına sabit, cevapla ilgisiz.
+      */}
+      <Cassette
+        handleRef={kaset}
+        categoryLabel="Günlük"
+        tapeCode={`NK-${String(tur.medyaVerildi).slice(-3)}`}
+        playing={g.caliyor}
+        reduce={reduce}
+      />
+
       <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }} className="nk-cubuk">
         <StepIndicator
           attempt={tur.attempt}

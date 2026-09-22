@@ -102,7 +102,7 @@ export function unlock(elements: HTMLAudioElement[] = []): void {
   // Kilit ekranı bildirimi cevabı SIZDIRMASIN.
   if ('mediaSession' in navigator) {
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: 'tahmin.net', artist: '' })
+      navigator.mediaSession.metadata = new MediaMetadata({ title: 'tahmin.in', artist: '' })
     } catch {
       // MediaMetadata yoksa sorun değil
     }

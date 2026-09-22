@@ -10,7 +10,7 @@ import { restUrl, restHeaders, supabaseReady } from './supabase'
  * ⚠️ Şifre ARTIK ORTAM DEĞİŞKENİNDE DEĞİL, veritabanında tuzlu scrypt özeti
  * olarak duruyor; oturum çerezi de rastgele bir kimlik.
  *
- * Eskiden çerez `sha256(şifre + ":tahmin.net")` idi — tuzsuz, statik bir
+ * Eskiden çerez `sha256(şifre + ":tahmin.in")` idi — tuzsuz, statik bir
  * TÜREV. Üç ayrı sonucu vardı:
  *   1. Çıkış yapmak çerezi iptal etmiyordu; sunucu tarafında sonsuza kadar
  *      geçerli kalıyordu. Çalınan bir çerezi geçersizleştirmenin tek yolu

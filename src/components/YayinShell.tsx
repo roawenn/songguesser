@@ -112,7 +112,7 @@ export function YayinShell() {
       >
         <div style={{ width: '100%', maxWidth: 1320, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <Link href="/" style={{ ...M, color: '#6a7075', textDecoration: 'none' }}>
-            ← tahmin.net
+            ← tahmin.in
           </Link>
           <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 24, color: '#eceef0' }}>
             tahmin <span style={{ ...M, fontStyle: 'normal', color: 'var(--acc)' }}>yayın</span>

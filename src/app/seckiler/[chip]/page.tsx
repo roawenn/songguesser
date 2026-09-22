@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: copy.h1,
     description: copy.ozet,
     alternates: { canonical: `/seckiler/${chip}` },
-    openGraph: { title: `${copy.h1} · tahmin.net`, description: copy.ozet, type: 'website' },
+    openGraph: { title: `${copy.h1} · tahmin.in`, description: copy.ozet, type: 'website' },
   }
 }
 

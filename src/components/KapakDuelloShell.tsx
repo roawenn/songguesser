@@ -120,7 +120,7 @@ export function KapakDuelloShell({ kod }: { kod: string }) {
         }}
       >
         <Link href="/kapak" style={{ ...M, color: '#6a7075', textDecoration: 'none' }}>
-          ← tahmin.net
+          ← tahmin.in
         </Link>
         <Marka />
 

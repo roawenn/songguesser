@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    openGraph: { title: `tahmin.net · ${title}`, description, type: 'website' },
-    twitter: { card: 'summary_large_image', title: `tahmin.net · ${title}`, description },
+    openGraph: { title: `tahmin.in · ${title}`, description, type: 'website' },
+    twitter: { card: 'summary_large_image', title: `tahmin.in · ${title}`, description },
     // Paylaşım sayfaları sonsuz sayıda üretilebilir; arama dizinine girmesinler.
     robots: { index: false, follow: true },
   }

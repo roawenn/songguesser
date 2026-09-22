@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    siteName: 'tahmin.net',
-    title: 'Yayıncı Modu · tahmin.net',
+    siteName: 'tahmin.in',
+    title: 'Yayıncı Modu · tahmin.in',
     description: 'Sohbetinle şarkı tahmini: klip uzar, erken bilen çok puan alır.',
   },
 }

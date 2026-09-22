@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    siteName: 'tahmin.net',
-    title: 'Ünlüyü Görselinden Tanı · tahmin.net',
+    siteName: 'tahmin.in',
+    title: 'Ünlüyü Görselinden Tanı · tahmin.in',
     description: 'Önce sadece saç. Beş şerit dolmadan tanıyabilir misin?',
   },
 }

@@ -30,7 +30,7 @@ export function kodGecerli(kod: string): boolean {
  * Kullanıcının yapıştırdığı metinden lobi kodunu çıkarır; geçersizse `null`.
  *
  * Kabul edilenler: "Y8Q6S4", "y8q6s4", "Y8Q 6S4", "Y8Q-6S4" ve bağlantının
- * tamamı ("https://tahmin.net/duello/Y8Q6S4"). Lobi ekranı hem kodu hem
+ * tamamı ("https://tahmin.in/duello/Y8Q6S4"). Lobi ekranı hem kodu hem
  * bağlantıyı gösteriyor; kişi hangisini gönderdiyse o yapıştırılıyor.
  *
  * ⚠️ `toUpperCase` burada güvenli: alfabede `I` yok, yani Türkçe `i`/`ı`

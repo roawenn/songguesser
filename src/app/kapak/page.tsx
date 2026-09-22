@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    siteName: 'tahmin.net',
-    title: 'Kapaktan Albümü Bil · tahmin.net',
+    siteName: 'tahmin.in',
+    title: 'Kapaktan Albümü Bil · tahmin.in',
     description: 'Kapak 8×8 pikselle başlar. Tam netleşmeden albümü tanıyabilir misin?',
   },
 }

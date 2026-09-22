@@ -11,6 +11,7 @@ import type { Unlu } from '@/data/unlu'
 import { STEPS } from '@/game/ladder'
 import type { GunlukGorunum, GunlukTurGorunum } from '@/game/gunlukGorunum'
 import type { BelirsizAday, GeriBildirim, GunlukHamle } from '@/game/gunlukHamle'
+import { iyimserIpucu, iyimserPas } from '@/game/gunlukIyimser'
 import { cihazOku, cihazYaz } from '@/lib/gunlukAnahtar'
 import { olay, olayBirKez } from '@/lib/olay'
 import { buildIndex, sarkiSamanligi, type SearchIndex } from '@/text/autocomplete'
@@ -232,6 +233,14 @@ export function useGunluk(arsivGun: string | null = null): GunlukApi {
       const sira = kayit?.sira ?? 0
       const h = hazirlik.current
       const hazirMs = sira === 0 && h ? Math.round(h.sure ?? performance.now() - h.bas) : undefined
+
+      /*
+        İYİMSER UYGULAMA: pas ve ipucu sunucu yanıtını beklemeden ekranda
+        (bkz. `gunlukIyimser`). Yanıt geldiğinde görünüm zaten sunucununkiyle
+        değiştiriliyor; sunucu reddederse de öyle — yani kendiliğinden düzelir.
+      */
+      const iyimser = hamle.t === 'pas' ? iyimserPas(gorunum) : hamle.t === 'ipucu' ? iyimserIpucu(gorunum) : null
+      if (iyimser) setGorunum(iyimser)
 
       ucusta.current = true
       setBekliyor(true)

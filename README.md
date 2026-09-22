@@ -1,4 +1,4 @@
-# tahmin.net
+# tahmin.in
 
 Türkçe şarkı tahmin oyunu. Yarım saniyelik bir klip çalınır; her yanlış tahmin
 ya da pas klibi uzatır. Hesap yok, kayıt yok — gir ve oyna.

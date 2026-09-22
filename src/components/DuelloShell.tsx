@@ -136,7 +136,7 @@ export function DuelloShell({ kod }: { kod: string }) {
         }}
       >
         <Link href="/" style={{ ...M, color: '#6a7075', alignSelf: 'flex-start' }}>
-          ← tahmin.net
+          ← tahmin.in
         </Link>
 
         {/*

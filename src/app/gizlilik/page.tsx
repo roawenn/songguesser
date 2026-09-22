@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Gizlilik ve KVKK Aydınlatma Metni',
-  description: 'tahmin.net hangi kişisel verileri, hangi amaçla ve ne kadar süre işler; haklarını nasıl kullanırsın.',
+  description: 'tahmin.in hangi kişisel verileri, hangi amaçla ve ne kadar süre işler; haklarını nasıl kullanırsın.',
   alternates: { canonical: '/gizlilik' },
 }
 
@@ -39,7 +39,7 @@ export default function GizlilikPage() {
         <Bolum baslik="Veri sorumlusu">
           <p>
             6698 sayılı Kişisel Verilerin Korunması Kanunu (&ldquo;KVKK&rdquo;) kapsamında veri sorumlusu{' '}
-            <strong className="text-ink-0">{VERI_SORUMLUSU}</strong>&rsquo;dur (tahmin.net). Başvuru ve sorular için:{' '}
+            <strong className="text-ink-0">{VERI_SORUMLUSU}</strong>&rsquo;dur (tahmin.in). Başvuru ve sorular için:{' '}
             <strong className="text-ink-0">{BASVURU_EPOSTA}</strong> ya da{' '}
             <Link href="/hakkinda" className="underline underline-offset-4">iletişim formu</Link>.
           </p>

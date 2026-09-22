@@ -7,7 +7,7 @@ import { SERIT } from '@/data/unlu'
 export const metadata: Metadata = {
   title: 'Nasıl Oynanır',
   description:
-    'tahmin.net nasıl oynanır? Adımlar, klip uzunlukları, kategoriler, zorluk seviyeleri ve yazım kuralları.',
+    'tahmin.in nasıl oynanır? Adımlar, klip uzunlukları, kategoriler, zorluk seviyeleri ve yazım kuralları.',
 }
 
 const ladder = STEPS.map((s) => `${tr(s)} sn`).join(' → ')
@@ -83,7 +83,7 @@ const faq = [
   },
   {
     q: 'Yalnızca bir sanatçının şarkılarıyla oynayabilir miyim?',
-    a: 'Evet. Sanatçı sayfalarından (tahmin.net/sanatci) birini seçip "ile oyna" dersen tur yalnızca o sanatçının şarkılarından kurulur. Seçki ayarın değişmez; sol üstteki ✕ ile moddan çıkınca kendi seçkine dönersin. Sanatçı modunda düello kurulamaz.',
+    a: 'Evet. Sanatçı sayfalarından (tahmin.in/sanatci) birini seçip "ile oyna" dersen tur yalnızca o sanatçının şarkılarından kurulur. Seçki ayarın değişmez; sol üstteki ✕ ile moddan çıkınca kendi seçkine dönersin. Sanatçı modunda düello kurulamaz.',
   },
   {
     q: 'İpucu nasıl çalışır?',
@@ -91,7 +91,7 @@ const faq = [
   },
   {
     q: 'Yayında izleyicilerimle oynayabilir miyim?',
-    a: 'Evet, tahmin.net/yayin adresindeki yayıncı moduyla. Twitch ya da Kick kanalının adını yazarsın; hesap ya da izin gerekmez, sohbet yalnızca okunur. Klip kendiliğinden uzar ve izleyiciler sohbete şarkının adını yazar. Erken kademede bilen daha çok puan alır; ilk bilen ek puan kazanır, ardından gelen kısa son şansta bilenler yarım puan alır. Ekranda cevap değil, yalnızca bilenlerin adı ve liderlik tablosu görünür.',
+    a: 'Evet, tahmin.in/yayin adresindeki yayıncı moduyla. Twitch ya da Kick kanalının adını yazarsın; hesap ya da izin gerekmez, sohbet yalnızca okunur. Klip kendiliğinden uzar ve izleyiciler sohbete şarkının adını yazar. Erken kademede bilen daha çok puan alır; ilk bilen ek puan kazanır, ardından gelen kısa son şansta bilenler yarım puan alır. Ekranda cevap değil, yalnızca bilenlerin adı ve liderlik tablosu görünür.',
   },
   {
     q: 'Klavyeden oynayabilir miyim?',
@@ -108,7 +108,7 @@ export default function NasilOynanirPage() {
 
       <h1 className="mt-6 font-serif text-4xl text-ink-0">Nasıl oynanır?</h1>
       <p className="mt-3 text-ink-2">
-        tahmin.net&apos;te iki oyun var. <strong className="text-ink-0">Şarkı</strong>:
+        tahmin.in&apos;te iki oyun var. <strong className="text-ink-0">Şarkı</strong>:
         Türkçe bir parçayı yarım saniyeden tanımaya çalışırsın; pop, rap, arabesk, rock,
         halk, sanat ve fantezi seçkileriyle oynanır.{' '}
         <strong className="text-ink-0">Ünlü</strong>: bir ünlünün görseli beş şeride

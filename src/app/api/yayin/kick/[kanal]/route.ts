@@ -22,7 +22,7 @@ import { kanalAdiTemizle } from '@/text/kanal'
  */
 
 const BASLIKLAR = {
-  'User-Agent': 'tahmin.net yayinci modu (+https://tahmin.net/yayin)',
+  'User-Agent': 'tahmin.in yayinci modu (+https://tahmin.in/yayin)',
   Accept: 'application/json',
 }
 

@@ -255,7 +255,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ kod: string }>
           bilmeyene hiçbir şey anlatmıyor, bilene de gereksiz. Görseli gören
           kişinin ihtiyacı olan tek şey adres.
         */}
-        <div style={{ display: 'flex', fontSize: 40, color: INK }}>tahmin.net</div>
+        <div style={{ display: 'flex', fontSize: 40, color: INK }}>tahmin.in</div>
       </div>
     ),
     {

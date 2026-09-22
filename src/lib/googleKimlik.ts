@@ -16,7 +16,7 @@ export const GOOGLE_TOKEN = 'https://oauth2.googleapis.com/token'
 export const GOOGLE_KAPSAM = 'openid email profile'
 
 /** Girişin açık olduğu kökenler — başka yerde (Vercel önizlemesi) buton gizli. */
-export const IZINLI_KOKENLER = ['https://tahmin.net', 'http://localhost:3000']
+export const IZINLI_KOKENLER = ['https://tahmin.in', 'https://tahmin.net', 'http://localhost:3000']
 export const DONUS_YOLU = '/api/giris/google/donus'
 
 export function yetkiAdresi(p: { clientId: string; redirectUri: string; state: string; codeChallenge: string }): string {
