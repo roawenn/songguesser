@@ -1,9 +1,9 @@
 import { kapakSatiri, type Kapak } from '@/data/kapak'
 import { sarkiSatiri, type Song } from '@/data/schema'
 import { unluSatiri, type Unlu } from '@/data/unlu'
-import { judgeGuess, type Tahminlenebilir } from '@/text/match'
+import { havuzGerekli, judgeGuess, type Tahminlenebilir } from '@/text/match'
 import { ogeCevabi, type GunlukOge, type GunlukOyun } from './gunluk'
-import type { Hakem, HakemHukmu } from './gunlukHamle'
+import { HAVUZ_GEREKLI, type Hakem, type HakemHukmu } from './gunlukHamle'
 
 /**
  * Günlüğün hakemi — normal oyunun `judgeGuess`'i, sunucudaki havuzla.
@@ -24,21 +24,44 @@ export interface HakemHavuzlari {
 
 interface OyunHavuzu {
   liste: readonly Tahminlenebilir[]
-  kimlikle: Map<string, Tahminlenebilir>
+  /**
+   * ⚠️ TEMBEL. Eskiden `new Map(liste.map(…))` ile eager kuruluyordu: `sarki`
+   * turunda 15 binden fazla elemanlı bir ara dizi ve o kadar girdilik bir Map,
+   * HER istekte. Oysa `tahmin` yolu bu indeksi hiç kullanmıyor, yalnızca
+   * `secim` kullanıyor — her tahminde ödenen ölü işti.
+   */
+  kimlikle: () => Map<string, Tahminlenebilir>
   satir: (o: Tahminlenebilir) => { ust: string; alt?: string }
 }
 
-export function hakemKur(havuzlar: HakemHavuzlari, rand: () => number = Math.random): Hakem {
+/** Kolay arama AÇIK sabit — gerekçe dosya başında. */
+const MOD = { easySearch: true }
+
+/**
+ * Hakemi kurar.
+ *
+ * ⚠️ `havuzlar` `null` OLABİLİR: o zaman hakem yalnızca havuz gerektirmeyen
+ * kararları verir (tam doğru, alakasız yanlış, boş) ve gerisi için
+ * `havuz-gerekli` sinyali döner. Günlük modda tahmin yolunun varsayılanı bu —
+ * havuz ancak sinyal gelince yükleniyor (bkz. `api/gunluk/hamle`).
+ */
+export function hakemKur(havuzlar: HakemHavuzlari | null, rand: () => number = Math.random): Hakem {
   const onbellek = new Map<GunlukOyun, OyunHavuzu>()
 
-  const havuz = (oyun: GunlukOyun): OyunHavuzu => {
+  const havuz = (oyun: GunlukOyun): OyunHavuzu | null => {
+    if (!havuzlar) return null
     const hazir = onbellek.get(oyun)
     if (hazir) return hazir
     const [liste, satir]: [readonly Tahminlenebilir[], OyunHavuzu['satir']] =
       oyun === 'sarki' ? [havuzlar.sarkilar, (o) => sarkiSatiri(o as Song)]
       : oyun === 'unlu' ? [havuzlar.unluler, (o) => unluSatiri(o as Unlu)]
       : [havuzlar.kapaklar, (o) => kapakSatiri(o as Kapak)]
-    const h = { liste, satir, kimlikle: new Map(liste.map((o) => [o.id, o])) }
+    let indeks: Map<string, Tahminlenebilir> | null = null
+    const h: OyunHavuzu = {
+      liste,
+      satir,
+      kimlikle: () => (indeks ??= new Map(liste.map((o) => [o.id, o]))),
+    }
     onbellek.set(oyun, h)
     return h
   }
@@ -47,7 +70,24 @@ export function hakemKur(havuzlar: HakemHavuzlari, rand: () => number = Math.ran
     tahmin(metin: string, oge: GunlukOge): HakemHukmu {
       const cevap = ogeCevabi(oge)
       const h = havuz(oge.oyun)
-      const v = judgeGuess(metin, cevap, h.liste, { easySearch: true }, rand)
+
+      /*
+       * Havuzsuz hakem: karar havuza muhtaçsa çağırana haber ver. Değilse BOŞ
+       * havuzla değerlendir — `havuzGerekli` false iken `judgeGuess`'in havuz
+       * tarayan kademesine hiç girilmiyor, sonuç tam havuzlu çağrıyla birebir
+       * aynı (bu denklik `text/__tests__/match.test.ts`'te kilitli).
+       */
+      if (!h) {
+        if (havuzGerekli(metin, cevap, MOD)) return { kind: 'havuz-gerekli' }
+        const bos = judgeGuess(metin, cevap, [], MOD, rand)
+        return bos.kind === 'empty' ? { kind: 'empty' }
+          : bos.kind === 'correct' ? { kind: 'correct' }
+          : bos.kind === 'wrong' ? { kind: 'wrong', sameArtist: bos.sameArtist }
+          // Boş havuzda belirsizlik doğamaz; yine de tip güvenliği için.
+          : { kind: 'havuz-gerekli' }
+      }
+
+      const v = judgeGuess(metin, cevap, h.liste, MOD, rand)
       switch (v.kind) {
         case 'empty':
           return { kind: 'empty' }
@@ -67,7 +107,9 @@ export function hakemKur(havuzlar: HakemHavuzlari, rand: () => number = Math.ran
       const cevap = ogeCevabi(oge)
       if (id === cevap.id) return { dogru: true }
       const h = havuz(oge.oyun)
-      const secilen = h.kimlikle.get(id)
+      // Seçim kimlik indeksine gerçekten muhtaç: havuz yoksa yüklenmeli.
+      if (!h) return HAVUZ_GEREKLI
+      const secilen = h.kimlikle().get(id)
       if (!secilen) return null
       return {
         dogru: false,

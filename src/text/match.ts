@@ -72,6 +72,57 @@ function bestDistanceToKeys(guess: string, keys: string[], strict: boolean): num
  *   5. BELİRSİZLİK KORUMASI — başka şarkı da aynı yakınlıktaysa hak tüketme
  *   6. yanlış; sanatçı tutuyorsa bunu söyle
  */
+/**
+ * HAVUZ GEREKMEDEN verilebilen kararlar — 1-4. kademeler.
+ *
+ * ⚠️ TEK KAYNAK. `judgeGuess` de `havuzGerekli` de buradan besleniyor. İkisi
+ * ayrı ayrı yazılsaydı biri değişip diğeri olduğu yerde kalabilir, "havuz
+ * gerekmez" dediğimiz bir tahmin aslında havuza muhtaç olabilirdi — sessizce
+ * yanlış bir karar, üstelik yalnızca yazım hatası yapan oyuncuda görünen.
+ */
+type OnKarar =
+  | { tip: 'empty' }
+  | { tip: 'correct' }
+  /** Cevaba YAKIN yazılmış: belirsizlik koruması için havuz taranmalı. */
+  | { tip: 'yakin'; guess: string; answerDist: number; strict: boolean }
+  /** Alakasız: havuz taranmadan "yanlış" denebilir. */
+  | { tip: 'uzak' }
+
+function onKarar(raw: string, answer: Tahminlenebilir, mode: MatchMode): OnKarar {
+  const guess = normalizeLoose(raw)
+  if (!guess) return { tip: 'empty' }
+
+  const strict = !mode.easySearch
+
+  // 2 — tam eşleşme
+  if (answer.k.includes(guess)) return { tip: 'correct' }
+
+  // 3 — kelime kümesi eşitliği: "Ben Şarkı Söylerim" ≡ "Şarkı Söylerim Ben"
+  const guessTokens = guess.split(' ').sort().join(' ')
+  for (const key of answer.k) {
+    if (key.split(' ').sort().join(' ') === guessTokens) return { tip: 'correct' }
+  }
+
+  // 4 — bulanık eşleşme
+  const answerDist = bestDistanceToKeys(guess, answer.k, strict)
+  return answerDist === Infinity ? { tip: 'uzak' } : { tip: 'yakin', guess, answerDist, strict }
+}
+
+/**
+ * Bu tahmin için havuzun TAMAMI gerekecek mi?
+ *
+ * ⚠️ Günlük modda sunucu, havuzu (15 binden fazla satır, üç oyun için ~7-9 MB)
+ * yalnızca gerektiğinde yüklesin diye var. Tam doğru ve alakasız tahminler
+ * havuza hiç dokunmadan karara bağlanabiliyor; yalnızca cevaba YAKIN yazılmış
+ * bir tahmin "başka bir şarkı da bu kadar yakın mı?" sorusunu doğuruyor.
+ *
+ * `false` döndüğünde `judgeGuess`'i BOŞ havuzla çağırmak güvenlidir: o dalda
+ * 5. kademeye hiç girilmiyor.
+ */
+export function havuzGerekli(raw: string, answer: Tahminlenebilir, mode: MatchMode): boolean {
+  return onKarar(raw, answer, mode).tip === 'yakin'
+}
+
 export function judgeGuess<T extends Tahminlenebilir>(
   raw: string,
   answer: T,
@@ -79,26 +130,12 @@ export function judgeGuess<T extends Tahminlenebilir>(
   mode: MatchMode,
   rand: () => number = Math.random,
 ): Verdict<T> {
-  const guess = normalizeLoose(raw)
-  if (!guess) return { kind: 'empty' }
+  const on = onKarar(raw, answer, mode)
+  if (on.tip === 'empty') return { kind: 'empty' }
+  if (on.tip === 'correct') return { kind: 'correct', near: false }
 
-  const strict = !mode.easySearch
-
-  // 2 — tam eşleşme
-  if (answer.k.includes(guess)) return { kind: 'correct', near: false }
-
-  // 3 — kelime kümesi eşitliği: "Ben Şarkı Söylerim" ≡ "Şarkı Söylerim Ben"
-  const guessTokens = guess.split(' ').sort().join(' ')
-  for (const key of answer.k) {
-    if (key.split(' ').sort().join(' ') === guessTokens) {
-      return { kind: 'correct', near: false }
-    }
-  }
-
-  // 4 — bulanık eşleşme
-  const answerDist = bestDistanceToKeys(guess, answer.k, strict)
-
-  if (answerDist !== Infinity) {
+  if (on.tip === 'yakin') {
+    const { guess, answerDist, strict } = on
     // 5 — belirsizlik koruması: bulanık kabulden ÖNCE tüm havuzu tara.
     // Bu olmadan "bulanık kabul" sessizce "bulanık YANLIŞ kabul"e dönüşür ve
     // oyuncular hak etmedikleri turları kazanır.

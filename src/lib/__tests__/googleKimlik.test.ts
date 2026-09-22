@@ -130,3 +130,17 @@ describe('authTimeTeshis', () => {
     expect(authTimeTeshis({ auth_time: simdi / 1000 - 7200 }, simdi)).toBe('auth_time-7200sn-once')
   })
 })
+
+describe('yonlendirmeAdresi — www biçimleri', () => {
+  it('çıplak ve www adreslerinin ikisi de açık', () => {
+    for (const k of ['https://tahmin.in', 'https://www.tahmin.in', 'https://tahmin.net', 'https://www.tahmin.net']) {
+      expect([k, yonlendirmeAdresi(k, {})]).toEqual([k, `${k}/api/giris/google/donus`])
+    }
+  })
+
+  it('benzeyen ama bize ait olmayan köken kapalı', () => {
+    for (const k of ['https://tahmin.in.evil.com', 'https://wwwtahmin.in', 'http://www.tahmin.in']) {
+      expect([k, yonlendirmeAdresi(k, { NODE_ENV: 'production' })]).toEqual([k, null])
+    }
+  })
+})

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { hakemKur } from '@/game/gunlukHakem'
 import { EN_UZUN_TAHMIN, GUNLUK_TUR, type GunlukOturum, type GunlukSet } from '@/game/gunluk'
 import {
   adayaGecir, hamleUygula, oluDenetle,
@@ -134,10 +135,33 @@ export async function POST(req: Request) {
           }
         }
       } else {
-        const hakem = istek.hamle.t === 'tahmin' || istek.hamle.t === 'sec'
-          ? await hakemGetir()
-          : { tahmin: () => ({ kind: 'empty' as const }), secim: () => null }
-        sonuc = hamleUygula(oturum, set, { ...istek, hamle: istek.hamle }, simdi, hakem, sonTeslim)
+        /*
+         * İKİ GEÇİŞ — havuz ancak gerekirse yükleniyor.
+         *
+         * ⚠️ Eskiden her `tahmin` ve `sec` hamlesi `await hakemGetir()` ile üç
+         * havuzu birden yüklüyordu: soğuk örnekte ~35 istek ve 7-9 MB, sıcak
+         * örnekte bile 15 binden fazla girdilik bir kimlik Map'i. Oysa tam
+         * doğru ve alakasız yanlış tahminler havuza HİÇ muhtaç değil; havuz
+         * yalnızca cevaba yakın yazılmış bir tahmin için (belirsizlik koruması)
+         * ve belirsizlikten seçimde gerekiyor.
+         *
+         * `hamleUygula` saf ve ucuz, bu noktada hiçbir şey yazılmadı —
+         * ikinci kez çalıştırmak bedava.
+         */
+        const hamle = { ...istek, hamle: istek.hamle }
+        sonuc = hamleUygula(oturum, set, hamle, simdi, hakemKur(null), sonTeslim)
+        if (sonuc.tur === 'havuz-gerekli') {
+          sonuc = hamleUygula(oturum, set, hamle, simdi, await hakemGetir(), sonTeslim)
+        }
+      }
+
+      /*
+       * Havuz yüklendikten sonra bile sinyal geliyorsa bir mantık hatası var;
+       * oyuncuyu sessizce yanlış bir sonuca düşürmektense 502 dönmek yeğdir.
+       */
+      if (sonuc.tur === 'havuz-gerekli') {
+        console.error('[gunluk] havuz yuklendigi halde karar verilemedi')
+        return NextResponse.json({ error: 'Hamle işlenemedi.' }, { status: 502 })
       }
 
       switch (sonuc.tur) {

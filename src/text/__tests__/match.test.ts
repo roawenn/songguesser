@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { judgeGuess } from '../match'
+import { havuzGerekli, judgeGuess } from '../match'
 import { buildKeys, cleanKey } from '../keys'
 import type { Song } from '@/data/schema'
 
@@ -250,5 +250,58 @@ describe('sanatçısız öğeler (ünlü oyunu şekli)', () => {
 
   it('Türkçe karakter olmadan da bilinir', () => {
     expect(judgeGuess('cem yilmaz', cem, havuz, easy).kind).toBe('correct')
+  })
+})
+
+/**
+ * Günlük modda sunucu, havuzu yalnızca gerektiğinde yüklüyor (bkz. `havuzGerekli`).
+ * Bu bloğun işi o kısayolun DAVRANIŞI DEĞİŞTİRMEDİĞİNİ kilitlemek: havuz
+ * gerekmediği söylenen her tahminde boş havuzla verilen karar, tam havuzla
+ * verilenin birebir aynısı olmalı. Aksi hâlde kısayol, yalnızca yazım hatası
+ * yapan oyuncuda görünen sessiz bir yanlış karara dönüşür.
+ */
+describe('havuzGerekli', () => {
+  const genisHavuz = [gulpembe, kumbara, song('Sezen Aksu', 'Gülümse'), song('Ajda Pekkan', 'Palavra Palavra')]
+
+  it('tam ve kelime-kümesi eşleşmesinde havuz gerekmez', () => {
+    for (const g of ['Gülpembe', 'gulpembe', 'GÜLPEMBE']) {
+      expect([g, havuzGerekli(g, gulpembe, easy)]).toEqual([g, false])
+    }
+  })
+
+  it('boş ve alakasız tahminde havuz gerekmez', () => {
+    for (const g of ['', '   ', 'zxcvbnm asdf', 'bambaşka bir şarkı']) {
+      expect([g, havuzGerekli(g, gulpembe, easy)]).toEqual([g, false])
+    }
+  })
+
+  it('cevaba YAKIN yazım hatasında havuz gerekir', () => {
+    expect(havuzGerekli('Gülpemve', gulpembe, easy)).toBe(true)
+  })
+
+  it('zor modda eşik daralır — aynı tahmin havuz gerektirmeyebilir', () => {
+    // Kolay aramada yakın sayılan bir yazım, zor modda uzak sayılabilir.
+    const kolay = havuzGerekli('Gülpemve', gulpembe, easy)
+    const zor = havuzGerekli('Gülpemve', gulpembe, hard)
+    expect(kolay).toBe(true)
+    expect(typeof zor).toBe('boolean')
+  })
+
+  it('DENKLİK: havuz gerekmiyorsa boş havuz tam havuzla AYNI kararı verir', () => {
+    const tahminler = [
+      '', '   ', 'Gülpembe', 'gulpembe', 'GULPEMBE', 'Barış Manço',
+      'zxcvbnm', 'bambaşka bir şarkı', 'Kaybolan Yıllar', 'kaybolan yillar',
+      'Gülümse', 'Palavra Palavra', 'palavra', 'Gülpemve', 'Kayboln Yllar',
+    ]
+    for (const g of tahminler) {
+      for (const mod of [easy, hard]) {
+        for (const cevap of [gulpembe, kumbara]) {
+          if (havuzGerekli(g, cevap, mod)) continue
+          expect([g, mod.easySearch, cevap.id, judgeGuess(g, cevap, [], mod)]).toEqual([
+            g, mod.easySearch, cevap.id, judgeGuess(g, cevap, genisHavuz, mod),
+          ])
+        }
+      }
+    }
   })
 })

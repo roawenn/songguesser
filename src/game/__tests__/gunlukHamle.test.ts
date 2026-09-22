@@ -165,3 +165,62 @@ describe('ölü medya', () => {
     expect(oluDenetle(yeniOturum(), { tur: 0, sira: 0 }, 200, SON_TESLIM)).toMatchObject({ tur: 'hata', kod: 409 })
   })
 })
+
+/**
+ * Sunucu, tahmin başına 7-9 MB'lık havuzu yüklemesin diye hakem önce HAVUZSUZ
+ * kuruluyor; karara varamadığında `havuz-gerekli` diyor ve rota havuzu yükleyip
+ * hamleyi tekrar uyguluyor (bkz. `api/gunluk/hamle`). Buradaki testler o
+ * sinyalin DOĞRU anlarda çıktığını kilitliyor: gereğinden sık çıkarsa kazanç
+ * kaybolur, gereğinden seyrek çıkarsa belirsizlik koruması sessizce devre dışı
+ * kalır ve oyuncular hak etmedikleri turları kazanır.
+ */
+describe('havuzsuz hakem', () => {
+  const HAVUZSUZ = hakemKur(null, () => 0)
+  const havuzsuzUygula = (o: GunlukOturum, tur: number, hamle: GunlukHamle) =>
+    hamleUygula(o, SET, { tur, sira: o.turlar[tur]?.olaylar.length ?? 0, hamle }, 1000, HAVUZSUZ, SON_TESLIM)
+
+  const acik = () => uygulandi(uygula(yeniOturum(), 0, { t: 'sonraki' }))
+
+  it('tam doğru tahmin havuzsuz karara bağlanır', () => {
+    const r = havuzsuzUygula(acik(), 0, { t: 'tahmin', metin: 'Şımarık' })
+    expect(r.tur).toBe('uygulandi')
+    if (r.tur === 'uygulandi') expect(r.geri).toEqual({ kind: 'dogru' })
+  })
+
+  it('alakasız yanlış tahmin havuzsuz karara bağlanır', () => {
+    const r = havuzsuzUygula(acik(), 0, { t: 'tahmin', metin: 'zxcvbnm qwerty' })
+    expect(r.tur).toBe('uygulandi')
+    if (r.tur === 'uygulandi') expect(r.geri).toMatchObject({ kind: 'yanlis' })
+  })
+
+  it('boş tahmin havuzsuz karara bağlanır', () => {
+    expect(havuzsuzUygula(acik(), 0, { t: 'tahmin', metin: '   ' }).tur).toBe('bos')
+  })
+
+  it('cevaba YAKIN yazım havuz ister', () => {
+    expect(havuzsuzUygula(acik(), 0, { t: 'tahmin', metin: 'şımarıkk' }).tur).toBe('havuz-gerekli')
+  })
+
+  it('belirsizlikten seçim havuz ister — kimlik indeksi gerçekten lazım', () => {
+    expect(havuzsuzUygula(acik(), 0, { t: 'sec', id: 'itunes:4' }).tur).toBe('havuz-gerekli')
+  })
+
+  it('doğru kimlikle seçim havuzsuz da çözülür — indeks gerekmiyor', () => {
+    const r = havuzsuzUygula(acik(), 0, { t: 'sec', id: SARKI_1.id })
+    expect(r.tur).toBe('uygulandi')
+  })
+
+  it('pas, ipucu ve sonraki havuza hiç dokunmaz', () => {
+    for (const h of [{ t: 'pas' }, { t: 'ipucu' }] as const) {
+      expect([h.t, havuzsuzUygula(acik(), 0, h).tur]).toEqual([h.t, 'uygulandi'])
+    }
+  })
+
+  it('havuz yüklenince aynı hamle normal sonucunu verir', () => {
+    const o = acik()
+    expect(havuzsuzUygula(o, 0, { t: 'tahmin', metin: 'şımarıkk' }).tur).toBe('havuz-gerekli')
+    const hakem = hakemKur({ sarkilar: [SARKI_1, BENZER], unluler: [], kapaklar: [] }, () => 0)
+    const r = hamleUygula(o, SET, { tur: 0, sira: 0, hamle: { t: 'tahmin', metin: 'şımarıkk' } }, 1, hakem, SON_TESLIM)
+    expect(r.tur).toBe('belirsiz')
+  })
+})

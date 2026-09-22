@@ -15,8 +15,26 @@ export const GOOGLE_YETKI = 'https://accounts.google.com/o/oauth2/v2/auth'
 export const GOOGLE_TOKEN = 'https://oauth2.googleapis.com/token'
 export const GOOGLE_KAPSAM = 'openid email profile'
 
-/** Girişin açık olduğu kökenler — başka yerde (Vercel önizlemesi) buton gizli. */
-export const IZINLI_KOKENLER = ['https://tahmin.in', 'https://tahmin.net', 'http://localhost:3000']
+/**
+ * Girişin açık olduğu kökenler — başka yerde (Vercel önizlemesi) buton gizli.
+ *
+ * ⚠️ `www.` BİÇİMLERİ DE LİSTEDE. Vercel'de birincil alan adı `www.tahmin.in`
+ * ayarlıydı ve çıplak adres oraya 308 ile yönleniyordu; origin listede
+ * olmadığı için `yonlendirmeAdresi` null dönüyor, `girisAcik` false oluyor ve
+ * giriş düğmesi CANLI SİTEDE SESSİZCE KAYBOLUYORDU. Hangi biçimin birincil
+ * olduğu bir dağıtım ayarı; kod ikisine de dayanıklı olmalı.
+ *
+ * ⚠️ Buraya eklenen her adresin Google Console'da da yetkili yönlendirme
+ * adresi olarak kayıtlı olması gerekir, yoksa akış `redirect_uri_mismatch`
+ * ile düşer — düğme görünür ama tıklayınca hata verir.
+ */
+export const IZINLI_KOKENLER = [
+  'https://tahmin.in',
+  'https://www.tahmin.in',
+  'https://tahmin.net',
+  'https://www.tahmin.net',
+  'http://localhost:3000',
+]
 export const DONUS_YOLU = '/api/giris/google/donus'
 
 export function yetkiAdresi(p: {

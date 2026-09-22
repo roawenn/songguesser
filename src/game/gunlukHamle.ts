@@ -45,11 +45,29 @@ export type HakemHukmu =
   | { kind: 'correct' }
   | { kind: 'wrong'; sameArtist: boolean }
   | { kind: 'ambiguous'; adaylar: BelirsizAday[] }
+  /**
+   * Havuzsuz hakem karar veremedi — çağıran havuzu yükleyip TEKRAR denemeli.
+   *
+   * ⚠️ Bu bir hata değil, bir İSTEK. Günlük modda havuz (üç oyun için ~7-9 MB)
+   * her tahminde yüklenmesin diye hakem önce havuzsuz kuruluyor; yalnızca
+   * cevaba yakın yazılmış bir tahmin bu sinyali doğuruyor (bkz. `havuzGerekli`).
+   */
+  | { kind: 'havuz-gerekli' }
+
+/** Havuzsuz hakemin seçim yolunda döndürdüğü sinyal — kimlik indeksi gerçekten lazım. */
+export const HAVUZ_GEREKLI = 'havuz-gerekli' as const
 
 export interface Hakem {
   tahmin(metin: string, oge: GunlukOge): HakemHukmu
   /** `null` → id havuzda yok (uydurma istek). */
-  secim(id: string, oge: GunlukOge): { dogru: true } | { dogru: false; metin: string; sameArtist: boolean } | null
+  secim(
+    id: string,
+    oge: GunlukOge,
+  ):
+    | { dogru: true }
+    | { dogru: false; metin: string; sameArtist: boolean }
+    | null
+    | typeof HAVUZ_GEREKLI
 }
 
 export type GeriBildirim =
@@ -68,6 +86,11 @@ export type HamleSonucu =
   /** Son teslim geçti — oturum kapatılmalı, sıralamaya girmez. */
   | { tur: 'zaman-asimi'; oturum: GunlukOturum }
   | { tur: 'hata'; kod: 400 | 409; mesaj: string }
+  /**
+   * Havuzsuz hakemle karar verilemedi. Çağıran havuzu yükleyip `hamleUygula`'yı
+   * TEKRAR çağırmalı. Bu dalda hiçbir durum değişmedi — fonksiyon saf.
+   */
+  | { tur: 'havuz-gerekli' }
 
 export function oturumPuani(turlar: readonly GunlukTurKaydi[]): number {
   return turlar.reduce((t, k) => t + (k.sonuc?.puan ?? 0), 0)
@@ -146,6 +169,7 @@ export function hamleUygula(
       const metin = hamle.metin.trim().slice(0, EN_UZUN_TAHMIN)
       if (!metin) return { tur: 'bos' }
       const h = hakem.tahmin(metin, oge)
+      if (h.kind === 'havuz-gerekli') return { tur: 'havuz-gerekli' }
       if (h.kind === 'empty') return { tur: 'bos' }
       if (h.kind === 'ambiguous') return { tur: 'belirsiz', adaylar: h.adaylar }
       if (h.kind === 'correct') {
@@ -159,6 +183,7 @@ export function hamleUygula(
     }
     case 'sec': {
       const r = hakem.secim(hamle.id, oge)
+      if (r === HAVUZ_GEREKLI) return { tur: 'havuz-gerekli' }
       if (!r) return hata(400, 'Geçersiz seçim.')
       if (r.dogru) {
         olay = { t: 'D', z }

@@ -64,6 +64,38 @@ export function TurBasligi({ tur, index }: { tur: GunlukTurGorunum; index: numbe
   )
 }
 
+/**
+ * "Gönderiliyor…" satırı.
+ *
+ * ⚠️ Günlük'te cevabı sunucu veriyor (istemci bilmiyor), yani tahmin ve pas
+ * gerçek bir ağ turu bekliyor. Eskiden bu bekleyişin HİÇBİR göstergesi yoktu:
+ * kutu boşalıyor, başka bir şey olmuyordu — oyuncuya "tıklamam işlemedi" gibi
+ * geliyordu. Bekleyişi uydurma bir sonuçla gizlemek yerine dürüstçe gösteriyoruz.
+ *
+ * ⚠️ Yükseklik SABİT ve yazı görünmezken de yer kaplıyor: yoksa her tahminde
+ * satır belirip kaybolur ve altındaki her şey zıplardı.
+ */
+function Bekleniyor({ acik }: { acik: boolean }) {
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        height: 13,
+        marginTop: 6,
+        fontFamily: 'var(--font-mono)',
+        fontSize: 9.5,
+        letterSpacing: '.18em',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        color: acik ? '#8a7448' : 'transparent',
+        transition: 'color 140ms ease',
+      }}
+    >
+      gönderiliyor…
+    </div>
+  )
+}
+
 function Eylemler({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -137,7 +169,7 @@ export function SarkiTuru({ g, tur }: { g: GunlukApi; tur: Tur<'sarki'> }) {
           <GuessInput<Song | BelirsizAday>
             index={g.indeksler.sarki}
             suggestions={easySearch}
-            disabled={false}
+            disabled={g.bekliyor}
             yerTutucu={g.indeksler.sarki ? undefined : 'Şarkının adını yaz…'}
             ambiguous={g.belirsiz}
             onGuess={g.tahmin}
@@ -147,6 +179,7 @@ export function SarkiTuru({ g, tur }: { g: GunlukApi; tur: Tur<'sarki'> }) {
             }}
             satir={sarkiSatirci}
           />
+          <Bekleniyor acik={g.bekliyor} />
         </div>
 
         <div className="nk-eylem nk-eylem-listesiz" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -209,7 +242,7 @@ export function UnluTuru({ g, tur }: { g: GunlukApi; tur: Tur<'unlu'> }) {
           <GuessInput<Unlu | BelirsizAday>
             index={g.indeksler.unlu}
             suggestions={easySearch}
-            disabled={false}
+            disabled={g.bekliyor}
             ambiguous={g.belirsiz}
             onGuess={g.tahmin}
             onPickAmbiguous={(a) => {
@@ -219,6 +252,7 @@ export function UnluTuru({ g, tur }: { g: GunlukApi; tur: Tur<'unlu'> }) {
             satir={unluSatirci}
             yerTutucu="Ünlünün adını yaz…"
           />
+          <Bekleniyor acik={g.bekliyor} />
         </div>
         <GuessLog steps={tur.steps} hakToplam={SERIT - 1} hakKalan={tur.hakKalan} yakinlikEtiketi={null} />
         <Eylemler>
@@ -260,7 +294,7 @@ export function KapakTuru({ g, tur }: { g: GunlukApi; tur: Tur<'kapak'> }) {
           <GuessInput<Kapak | BelirsizAday>
             index={g.indeksler.kapak}
             suggestions={easySearch}
-            disabled={false}
+            disabled={g.bekliyor}
             ambiguous={g.belirsiz}
             onGuess={g.tahmin}
             onPickAmbiguous={(a) => {
@@ -270,6 +304,7 @@ export function KapakTuru({ g, tur }: { g: GunlukApi; tur: Tur<'kapak'> }) {
             satir={kapakSatirci}
             yerTutucu="Albümün adını yaz…"
           />
+          <Bekleniyor acik={g.bekliyor} />
         </div>
         <GuessLog steps={tur.steps} hakToplam={KAPAK_ADIM - 1} hakKalan={tur.hakKalan} yakinlikEtiketi="sanatçı doğru" />
         <Eylemler>
