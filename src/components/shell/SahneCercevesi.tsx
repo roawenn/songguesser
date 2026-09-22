@@ -244,11 +244,7 @@ export function SahneCercevesi({
                 </button>
               </div>
             )}
-            {yil && (
-              <div style={{ marginBottom: 12 }}>
-                <YearStrip yil={yil.secili} onYil={yil.sec} />
-              </div>
-            )}
+            {yil && <YearStrip yil={yil.secili} onYil={yil.sec} />}
             {cipler && <CategoryStrip chips={cipler} category={secili ?? ''} onCategory={seckiSec} />}
           </div>
         </div>
@@ -263,11 +259,10 @@ export function SahneCercevesi({
             {/* Üç sütun: kategoriler + istatistik · sahne · ayarlar + kurallar. */}
             <div className="nk-stage-grid">
               <div className="nk-side">
-                {yil && (
-                  <div style={{ marginBottom: 18 }}>
-                    <YearStrip yil={yil.secili} onYil={yil.sec} />
-                  </div>
-                )}
+                {/* ⚠️ `.nk-side` zaten `gap: 16` veriyor; ayrıca margin
+                    eklemek iki kartın arasını kategori kartlarınınkinden
+                    farklı yapıyordu. */}
+                {yil && <YearStrip yil={yil.secili} onYil={yil.sec} kart />}
                 {cipler && (
                   <KategoriListesi
                     chips={cipler}

@@ -363,6 +363,8 @@ export function KategoriListesi<Id extends string>({
 interface YilProps {
   yil: YilId
   onYil: (y: YilId) => void
+  /** Masaüstü yan sütunu: kategori kartıyla aynı çerçeve. */
+  kart?: boolean
 }
 
 /**
@@ -379,28 +381,44 @@ interface YilProps {
  * ⚠️ Etiket "Bu yıl" — "2026" YAZILMIYOR. Sabit bir yıl önümüzdeki sene
  * sessizce yanlış olurdu; eşik zaten havuzdan türetiliyor (bkz. `filterByYear`).
  */
-export function YearStrip({ yil, onYil }: YilProps) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 11,
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-      }}
+export function YearStrip({ yil, onYil, kart = false }: YilProps) {
+  const stripRef = useRef<HTMLElement>(null)
+  useKaydirilabilir(stripRef)
+
+  /*
+   * ⚠️ ASLA SARMAZ, KAYAR. İlk sürüm `flexWrap: 'wrap'` ile yazılmıştı ve altı
+   * seçenek 300 px'lik yan sütuna sığmayıp iki satıra düşüyordu: şerit iki kat
+   * yükseliyor, "Tümü" ile "90+" ortada asılı kalıyordu. Kategori şeridi aynı
+   * sorunu çoktan çözmüş — `minWidth: 'max-content'` + `overflowX: 'auto'` ve
+   * `.nk-strip` maskesi (kenarlarda solma) ile daha fazlasının olduğunu
+   * gösteriyor. Aynı çözüm burada da kullanılıyor, yeni bir kalıp icat
+   * etmemek için.
+   */
+  const satir = (
+    <nav
+      ref={stripRef}
+      className="no-scrollbar nk-strip"
+      style={{ maxWidth: '100%', overflowX: 'auto' }}
+      aria-label="Yıl"
     >
-      <span style={STRIP_TITLE}>yıl</span>
       <div
         style={{
           display: 'flex',
-          gap: 2,
-          padding: 3,
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 999,
-          background: 'rgba(255,255,255,0.02)',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
+          gap: 4,
+          padding: '3px 2px 5px',
+          /*
+           * ⚠️ KARTTA `max-content` YOK, çipler sütunu PAYLAŞIR.
+           *
+           * Kategori şeridinin kaydırma çözümü telefonda doğru (orada şerit
+           * ekran genişliğinde), ama 300 px'lik yan sütunda altı seçenekten
+           * yalnızca dördü görünüyor ve kalan ikisi maskenin ardında kalıyordu.
+           * Bir SÜZGEÇTE seçeneği gizlemek kabul edilemez: oyuncu "Tümü"yü
+           * göremezse geri dönemez. Etiketler kısa olduğu için `flex: 1` ile
+           * eşit paylaştırmak hepsini tek satırda tutuyor.
+           */
+          ...(kart
+            ? { justifyContent: 'space-between' }
+            : { minWidth: 'max-content', justifyContent: 'center' }),
         }}
       >
         {YILLAR.map((y) => {
@@ -411,20 +429,29 @@ export function YearStrip({ yil, onYil }: YilProps) {
               type="button"
               onClick={() => onYil(y.id)}
               aria-pressed={on}
+              className="nk-yil-cip"
               style={{
-                padding: '7px 12px',
-                border: 0,
-                borderRadius: 999,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10.5,
-                letterSpacing: '.1em',
-                textTransform: 'uppercase',
-                background: on ? 'rgba(255,255,255,0.09)' : 'transparent',
-                color: on ? '#e6e8ea' : '#767c81',
-                boxShadow: on ? 'inset 0 0 0 1px rgba(255,255,255,0.18)' : 'none',
+                /*
+                 * ⚠️ Kategori çipiyle AYNI dil: aynı köşe yarıçapı, aynı mono
+                 * font, seçiliyken aynı `--acc` vurgusu. Tek fark ölçek —
+                 * yıl bir DEĞİŞTİRİCİ, kategori birincil seçim; aynı iriliği
+                 * verseydik iki şerit tek bir çip yığınına dönüşürdü.
+                 */
                 whiteSpace: 'nowrap',
+                ...(kart
+                  ? { flex: '1 1 0', padding: '7px 2px', textAlign: 'center' as const }
+                  : { padding: '7px 10px' }),
+                border: `1px solid ${on ? 'var(--acc)' : 'rgba(255,255,255,0.1)'}`,
+                borderRadius: 5,
+                background: on
+                  ? 'oklch(0.81 0.12 var(--hue) / 0.13)'
+                  : 'rgba(255,255,255,0.02)',
+                color: on ? 'var(--acc)' : '#8d9398',
+                fontFamily: 'var(--font-mono)',
+                fontSize: kart ? 10.5 : 11,
+                letterSpacing: '.02em',
                 cursor: 'pointer',
-                transition: 'color .15s ease, background .15s ease',
+                transition: 'color .15s ease, border-color .15s ease, background .15s ease',
               }}
             >
               {y.label}
@@ -432,6 +459,59 @@ export function YearStrip({ yil, onYil }: YilProps) {
           )
         })}
       </div>
+    </nav>
+  )
+
+  /*
+   * İki yerleşim, `CategoryStrip`/`KategoriListesi` ayrımının aynısı:
+   * masaüstünde yan sütunda KART (kategori kartının kardeşi), telefonda
+   * markanın altında ŞERİT.
+   */
+  if (kart) {
+    return (
+      <div
+        style={{
+          border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: 8,
+          background: 'rgba(255,255,255,0.018)',
+          padding: '16px 14px 10px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            ...MONO_CAPTION,
+            padding: '0 6px 10px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+          }}
+        >
+          Yıl
+        </div>
+        {satir}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="nk-kategori-serit"
+      style={{
+        width: '100%',
+        padding: '2px 20px 0',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 13,
+      }}
+    >
+      {/* Başlık telefonda gizli (kategorilerle aynı kural): etiketler
+          "Bu yıl", "2020+" zaten kendini anlatıyor ve ilk ekran bütçesi dar. */}
+      <div className="nk-serit-baslik">
+        <StripCaption>Yıl</StripCaption>
+      </div>
+      {satir}
     </div>
   )
 }
