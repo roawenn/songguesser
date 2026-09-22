@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { isAuthed, adminConfigured } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { restUrl, restHeaders } from '@/lib/supabase'
 
 /**
@@ -19,18 +19,8 @@ export interface MessageRow {
   created_at: string
 }
 
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
-
-export async function GET() {
-  const blocked = await guard()
+export async function GET(req: Request) {
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const params = new URLSearchParams({
@@ -55,7 +45,7 @@ export async function GET() {
 
 /** Okundu/okunmadı işaretler. */
 export async function PATCH(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
@@ -79,7 +69,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const id = Number(new URL(req.url).searchParams.get('id'))

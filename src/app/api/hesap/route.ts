@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { yonlendirmeAdresi } from '@/lib/googleKimlik'
 import { sinirAsildi, cokHizli } from '@/lib/hizSinir'
+import { ADMIN_COOKIE } from '@/lib/adminAuth'
 import { KULLANICI_COOKIE, ayniKoken, cerezAyari, oturumKullanici } from '@/lib/kullaniciAuth'
 import { kullaniciSil } from '@/lib/kullaniciStore'
 
@@ -40,5 +41,10 @@ export async function DELETE(req: Request) {
   if (!(await kullaniciSil(k.id))) return NextResponse.json({ error: 'Hesap silinemedi.' }, { status: 502 })
   const res = NextResponse.json({ ok: true })
   res.cookies.set(KULLANICI_COOKIE, '', cerezAyari(0))
+  /*
+   * Yönetici oturumu satırı `on delete cascade` ile zaten gitti; kalan çerezi
+   * de temizle ki tarayıcıda ölü bir değer dolaşmasın.
+   */
+  res.cookies.set(ADMIN_COOKIE, '', cerezAyari(0))
   return res
 }

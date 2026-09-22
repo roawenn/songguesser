@@ -1,21 +1,11 @@
 import { NextResponse } from 'next/server'
-import { adminConfigured, isAuthed } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { restHeaders, restUrl } from '@/lib/supabase'
 
 /** Yönetim: bir kullanıcının son günlük sonuçları (şüphe incelemesi için). */
 
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
-
 export async function GET(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const id = new URL(req.url).searchParams.get('id') ?? ''

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { donusYolu, idTokenDogrula, idTokenGovdesi, yetkiAdresi, yonlendirmeAdresi } from '../googleKimlik'
+import {
+  authTimeTeshis, authTimeUygun, donusYolu, idTokenDogrula, idTokenGovdesi, yetkiAdresi, yonlendirmeAdresi,
+} from '../googleKimlik'
 
 const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url')
 
@@ -72,5 +74,59 @@ describe('id_token', () => {
     expect(d({ exp: simdi / 1000 - 1 })).toEqual({ ok: false, sebep: 'exp' })
     expect(d({ email_verified: false })).toEqual({ ok: false, sebep: 'email' })
     expect(d({ sub: '' })).toEqual({ ok: false, sebep: 'sub' })
+  })
+})
+
+describe('yetkiAdresi — yönetici yükseltmesi', () => {
+  const temel = { clientId: 'cid', redirectUri: 'https://tahmin.in/cb', state: 's', codeChallenge: 'c' }
+
+  it('normal girişte prompt=select_account, max_age YOK', () => {
+    const q = new URL(yetkiAdresi(temel)).searchParams
+    expect(q.get('prompt')).toBe('select_account')
+    expect(q.get('max_age')).toBeNull()
+    expect(q.get('code_challenge_method')).toBe('S256')
+  })
+
+  it('maxAge verilince HEM prompt=login HEM max_age=0 gider', () => {
+    const q = new URL(yetkiAdresi({ ...temel, maxAge: 0, loginHint: 'a@b.com' })).searchParams
+    expect(q.get('max_age')).toBe('0')
+    // ⚠️ `prompt=login` şart: Google tek başına `max_age`'i uygulamıyor (ölçüldü).
+    expect(q.get('prompt')).toBe('login')
+    expect(q.get('login_hint')).toBe('a@b.com')
+  })
+})
+
+describe('authTimeUygun', () => {
+  const simdi = Date.parse('2026-09-22T12:00:00Z')
+
+  it('İDDİA YOKSA kabul eder — Google bu alanı hiç göndermiyor (ölçüldü)', () => {
+    expect(authTimeUygun({}, simdi)).toBe(true)
+    expect(authTimeUygun({ auth_time: undefined }, simdi)).toBe(true)
+    expect(authTimeUygun({ auth_time: null }, simdi)).toBe(true)
+  })
+
+  it('iddia gelirse denetlenir: taze kabul, eski RET', () => {
+    expect(authTimeUygun({ auth_time: simdi / 1000 - 30 }, simdi)).toBe(true)
+    expect(authTimeUygun({ auth_time: simdi / 1000 - 3600 }, simdi)).toBe(false)
+  })
+
+  it('bozuk tip reddedilir — "yok" ile "çöp" aynı şey değil', () => {
+    expect(authTimeUygun({ auth_time: '1758542400' }, simdi)).toBe(false)
+    expect(authTimeUygun({ auth_time: Number.NaN }, simdi)).toBe(false)
+  })
+
+  it('gelecekteki damga küçük saat kaymasına izin verir, fazlasına vermez', () => {
+    expect(authTimeUygun({ auth_time: simdi / 1000 + 30 }, simdi)).toBe(true)
+    expect(authTimeUygun({ auth_time: simdi / 1000 + 600 }, simdi)).toBe(false)
+  })
+})
+
+describe('authTimeTeshis', () => {
+  const simdi = Date.parse('2026-09-22T12:00:00Z')
+
+  it('iddia yoksa ayrı, eskiyse yaşıyla birlikte raporlar', () => {
+    expect(authTimeTeshis({}, simdi)).toBe('auth_time-yok')
+    expect(authTimeTeshis({ auth_time: 'x' }, simdi)).toBe('auth_time-bozuk')
+    expect(authTimeTeshis({ auth_time: simdi / 1000 - 7200 }, simdi)).toBe('auth_time-7200sn-once')
   })
 })

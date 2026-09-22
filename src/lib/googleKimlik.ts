@@ -19,7 +19,22 @@ export const GOOGLE_KAPSAM = 'openid email profile'
 export const IZINLI_KOKENLER = ['https://tahmin.in', 'https://tahmin.net', 'http://localhost:3000']
 export const DONUS_YOLU = '/api/giris/google/donus'
 
-export function yetkiAdresi(p: { clientId: string; redirectUri: string; state: string; codeChallenge: string }): string {
+export function yetkiAdresi(p: {
+  clientId: string
+  redirectUri: string
+  state: string
+  codeChallenge: string
+  /**
+   * ⚠️ `0` → Google'dan GERÇEK yeniden kimlik doğrulama istenir (parola/2FA),
+   * açık oturum yeterli sayılmaz. Yönetici yükseltmesi için.
+   *
+   * ⚠️ Bu bir İSTEK; kanıtı `id_token`'daki `auth_time` iddiasıdır. Kanıt
+   * denetlenmezse `max_age` süsten ibaret kalır — bkz. `authTimeTaze`.
+   */
+  maxAge?: number
+  /** Doğru hesap önseçili gelsin. GÜVENLİK KONTROLÜ DEĞİL: kullanıcı değiştirebilir. */
+  loginHint?: string
+}): string {
   const q = new URLSearchParams({
     client_id: p.clientId,
     redirect_uri: p.redirectUri,
@@ -28,10 +43,70 @@ export function yetkiAdresi(p: { clientId: string; redirectUri: string; state: s
     state: p.state,
     code_challenge: p.codeChallenge,
     code_challenge_method: 'S256',
-    // Birden fazla Google hesabı açık olanlar hangisiyle gireceğini seçsin.
-    prompt: 'select_account',
   })
+  if (p.maxAge === undefined) {
+    // Birden fazla Google hesabı açık olanlar hangisiyle gireceğini seçsin.
+    q.set('prompt', 'select_account')
+  } else {
+    /*
+     * ⚠️ `max_age` TEK BAŞINA YETMİYOR — ölçüldü. Yalnızca `max_age=0`
+     * gönderildiğinde Google kimliği yeniden doğrulatmıyor ve `id_token`'da
+     * ESKİ `auth_time` dönüyordu; `authTimeTaze` haklı olarak reddediyor ve
+     * yönetici hiç giremiyordu (günlükte `yukselt-auth-time`).
+     *
+     * `prompt=login` Google'ın gerçekten uyguladığı zorlama. İkisi birden
+     * gönderiliyor: `prompt` yeniden doğrulatır, `max_age` + `auth_time`
+     * denetimi bunun GERÇEKTEN olduğunu kanıtlar. Kanıt tarafı düşerse
+     * zorlama bir temenniden ibaret kalırdı.
+     */
+    q.set('prompt', 'login')
+    q.set('max_age', String(p.maxAge))
+  }
+  if (p.loginHint) q.set('login_hint', p.loginHint)
   return `${GOOGLE_YETKI}?${q}`
+}
+
+/**
+ * `auth_time` iddiası yeniden doğrulamayla ÇELİŞİYOR MU?
+ *
+ * ⚠️ GOOGLE BU İDDİAYI GÖNDERMİYOR — ölçüldü. OIDC, `max_age` istendiğinde
+ * `auth_time`'ı zorunlu kılıyor ama Google'ın `id_token`'ında alan hiç yok
+ * (günlükte `auth_time-yok`). Bu yüzden iddianın VARLIĞI şart koşulamaz:
+ * koşulmuştu ve sonucu, yöneticinin panele hiç girememesi oldu.
+ *
+ * Zorlamayı yapan şey `prompt=login` (bkz. `yetkiAdresi`): Google o parametreyi
+ * uyguluyor ve kullanıcıya parolasını/2FA'sını yeniden sorduruyor. Elimizdeki
+ * garanti bu; imzalı bir kanıt değil, sağlayıcının davranışı.
+ *
+ * ⚠️ İddia GELİRSE yine denetleniyor: eski bir damga, yeniden doğrulamanın
+ * yapılmadığına dair gerçek bir işarettir ve reddedilir. Saldırgan Google'ın
+ * imzaladığı token'dan bir alanı çıkaramaz, dolayısıyla "yoksa kabul et"
+ * kuralı istismar edilebilir değil.
+ */
+export function authTimeUygun(
+  iddia: Record<string, unknown>,
+  simdi: number,
+  /*
+   * ⚠️ 10 dakika: pencere OAuth gidiş-dönüşünü kapsamalı ama kullanıcı bu arada
+   * parola yazıyor, 2FA kodunu telefondan okuyor olabilir.
+   */
+  pencereMs = 10 * 60_000,
+): boolean {
+  const t = iddia.auth_time
+  // Google'ın durumu: iddia yok → çelişki de yok.
+  if (t === undefined || t === null) return true
+  if (typeof t !== 'number' || !Number.isFinite(t)) return false
+  const fark = simdi - t * 1000
+  // Gelecekteki bir damga saat kaymasıdır; küçük bir pay dışında kabul edilmez.
+  return fark >= -60_000 && fark <= pencereMs
+}
+
+/** Teşhis için günlüğe yazılan kısa açıklama. */
+export function authTimeTeshis(iddia: Record<string, unknown>, simdi: number): string {
+  const t = iddia.auth_time
+  if (t === undefined || t === null) return 'auth_time-yok'
+  if (typeof t !== 'number' || !Number.isFinite(t)) return 'auth_time-bozuk'
+  return `auth_time-${Math.round((simdi - t * 1000) / 1000)}sn-once`
 }
 
 /** Geliştirmede herhangi bir yerel port — `http://localhost:3001` gibi. */

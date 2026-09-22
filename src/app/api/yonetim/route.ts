@@ -3,7 +3,7 @@ import { revalidateTag } from 'next/cache'
 import {
   CATEGORY_IDS, eraForYear, type CategoryId, type Difficulty,
 } from '@/data/categories'
-import { isAuthed, adminConfigured } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { ADMIN_COLUMNS, restUrl, restHeaders, type SongRow, restTumSatirlar } from '@/lib/supabase'
 
 /**
@@ -17,16 +17,6 @@ import { ADMIN_COLUMNS, restUrl, restHeaders, type SongRow, restTumSatirlar } fr
  * PATCH ve DELETE hem tek `id` hem de `ids` dizisi kabul eder: "seçili 12
  * şarkıyı kademe 4 yap" tek istekte olur.
  */
-
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
 
 function publish() {
   // Oyunun okuduğu önbelleği tazele: yayın anında olsun.
@@ -52,7 +42,7 @@ function readIds(source: Record<string, unknown> | URLSearchParams): string[] {
 }
 
 export async function GET(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const cat = new URL(req.url).searchParams.get('kategori')
@@ -86,7 +76,7 @@ export async function GET(req: Request) {
 
 /** Şarkı(ları) günceller: zorluk, yıl, kategori, açık/kapalı. */
 export async function PATCH(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
@@ -137,7 +127,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const ids = readIds(new URL(req.url).searchParams)

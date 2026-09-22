@@ -174,34 +174,12 @@ begin
   return silinen;
 end $$;
 
--- --- Yönetim kimliği ve hız sınırı ---
+-- --- Hız sınırı ---
 --
--- ⚠️ Şifre ARTIK ORTAM DEĞİŞKENİNDE DEĞİL. Eski tasarımda oturum çerezi
--- `sha256(şifre + ":tahmin.net")` idi: tuzsuz, statik bir türev. Sonuçları
--- şunlardı — çıkış yapmak çerezi iptal etmiyordu (sunucu tarafında hâlâ
--- geçerliydi), sunucu tarafında süre sonu yoktu, ve çerezi ele geçiren biri
--- ADMIN_PASSWORD'ü çevrimdışı kırabiliyordu.
---
--- Not: burası env'den "daha güvenli" olduğu için seçilmedi — veritabanına
--- zaten env'deki secret key ile gidiliyor. Kazanç şifrenin NASIL durduğundan
--- geliyor: tuzlu scrypt + rastgele oturum kimliği, yani gerçek iptal, gerçek
--- süre sonu ve yeniden dağıtım olmadan şifre değiştirme.
-
-create table if not exists public.admin_hesap (
-  id           smallint primary key default 1 check (id = 1),
-  parola_hash  text        not null,
-  tuz          text        not null,
-  guncellendi  timestamptz not null default now()
-);
-
-create table if not exists public.admin_oturum (
-  id           text        primary key,   -- randomBytes(32), türev değil
-  olusturuldu  timestamptz not null default now(),
-  son_gorulme  timestamptz not null default now(),
-  biter        timestamptz not null default now() + interval '30 days'
-);
-
-create index if not exists admin_oturum_biter_idx on public.admin_oturum (biter);
+-- ⚠️ YÖNETİM KİMLİĞİ ARTIK BURADA DEĞİL. Parola tamamen kalktı; yetki Google
+-- hesabına ve `YONETICI_EPOSTALAR` ortam değişkenine bağlı. `admin_oturum`
+-- tablosu `kullanicilar`ın ARKASINA taşındı, çünkü artık ona yabancı anahtarla
+-- bağlı ve bir tablo kendinden sonra tanımlanan bir tabloya referans veremez.
 
 -- Herkese açık yazma yollarının sayacı. Ham IP TUTULMAZ, yalnızca özeti.
 create table if not exists public.hiz_sinir (
@@ -212,8 +190,6 @@ create table if not exists public.hiz_sinir (
 
 create index if not exists hiz_sinir_pencere_idx on public.hiz_sinir (pencere);
 
-alter table public.admin_hesap  enable row level security;
-alter table public.admin_oturum enable row level security;
 alter table public.hiz_sinir    enable row level security;
 
 /*
@@ -720,6 +696,57 @@ create table if not exists public.kullanici_oturum (
 );
 create index if not exists kullanici_oturum_kullanici_idx on public.kullanici_oturum (kullanici_id);
 create index if not exists kullanici_oturum_biter_idx on public.kullanici_oturum (biter);
+
+-- ---------------------------------------------------------------------------
+-- Yönetici oturumu — oyuncu oturumundan AYRI TABLO, AYRI ÇEREZ, 12 SAAT
+-- ---------------------------------------------------------------------------
+/*
+ * ⚠️ PAROLA KALKTI. Yetki artık `YONETICI_EPOSTALAR` ortam değişkeninde:
+ * Google ile giriş yapan kişinin e-postası listedeyse yöneticidir. Liste
+ * veritabanında DEĞİL, çünkü veritabanına yazabilen biri kendini yönetici
+ * yapabilmemeli. `admin_hesap` (tuzlu scrypt parola) tablosu düşürüldü.
+ *
+ * Bu tablo bir PAROLA KAYDI DEĞİL: "bu kişi son 12 saat içinde Google'da
+ * YENİDEN doğrulandı" kaydı (Google'a `prompt=login` ile gidilir).
+ *
+ * ⚠️ `id` artık düz rastgele değil, `sha256(belirtec)` — `kullanici_oturum`
+ * ile aynı kural. Eski `admin_oturum` bu açıdan oyuncu tablosunun gerisindeydi:
+ * tablo sızsa satırlar doğrudan çereze çevrilebilirdi.
+ */
+create table if not exists public.admin_oturum (
+  id            text        primary key,
+  kullanici_id  uuid        not null references public.kullanicilar(id) on delete cascade,
+  olusturuldu   timestamptz not null default now(),
+  biter         timestamptz not null default now() + interval '12 hours'
+);
+
+/*
+ * Göç: parola dönemindeki tablo (kullanıcı bağı yok, 30 günlük varsayılan).
+ * `create table if not exists` var olan tabloyu değiştirmez.
+ */
+do $ao$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'admin_oturum' and column_name = 'kullanici_id'
+  ) then
+    -- ⚠️ Eski satırlar TAŞINAMAZ: hangi kişiye ait oldukları hiç bilinmiyordu.
+    -- Parola oturumları zaten iptal edilmeli.
+    delete from public.admin_oturum;
+    alter table public.admin_oturum
+      add column kullanici_id uuid not null references public.kullanicilar(id) on delete cascade;
+  end if;
+
+  alter table public.admin_oturum drop column if exists son_gorulme;
+  alter table public.admin_oturum alter column biter set default now() + interval '12 hours';
+end $ao$;
+
+create index if not exists admin_oturum_biter_idx on public.admin_oturum (biter);
+create index if not exists admin_oturum_kullanici_idx on public.admin_oturum (kullanici_id);
+alter table public.admin_oturum enable row level security;
+
+-- Parola tablosu: artık kimse okumuyor.
+drop table if exists public.admin_hesap;
 
 -- Yönetimin sıfırladığı adlar: aynı ad (normu) bir daha alınamasın.
 create table if not exists public.yasakli_adlar (

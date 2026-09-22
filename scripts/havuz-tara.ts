@@ -15,7 +15,7 @@
  * ⚠️ Kademeler ARACIN ÖNERİSİ. Sıra tabanlı bir sezgi, ölçüm değil; küratör
  * panelden değiştirebilir.
  */
-import { readFileSync, existsSync, writeFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { CATEGORY_IDS, type CategoryId } from '../src/data/categories'
 import { seedsFor } from '../src/data/seeds'
@@ -46,32 +46,33 @@ function env(name: string): string {
   return v
 }
 
-/**
- * Oturum açar ve çerezi diske yazar.
- *
- * ⚠️ Çerez YENİDEN KULLANILIR. Giriş uç noktasında 15 dakikada 5 deneme
- * sınırı var (kaba kuvvete karşı); kategori başına yeniden giriş yapmak
- * üçüncü kategoride kendi sınırımıza takılıyordu.
- */
 const CEREZ_DOSYA = join(process.cwd(), '.tahmin-oturum')
+/** ⚠️ Üretimde `__Host-` öneki çerez ADININ parçasıdır. */
+const CEREZ_ADI = KOK.startsWith('https://') ? '__Host-tahmin_yonetim' : 'tahmin_yonetim'
+/** 32 baytın base64url hâli — `lib/adminAuth` ile aynı biçim. */
+const BELIRTEC_DESENI = /^[A-Za-z0-9_-]{43}$/
 
-async function giris(parola: string): Promise<string> {
-  if (existsSync(CEREZ_DOSYA)) {
-    const eski = readFileSync(CEREZ_DOSYA, 'utf8').trim()
-    if (/^[0-9a-f]{64}$/.test(eski)) {
-      const k = await fetch(`${KOK}/api/yonetim`, { headers: { cookie: `tahmin_yonetim=${eski}` } })
-      if (k.ok) return eski
-    }
-  }
-  const r = await fetch(`${KOK}/api/yonetim/giris`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: parola }),
-  })
-  const cerez = (r.headers.get('set-cookie') ?? '').match(/tahmin_yonetim=([0-9a-f]{64})/)?.[1]
-  if (!cerez) throw new Error(`giriş yapılamadı (${r.status})`)
-  writeFileSync(CEREZ_DOSYA, cerez)
-  return cerez
+/**
+ * Yönetici çerezini okur.
+ *
+ * ⚠️ BETİK ARTIK GİRİŞ YAPMIYOR. Panel parolası kaldırıldı; yetki bir Google
+ * hesabına bağlı ve bir komut satırı aracı tarayıcısız OAuth akışını
+ * yürütemez. Bunun yerine tarayıcıdaki oturum çerezi elle yapıştırılıyor.
+ *
+ * ⚠️ Çerez 12 SAAT geçerli — parolanın aksine kalıcı bir sır değil. Süresi
+ * dolunca panelden yeniden doğrulayıp kopyalamak gerekir.
+ */
+function cerezOku(): string {
+  const ham = (
+    process.env.TAHMIN_YONETIM_CEREZ ?? (existsSync(CEREZ_DOSYA) ? readFileSync(CEREZ_DOSYA, 'utf8') : '')
+  ).trim()
+  if (BELIRTEC_DESENI.test(ham)) return ham
+  throw new Error(
+    'Yönetici çerezi gerekli:\n' +
+      `  1) Tarayıcıda ${KOK}/yonetim aç, "Google ile doğrula"yı tamamla\n` +
+      `  2) DevTools → Application → Cookies → ${CEREZ_ADI} değerini kopyala\n` +
+      '  3) .tahmin-oturum dosyasına yapıştır (ya da TAHMIN_YONETIM_CEREZ=... ver)',
+  )
 }
 
 async function sayim(cat: CategoryId): Promise<number> {
@@ -97,10 +98,21 @@ async function main() {
     process.exit(1)
   }
 
-  const parola = process.env.TAHMIN_PAROLA
-  if (!parola) throw new Error('TAHMIN_PAROLA ortam değişkeni gerekli')
-  const cerez = await giris(parola)
-  const bas = { cookie: `tahmin_yonetim=${cerez}` }
+  /*
+   * ⚠️ `origin` ŞART: yönetim yazma yolları artık CSRF denetimi (`ayniKoken`)
+   * uyguluyor. Başlıksız istek 403 alır ve `--yaz` sessizce hiçbir şey yazmaz.
+   */
+  const bas = { cookie: `${CEREZ_ADI}=${cerezOku()}`, origin: KOK }
+
+  // Tek sağlık yoklaması: çerez düşmüşse ilk taramadan önce anla.
+  const sag = await fetch(`${KOK}/api/yonetim`, { headers: bas })
+  if (!sag.ok) {
+    throw new Error(
+      sag.status === 404
+        ? 'Çerez geçersiz/süresi dolmuş ya da bu hesap artık YONETICI_EPOSTALAR içinde değil.'
+        : `Yönetim erişimi yok (${sag.status}).`,
+    )
+  }
 
   const sanatcilar = seedsFor(cat)
   const once = await sayim(cat)

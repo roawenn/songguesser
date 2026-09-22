@@ -26,15 +26,18 @@ Ortam değişkenleri (`.env.local`, git'e girmez):
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase proje adresi |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Herkese açık okuma anahtarı (tarayıcıya iner, sorun değil) |
 | `SUPABASE_SECRET_KEY` | **Gizli.** Yalnızca sunucuda, yazma işlemleri için |
-| `ADMIN_PASSWORD` | Yönetim paneli şifresi |
+| `YONETICI_EPOSTALAR` | Yönetim paneline girebilecek Google hesapları (virgülle) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google ile giriş (oyuncu hesabı ve panel yetkisi) |
 | `SUPABASE_DB_URL` | Yalnızca migration script'i için (pooler bağlantısı) |
 
-Vercel'e deploy ederken aynı beşini Project Settings → Environment Variables'a ekle.
+Vercel'e deploy ederken hepsini Project Settings → Environment Variables'a ekle
+(Production ve Development; Preview'a girmeyin — önizleme adresleri Google'da kayıtlı değil).
 
 ## Şarkı havuzunu yönetmek
 
 Şarkılar **Supabase**'de. Yönetim paneli **/yonetim** adresinde — yayında da
-çalışır, `ADMIN_PASSWORD` ile korunur.
+çalışır, **Google hesabıyla** korunur: e-postası `YONETICI_EPOSTALAR` içinde
+olan kişi girebilir, başka herkes **404** görür.
 
 **Şarkı eklemek:** üstteki kutuya sanatçı ve şarkı adını yaz. iTunes sonuçları
 kapağıyla ve dinlenebilir önizlemesiyle gelir; kademeyi seç, `Ekle`'ye bas.
@@ -51,7 +54,18 @@ tazelenir.
   tarayıcıdan hiç kimse yazamaz.
 - Yazma işlemleri sunucu rotalarından geçer ve `SUPABASE_SECRET_KEY` ile
   yapılır. Bu anahtar **tarayıcıya hiç gitmez**.
-- Panel rotaları yönetici çerezi ister; çerezsiz istekler 401 döner.
+- Panelde **parola yok**. Yetki Google hesabına bağlı ve liste ortam
+  değişkeninde (`YONETICI_EPOSTALAR`) — veritabanında değil, çünkü veritabanına
+  yazabilen biri kendini yönetici yapabilmemeli.
+- Yetkisiz her istek **404** döner (401 değil): panelin varlığı bile sızmaz.
+- Yönetici oturumu **12 saat**; uzatmak için Google'a `prompt=login` ile
+  gidilir, yani Google parolayı/2FA'yı yeniden sorar. Çalınmış bir Google
+  **oturum çerezi** tek başına paneli açmaz.
+  ⚠️ Bu garanti Google'ın davranışına dayanıyor, imzalı bir kanıta değil:
+  `auth_time` iddiası kanıt olurdu ama Google onu göndermiyor (ölçüldü).
+  Gönderdiğinde denetleniyor — bkz. `authTimeUygun`.
+- Panelin güvenliği artık o Google hesabının güvenliği: **2FA şart**.
+- Yönetim yazma yolları `Origin` denetimi (CSRF) ister.
 
 ### Ücretsiz planı korumak
 

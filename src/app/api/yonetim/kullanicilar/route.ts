@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { adminConfigured, isAuthed } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
+import { yoneticiEpostaMi } from '@/lib/adminAuth'
 import { restHeaders, restUrl } from '@/lib/supabase'
 import { aramaFiltresi } from '@/lib/yonetimArama'
 
@@ -26,16 +27,6 @@ export interface KullaniciSatiri {
 
 const SAYFA = 50
 
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
-
 async function rest(path: string, init?: RequestInit) {
   return fetch(restUrl(path), {
     ...init,
@@ -51,7 +42,7 @@ function say(liste: { kullanici_id: string }[]): Map<string, number> {
 }
 
 export async function GET(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const url = new URL(req.url)
@@ -101,7 +92,7 @@ export async function GET(req: Request) {
 type Islem = 'banla' | 'ban-kaldir' | 'ad-sifirla' | 'supheli-temizle'
 
 export async function PATCH(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const govde = (await req.json().catch(() => ({}))) as { id?: unknown; islem?: unknown; sebep?: unknown }
@@ -110,6 +101,21 @@ export async function PATCH(req: Request) {
   const sebep = typeof govde.sebep === 'string' ? govde.sebep.trim().slice(0, 300) : ''
   if (!id || !['banla', 'ban-kaldir', 'ad-sifirla', 'supheli-temizle'].includes(islem)) {
     return NextResponse.json({ error: 'Geçersiz istek.' }, { status: 400 })
+  }
+
+  /*
+   * ⚠️ YÖNETİCİ KENDİNİ (ya da bir başka yöneticiyi) BANLAYAMAZ / ADINI
+   * SIFIRLAYAMAZ. Ban `yoneticiDurumu`'nda her istekte denetleniyor: tek bir
+   * yanlış tıklama paneli kalıcı olarak kapatır ve geri dönüşü YOK — yetki
+   * ortam değişkeninde olduğu için panelden kurtarma yapılamaz, Supabase
+   * Studio'dan elle `banli_at = null` gerekir.
+   */
+  if (islem === 'banla' || islem === 'ad-sifirla') {
+    const s = await rest(`kullanicilar?id=eq.${id}&select=email`)
+    const [hedef] = s.ok ? ((await s.json()) as { email: string }[]) : []
+    if (hedef && yoneticiEpostaMi(hedef.email)) {
+      return NextResponse.json({ error: 'Yönetici hesabına bu işlem uygulanamaz.' }, { status: 409 })
+    }
   }
 
   const yaz = (path: string, body: unknown) =>

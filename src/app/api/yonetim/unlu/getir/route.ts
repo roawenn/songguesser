@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { isAuthed, adminConfigured } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { guvenliDisUrl, EN_BUYUK_GORSEL } from '@/lib/disUrl'
 
 /**
@@ -19,18 +19,8 @@ import { guvenliDisUrl, EN_BUYUK_GORSEL } from '@/lib/disUrl'
 
 const ZAMAN_ASIMI_MS = 8000
 
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
-
 export async function POST(req: Request) {
-  const red = await guard()
+  const red = await yonetimKoru(req)
   if (red) return red
 
   const govde = (await req.json().catch(() => null)) as { url?: unknown } | null

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { isAuthed, adminConfigured } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { scanArtist, ITunesError } from '@/lib/itunesSearch'
 
 /**
@@ -10,12 +10,8 @@ import { scanArtist, ITunesError } from '@/lib/itunesSearch'
  * akıtılıyor, burada paralel çağrı yapılmıyor. Sonuçlar bir saat önbellekli.
  */
 export async function GET(req: Request) {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
+  const engel = await yonetimKoru(req)
+  if (engel) return engel
 
   const artist = new URL(req.url).searchParams.get('sanatci')?.trim()
   if (!artist || artist.length < 2) {

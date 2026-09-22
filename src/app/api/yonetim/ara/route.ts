@@ -4,7 +4,7 @@ import {
   CATEGORY_IDS, eraForYear, type CategoryId, type Difficulty,
 } from '@/data/categories'
 import { cleanKey, buildKeys } from '@/text/keys'
-import { isAuthed, adminConfigured } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { restUrl, restHeaders, restTumSatirlar } from '@/lib/supabase'
 import {
   searchTracks, ITunesError, DEFAULT_CLIP_START, PREVIEW_DURATION, type FoundTrack,
@@ -23,18 +23,8 @@ import {
 
 export type { FoundTrack }
 
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
-
 export async function GET(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const q = new URL(req.url).searchParams.get('q')?.trim()
@@ -107,7 +97,7 @@ function valid(t: unknown): t is FoundTrack {
 }
 
 export async function POST(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>

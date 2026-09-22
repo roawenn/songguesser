@@ -20,8 +20,13 @@ type Filter = 'hepsi' | 'kapali' | 'yeni'
 /** Panelin üst düzey görünümü. */
 type View = 'sarkilar' | 'unluler' | 'mesajlar' | 'kullanicilar' | 'gunluk'
 
-export function AdminPanel({ configured }: { configured: boolean }) {
-  const [authed, setAuthed] = useState<boolean | null>(null)
+/**
+ * ⚠️ `configured` PROP'U KALKTI. "Panel yapılandırılmamış" diye bir ekran yok:
+ * yetkisi olmayan zaten sayfayı hiç göremiyor (sunucu `notFound()` veriyor).
+ * Geriye tek bir soru kalıyor — yönetici oturumu taze mi?
+ */
+export function AdminPanel({ yenidenDogrula }: { yenidenDogrula: boolean }) {
+  const [dogrulandi, setDogrulandi] = useState(!yenidenDogrula)
   const [rows, setRows] = useState<SongRow[] | null>(null)
   const [cat, setCat] = useState<CategoryId>('pop')
   const [q, setQ] = useState('')
@@ -48,31 +53,36 @@ export function AdminPanel({ configured }: { configured: boolean }) {
   const load = useCallback(async () => {
     try {
       const res = await fetch('/api/yonetim')
+      /*
+       * 401 → yönetici oturumu düştü (12 saat doldu): doğrulama ekranı.
+       * 404 → yetki TAMAMEN gitti (e-posta listeden çıkmış): burada kalmanın
+       *       anlamı yok, sayfa da artık 404 veriyor.
+       */
       if (res.status === 401) {
-        setAuthed(false)
+        setDogrulandi(false)
+        return
+      }
+      if (res.status === 404) {
+        window.location.assign('/')
         return
       }
       const d = await govdeOku(res)
       if (!res.ok) {
-        setAuthed(true)
         setErr(d.error ?? `Liste yüklenemedi (${res.status}).`)
         setRows([])
         return
       }
-      setAuthed(true)
       setRows(d.rows as SongRow[])
     } catch (e) {
       // Ağ tamamen düştü: yine de bir şey göster.
-      setAuthed(true)
       setRows([])
       setErr((e as Error).message || 'Liste yüklenemedi.')
     }
   }, [])
 
   useEffect(() => {
-    if (configured) void load()
-    else setAuthed(false)
-  }, [configured, load])
+    if (dogrulandi) void load()
+  }, [dogrulandi, load])
 
   useEffect(() => () => audioRef.current?.pause(), [])
 
@@ -250,20 +260,8 @@ export function AdminPanel({ configured }: { configured: boolean }) {
   const allOnPage = pageRows.length > 0 && pageRows.every((r) => selected.has(r.id))
   const ids = [...selected]
 
-  if (!configured) {
-    return (
-      <main style={S.page}>
-        <h1 style={S.h1}>Panel yapılandırılmamış</h1>
-        <p style={S.sub}>
-          <code>SUPABASE_SECRET_KEY</code> tanımlı olmalı ve yönetici şifresi
-          kurulmalı: <code>npm run admin:parola -- &lt;yeni-parola&gt;</code>
-        </p>
-      </main>
-    )
-  }
-
-  if (authed === false) return <Login onDone={() => void load()} />
-  if (authed === null || !rows) return <main style={S.page}>Yükleniyor…</main>
+  if (!dogrulandi) return <Yukselt />
+  if (!rows) return <main style={S.page}>Yükleniyor…</main>
 
   return (
     <main style={S.page}>
@@ -311,8 +309,9 @@ export function AdminPanel({ configured }: { configured: boolean }) {
         <button
           type="button"
           onClick={async () => {
-            await fetch('/api/yonetim/giris', { method: 'DELETE' })
-            setAuthed(false)
+            await fetch('/api/yonetim/oturum', { method: 'DELETE' })
+            // ⚠️ Yalnızca YÖNETİCİ oturumu kapandı; oyun tarafında girişli kalıyoruz.
+            window.location.assign('/')
           }}
           style={S.ghost}
         >
@@ -635,50 +634,41 @@ function YearCell({ row, onSave }: { row: SongRow; onSave: (year: number) => voi
   )
 }
 
-function Login({ onDone }: { onDone: () => void }) {
-  const [pw, setPw] = useState('')
-  const [err, setErr] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+/** `?yukselt=` ile dönen tek seferlik bildirimler. */
+const YUKSELT_MESAJI: Record<string, string> = {
+  kapali: 'Google girişi bu ortamda yapılandırılmamış.',
+  'cok-hizli': 'Çok fazla deneme. Biraz bekleyip tekrar dene.',
+}
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    setBusy(true)
-    setErr(null)
-    try {
-      const res = await fetch('/api/yonetim/giris', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw }),
-      })
-      if (!res.ok) {
-        throw new Error((await govdeOku(res)).error ?? 'Giriş başarısız')
-      }
-      onDone()
-    } catch (e) {
-      setErr((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
+/**
+ * Yönetici doğrulama ekranı — eski parola formunun yerinde.
+ *
+ * ⚠️ DÜZ BAĞLANTI (`<a href>`), form DEĞİL: CSP'de `form-action 'self'` var ve
+ * Chrome bunu form gönderiminin YÖNLENDİRMESİNE de uyguluyor; form Google'a
+ * giderken engellenirdi (aynı tuzak: `api/giris/google`, `HesapDugmesi`).
+ */
+function Yukselt() {
+  const [mesaj, setMesaj] = useState<string | null>(null)
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const kod = url.searchParams.get('yukselt')
+    if (!kod) return
+    setMesaj(YUKSELT_MESAJI[kod] ?? null)
+    url.searchParams.delete('yukselt')
+    window.history.replaceState(window.history.state, '', url.pathname + url.search)
+  }, [])
 
   return (
-    <main style={{ ...S.page, maxWidth: 380, paddingTop: 120 }}>
-      <h1 style={S.h1}>Yönetim</h1>
-      <p style={S.sub}>Devam etmek için şifreyi gir.</p>
-      <form onSubmit={submit} style={{ display: 'flex', gap: 8, marginTop: 18 }}>
-        <input
-          type="password"
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          placeholder="Şifre"
-          autoFocus
-          style={{ ...S.search, flex: 1 }}
-        />
-        <button type="submit" disabled={busy || !pw} style={S.primary}>
-          {busy ? '…' : 'Gir'}
-        </button>
-      </form>
-      {err && <div style={{ ...S.errBox, marginTop: 12 }}>{err}</div>}
+    <main style={{ ...S.page, maxWidth: 420, paddingTop: 120 }}>
+      <h1 style={S.h1}>Yönetici doğrulaması</h1>
+      <p style={S.sub}>
+        Yönetim oturumu 12 saat geçerli. Devam etmek için Google hesabını yeniden doğrula.
+      </p>
+      <a href="/api/yonetim/yukselt" style={{ ...S.primary, display: 'inline-block', marginTop: 18 }}>
+        Google ile doğrula
+      </a>
+      {mesaj && <div style={{ ...S.errBox, marginTop: 12 }}>{mesaj}</div>}
     </main>
   )
 }

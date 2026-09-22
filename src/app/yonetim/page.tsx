@@ -1,20 +1,24 @@
+import { notFound } from 'next/navigation'
 import { AdminPanel } from './AdminPanel'
-import { adminConfigured } from '@/lib/adminAuth'
+import { yoneticiDurumu } from '@/lib/adminAuth'
 
 /**
  * Şarkı havuzu yönetim paneli.
  *
- * Yayında da çalışır — şifreyle korunur ve tüm yazma işlemleri sunucu
- * rotalarından geçer. Secret key tarayıcıya hiç gitmez; tarayıcıdan doğrudan
- * yazma zaten RLS ile kapalıdır.
+ * ⚠️ SAYFA ARTIK SUNUCUDA KORUNUYOR. Eskiden `/yonetim` HTML'i HERKESE servis
+ * ediliyordu ve koruma yalnızca API katmanındaydı: panelin varlığı, sekmeleri,
+ * hatta "yapılandırılmamış" mesajı girişsiz herkese görünüyordu.
+ *
+ * ⚠️ Yetkisize `notFound()` — "yetkin yok" bile denmiyor. Gördüğü sayfa,
+ * olmayan bir adrese gidenin gördüğüyle aynı.
  */
 export const metadata = { robots: { index: false, follow: false } }
 
 // Çerez okunduğu için her istekte taze render.
 export const dynamic = 'force-dynamic'
 
-// `adminConfigured` artık veritabanına soruyor (şifre env'de değil); Server
-// Component olduğu için `await` sorunsuz.
 export default async function YonetimPage() {
-  return <AdminPanel configured={await adminConfigured()} />
+  const durum = await yoneticiDurumu()
+  if (durum === 'yok') notFound()
+  return <AdminPanel yenidenDogrula={durum === 'dogrula'} />
 }

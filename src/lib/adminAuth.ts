@@ -1,141 +1,140 @@
 import 'server-only'
-import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
-import { promisify } from 'node:util'
+import { createHash, randomBytes } from 'node:crypto'
 import { cookies } from 'next/headers'
-import { restUrl, restHeaders, supabaseReady } from './supabase'
+import { oturumKullanici } from '@/lib/kullaniciAuth'
+import { restUrl, restHeaders } from '@/lib/supabase'
+import { yoneticiMi } from '@/text/eposta'
 
 /**
- * Yönetim paneli girişi.
+ * Yönetici yetkisi — GOOGLE HESABINA bağlı, parola YOK.
  *
- * ⚠️ Şifre ARTIK ORTAM DEĞİŞKENİNDE DEĞİL, veritabanında tuzlu scrypt özeti
- * olarak duruyor; oturum çerezi de rastgele bir kimlik.
+ * ⚠️ PAROLA TAMAMEN KALKTI (`admin_hesap` tablosu, scrypt özeti, `admin:parola`
+ * betiği). Tek bir sırrın sızması paneli açıyordu; artık yetki, Google'ın
+ * doğruladığı e-postaya dayanıyor ve o hesabın 2FA'sı, cihaz geçmişi ve iptal
+ * yeteneği de savunmaya dahil.
  *
- * Eskiden çerez `sha256(şifre + ":tahmin.in")` idi — tuzsuz, statik bir
- * TÜREV. Üç ayrı sonucu vardı:
- *   1. Çıkış yapmak çerezi iptal etmiyordu; sunucu tarafında sonsuza kadar
- *      geçerli kalıyordu. Çalınan bir çerezi geçersizleştirmenin tek yolu
- *      şifreyi değiştirmekti.
- *   2. `maxAge` yalnızca tarayıcıya bir öneriydi; sunucu tarafında süre sonu
- *      diye bir şey yoktu.
- *   3. Çerezi ele geçiren biri, bilinen sonekli tek turlu bir SHA-256'yı
- *      çevrimdışı kırıp doğrudan şifreye ulaşabilirdi.
+ * ⚠️ YETKİ LİSTESİ ORTAM DEĞİŞKENİNDE (`YONETICI_EPOSTALAR`), veritabanında
+ * DEĞİL. Veritabanına yazabilen biri kendini yönetici yapamasın diye: rol
+ * kolonu olsaydı tek bir yazma yetkisi paneli devralmaya yeterdi.
  *
- * ⚠️ Bu, "veritabanı ortam değişkeninden güvenlidir" diye yapılmadı — DB'ye
- * zaten env'deki secret key ile gidiliyor ve o anahtar admin şifresinden daha
- * yetkili. Kazanç, şifrenin NEREDE değil NASIL durduğundan geliyor.
+ * ⚠️ LİSTE HER İSTEKTE OKUNUR, yalnızca oturum açarken değil. Bir adres
+ * listeden çıkarıldığı anda o kişinin AÇIK oturumu da ölmeli.
  *
- * Şifreyi kurmak/değiştirmek: `npm run admin:parola -- <yeni-parola>`
+ * İki oturum katmanı bilerek ayrı (bkz. `kullaniciAuth.ts`): oyuncu oturumu 60
+ * gün, yönetici oturumu 12 saat. Panel yetkisinin süresi dolunca oyun tarafı
+ * etkilenmez, yalnızca panelde yeniden Google doğrulaması istenir.
  */
 
-export const ADMIN_COOKIE = 'tahmin_yonetim'
-
-const scryptAsync = promisify(scrypt) as (
-  parola: string,
-  tuz: string,
-  uzunluk: number,
-) => Promise<Buffer>
-
-/** scrypt maliyeti — varsayılan N=16384; tek yöneticili panel için fazlasıyla yeterli. */
-const HASH_UZUNLUK = 64
-const OTURUM_GUN = 30
-
-export async function parolaOzeti(parola: string, tuz: string): Promise<string> {
-  return (await scryptAsync(parola, tuz, HASH_UZUNLUK)).toString('hex')
+/*
+ * ⚠️ Liste boşsa PANEL KİMSEYE AÇIK DEĞİL ve yetkisize 404 döndüğü için bunun
+ * hiçbir görünür belirtisi olmaz. Yanlış yazılmış bir ortam değişkenini
+ * teşhis edilebilir kılan tek şey bu uyarı.
+ */
+if (!process.env.YONETICI_EPOSTALAR?.trim()) {
+  console.warn('[yonetim] YONETICI_EPOSTALAR boş ya da tanımsız — yönetim paneli kimseye açık değil.')
 }
 
-export function yeniTuz(): string {
-  return randomBytes(16).toString('hex')
+const URETIM = process.env.NODE_ENV === 'production'
+
+/**
+ * ⚠️ Üretimde `__Host-` önekli. Önek tarayıcıya üç şeyi zorlatıyor: `Secure`,
+ * `path=/` ve `Domain` YOK — yani alt alan adlarından yazılamaz. Eski çerez
+ * (`tahmin_yonetim`) öneksizdi.
+ */
+export const ADMIN_COOKIE = URETIM ? '__Host-tahmin_yonetim' : 'tahmin_yonetim'
+
+/** Yönetici oturumunun ömrü. */
+export const YONETICI_SURE_SN = 12 * 3600
+
+/** 32 baytın base64url hâli — `kullaniciAuth` ile aynı biçim. */
+const BELIRTEC_DESENI = /^[A-Za-z0-9_-]{43}$/
+
+/**
+ * ⚠️ Tabloda YALNIZCA özet duruyor. Eskiden çerezdeki değerin AYNISI `id`
+ * kolonuna yazılıyordu; tablo sızsa satırlar doğrudan çereze çevrilebilirdi.
+ */
+function ozet(belirtec: string): string {
+  return createHash('sha256').update(belirtec).digest('hex')
 }
 
 async function rest(path: string, init?: RequestInit) {
   return fetch(restUrl(path), {
     ...init,
-    headers: { ...restHeaders({ secret: true }), ...(init?.headers ?? {}) },
+    headers: { ...restHeaders({ secret: true }), ...(init?.headers as Record<string, string> | undefined) },
     cache: 'no-store',
   })
 }
 
-interface Hesap {
-  parola_hash: string
-  tuz: string
-}
-
-async function hesap(): Promise<Hesap | null> {
-  const res = await rest('admin_hesap?id=eq.1&select=parola_hash,tuz&limit=1')
-  if (!res.ok) return null
-  const rows = (await res.json()) as Hesap[]
-  return rows[0] ?? null
+/** Bu e-posta yönetici listesinde mi? Liste boşsa kimse değil. */
+export function yoneticiEpostaMi(eposta: string | null | undefined): boolean {
+  return yoneticiMi(eposta, process.env.YONETICI_EPOSTALAR)
 }
 
 /**
- * Şifre doğruysa YENİ bir oturum açar ve çerez değerini döndürür.
+ * Yönetici oturumu açar; çereze yazılacak HAM belirteci döner.
  *
- * ⚠️ Karşılaştırma sabit zamanlı. scrypt özetleri her zaman aynı uzunlukta
- * olduğu için `timingSafeEqual` doğrudan kullanılabiliyor.
+ * Çağıran (`api/giris/google/donus`) yetkiyi çoktan doğrulamış olmalı — burada
+ * ikinci bir e-posta kontrolü yapılmıyor, çünkü `kullanici_id` zaten o anda
+ * doğrulanmış hesabın kimliği ve `yoneticiDurumu` her okumada listeye yeniden
+ * bakıyor.
  */
-/**
- * ⚠️ "Şifre yanlış" ile "oturum açılamadı" AYRI dönüyor.
- *
- * İkisi de `null` dönüyordu ve rota ikisini birden "Şifre yanlış" diye
- * gösteriyordu. Veritabanı bir an takıldığında doğru şifreyle giren kişi
- * şifresini yanlış sanıp defalarca deniyor, üstelik hız sınırını da kendi
- * üstüne kilitliyordu. Teşhis edilemeyen bir hata, olmayan bir hatadan beterdir.
- */
-export type OturumSonuc =
-  | { ok: true; id: string }
-  | { ok: false; sebep: 'parola' | 'sunucu' }
+export async function yoneticiOturumAc(kullaniciId: string): Promise<string> {
+  const belirtec = randomBytes(32).toString('base64url')
+  const biter = new Date(Date.now() + YONETICI_SURE_SN * 1000).toISOString()
 
-export async function oturumAc(parola: string): Promise<OturumSonuc> {
-  const h = await hesap()
-  if (!h) return { ok: false, sebep: 'sunucu' }
-
-  const gelen = Buffer.from(await parolaOzeti(parola, h.tuz), 'hex')
-  const beklenen = Buffer.from(h.parola_hash, 'hex')
-  if (gelen.length !== beklenen.length || !timingSafeEqual(gelen, beklenen)) {
-    return { ok: false, sebep: 'parola' }
-  }
-
-  const id = randomBytes(32).toString('hex')
-  const biter = new Date(Date.now() + OTURUM_GUN * 24 * 3600 * 1000).toISOString()
   const res = await rest('admin_oturum', {
     method: 'POST',
     headers: { Prefer: 'return=minimal' },
-    body: JSON.stringify({ id, biter }),
+    body: JSON.stringify({ id: ozet(belirtec), kullanici_id: kullaniciId, biter }),
   })
-  if (!res.ok) {
-    console.error(`[yonetim] oturum yazılamadı: Supabase ${res.status}`)
-    return { ok: false, sebep: 'sunucu' }
-  }
-  return { ok: true, id }
+  if (!res.ok) throw new Error(`admin_oturum ${res.status}`)
+  return belirtec
 }
 
-/** Çerezdeki oturumu siler — GERÇEK iptal, yalnızca tarayıcıyı temizlemek değil. */
-export async function oturumKapat(): Promise<void> {
-  const id = (await cookies()).get(ADMIN_COOKIE)?.value
-  if (!id) return
-  await rest(`admin_oturum?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' })
+/** Yönetici oturumunu sunucudan da siler — çerezi çağıran temizler. */
+export async function yoneticiOturumKapat(): Promise<void> {
+  const belirtec = (await cookies()).get(ADMIN_COOKIE)?.value
+  if (!belirtec || !BELIRTEC_DESENI.test(belirtec)) return
+  await rest(`admin_oturum?id=eq.${ozet(belirtec)}`, { method: 'DELETE' }).catch(() => undefined)
 }
 
-export async function isAuthed(): Promise<boolean> {
-  const id = (await cookies()).get(ADMIN_COOKIE)?.value
-  // 64 hex karakter: biçimi tutmayan değer veritabanına hiç sorulmaz.
-  if (!id || !/^[0-9a-f]{64}$/.test(id)) return false
-
-  const res = await rest(
-    `admin_oturum?id=eq.${id}&biter=gt.${new Date().toISOString()}&select=id&limit=1`,
-  )
-  if (!res.ok) return false
-  return ((await res.json()) as unknown[]).length === 1
+interface OturumSatiri {
+  kullanicilar: { email: string; banli_at: string | null } | null
 }
 
 /**
- * Panel yapılandırılmış mı?
+ * Panelin üç hâli.
  *
- * ⚠️ Artık ASENKRON: "şifre env'de tanımlı mı" yerine "veritabanında hesap
- * satırı var mı" sorusuna dönüştü. `yonetim/page.tsx` bir Server Component
- * olduğu için `await` sorun değil.
+ * `hazir`   — geçerli yönetici oturumu var.
+ * `dogrula` — oyuncu olarak girişli ve e-postası listede, ama yönetici oturumu
+ *             yok ya da süresi dolmuş. Yalnızca bu kişiye "doğrula" denir.
+ * `yok`     — diğer HERKES. Panel bu kişilere 404 döner; "yetkin yok" demek
+ *             bile panelin varlığını doğrulamak olurdu.
  */
-export async function adminConfigured(): Promise<boolean> {
-  if (!supabaseReady || !process.env.SUPABASE_SECRET_KEY) return false
-  return (await hesap()) !== null
+export type YoneticiDurumu = 'yok' | 'dogrula' | 'hazir'
+
+export async function yoneticiDurumu(): Promise<YoneticiDurumu> {
+  const belirtec = (await cookies()).get(ADMIN_COOKIE)?.value
+  if (belirtec && BELIRTEC_DESENI.test(belirtec)) {
+    try {
+      /*
+       * Gömülü join (`kullanicilar(...)`) tek istekte hem oturumu hem hesabı
+       * getiriyor — `oturumKullanici`'daki desen. `kullanici_id` boşsa (eski
+       * satır) join null döner ve oturum geçersiz sayılır.
+       */
+      const res = await rest(
+        `admin_oturum?id=eq.${ozet(belirtec)}&biter=gt.${new Date().toISOString()}&select=kullanicilar(email,banli_at)`,
+      )
+      if (res.ok) {
+        const [satir] = (await res.json()) as OturumSatiri[]
+        const k = satir?.kullanicilar
+        if (k && !k.banli_at && yoneticiEpostaMi(k.email)) return 'hazir'
+      }
+    } catch {
+      // Veritabanına ulaşılamıyorsa yetki VERİLMEZ.
+    }
+  }
+
+  const oyuncu = await oturumKullanici()
+  return oyuncu && yoneticiEpostaMi(oyuncu.email) ? 'dogrula' : 'yok'
 }

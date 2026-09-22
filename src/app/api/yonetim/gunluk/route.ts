@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { adminConfigured, isAuthed } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { gunGecerli, istanbulGunu } from '@/game/gun'
 import { gunlukSetiGetir, gunlukSimdi } from '@/lib/gunlukSunucu'
 import { restHeaders, restUrl } from '@/lib/supabase'
@@ -10,16 +10,6 @@ import { restHeaders, restUrl } from '@/lib/supabase'
  * ⚠️ Set burada KURULMAZ: yönetici bakmak için açtığında günün seti onun
  * isteğiyle kurulmasın; ilk oyuncuyla kurulur.
  */
-
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
 
 async function say(filtre: string): Promise<number> {
   const res = await fetch(restUrl(`gunluk_oturum?${filtre}&select=id`), {
@@ -32,7 +22,7 @@ async function say(filtre: string): Promise<number> {
 }
 
 export async function GET(req: Request) {
-  const blocked = await guard()
+  const blocked = await yonetimKoru(req)
   if (blocked) return blocked
 
   const ham = new URL(req.url).searchParams.get('gun')

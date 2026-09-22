@@ -9,6 +9,9 @@ import {
 } from '@/lib/kullaniciAuth'
 import { googleIleBul, type YazilacakAd } from '@/lib/kullaniciStore'
 import { uygunsuzMu } from '@/lib/uygunsuz'
+import { oauthCerezCoz } from '@/lib/oauthCerez'
+import { ADMIN_COOKIE, YONETICI_SURE_SN, yoneticiEpostaMi, yoneticiOturumAc } from '@/lib/adminAuth'
+import { authTimeTeshis, authTimeUygun } from '@/lib/googleKimlik'
 import { epostaAdi, gorunenAdDenetle } from '@/text/kullaniciAdi'
 
 /**
@@ -60,7 +63,7 @@ function adBelirle(googleAd: string | null, email: string): { engel: true } | { 
 export async function GET(req: Request) {
   const url = new URL(req.url)
   const ham = (await cookies()).get(OAUTH_COOKIE)?.value ?? ''
-  const [state = '', verifier = '', donusHam = ''] = ham.split('.')
+  const { tur, state, verifier, donusHam } = oauthCerezCoz(ham)
   const donus = donusYolu((() => {
     try {
       return decodeURIComponent(donusHam)
@@ -124,6 +127,29 @@ export async function GET(req: Request) {
     const belirtec = await oturumAc(kayit.id)
     const res = yonlendir(url, donus)
     res.cookies.set(KULLANICI_COOKIE, belirtec, cerezAyari(OTURUM_SURESI_SN))
+
+    /*
+     * Yönetici yükseltmesi (`/api/yonetim/yukselt`'ten gelen akış).
+     *
+     * ⚠️ ÜÇ KOŞUL BİRDEN: akış yükseltme olarak başlamış olmalı, e-posta
+     * `YONETICI_EPOSTALAR` listesinde olmalı ve Google kimliği GERÇEKTEN
+     * tazelemiş olmalı. Üçüncüsü olmadan `max_age=0` süsten ibaret kalırdı:
+     * aylardır açık duran bir Google oturumu paneli açardı.
+     *
+     * ⚠️ Eşleşmezse SESSİZCE normal giriş. "Yetkin yok" demek, panelin
+     * varlığını ve listede kimin olmadığını söylemek olurdu; kişi `/yonetim`'e
+     * gidince zaten 404 görecek.
+     */
+    if (tur === 'y') {
+      if (!yoneticiEpostaMi(kimlik.email)) {
+        console.warn('[yonetim] yukselt-eposta')
+      } else if (!authTimeUygun(govde, Date.now())) {
+        // Teşhis günlüğe: iddia hiç gelmedi mi, yoksa Google eskisini mi döndürdü?
+        console.warn(`[yonetim] yukselt-${authTimeTeshis(govde, Date.now())}`)
+      } else {
+        res.cookies.set(ADMIN_COOKIE, await yoneticiOturumAc(kayit.id), cerezAyari(YONETICI_SURE_SN))
+      }
+    }
     return res
   } catch {
     return hata('istisna')

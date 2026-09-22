@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { donusYolu, yetkiAdresi, yonlendirmeAdresi } from '@/lib/googleKimlik'
 import { OAUTH_COOKIE, cerezAyari } from '@/lib/kullaniciAuth'
+import { oauthCerezYaz } from '@/lib/oauthCerez'
 import { sinirAsildi } from '@/lib/hizSinir'
 
 /**
@@ -32,7 +33,8 @@ export async function GET(req: Request) {
   const challenge = createHash('sha256').update(verifier).digest('base64url')
 
   const res = NextResponse.redirect(yetkiAdresi({ clientId, redirectUri, state, codeChallenge: challenge }))
-  res.cookies.set(OAUTH_COOKIE, `${state}.${verifier}.${encodeURIComponent(donus)}`, cerezAyari(600))
+  // Tür 'o' = oyuncu girişi. Yönetici yükseltmesi ayrı rotadan 'y' yazar.
+  res.cookies.set(OAUTH_COOKIE, oauthCerezYaz('o', state, verifier, donus), cerezAyari(600))
   res.headers.set('Cache-Control', 'no-store')
   return res
 }

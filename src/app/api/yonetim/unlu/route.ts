@@ -3,7 +3,7 @@ import { revalidateTag } from 'next/cache'
 import {
   UNLU_CATEGORY_IDS, type Difficulty, type UnluCategoryId,
 } from '@/data/categories'
-import { isAuthed, adminConfigured } from '@/lib/adminAuth'
+import { yonetimKoru } from '@/lib/yonetimKoru'
 import { restUrl, restHeaders, restTumSatirlar } from '@/lib/supabase'
 import { storageSil, storageYukle, UNLU_KOVA } from '@/lib/storage'
 import { cleanKey, buildKeys } from '@/text/keys'
@@ -11,7 +11,7 @@ import { cleanKey, buildKeys } from '@/text/keys'
 /**
  * Ünlü havuzu — yönetim paneli CRUD'u.
  *
- * `api/yonetim/route.ts`'in kardeşi; aynı `guard()`, aynı iyimser güncelleme
+ * `api/yonetim/route.ts`'in kardeşi; aynı koruma, aynı iyimser güncelleme
  * sözleşmesi, aynı hata dili. Ayrı dosya çünkü ünlü satırı `songs` biçimine
  * hiç benzemiyor ve 897 satırlık paneli daha da büyütmenin anlamı yok.
  */
@@ -32,17 +32,6 @@ export interface UnluRow {
 
 const KOLONLAR =
   'id,category,name,norm_name,aliases,accept_keys,tier,enabled,image_ver,note,created_at'
-
-/** ⚠️ `guard()` her yönetim rotasında KOPYALANIR — proje deseni bu. */
-async function guard() {
-  if (!(await adminConfigured())) {
-    return NextResponse.json({ error: 'Panel yapılandırılmamış.' }, { status: 503 })
-  }
-  if (!(await isAuthed())) {
-    return NextResponse.json({ error: 'Giriş gerekli.' }, { status: 401 })
-  }
-  return null
-}
 
 /**
  * ⚠️ Etiket `havuz` DEĞİL, `unluhavuz`.
@@ -75,8 +64,8 @@ function takmalariAyikla(ham: unknown): string[] {
 
 // --- Okuma ---
 
-export async function GET() {
-  const red = await guard()
+export async function GET(req: Request) {
+  const red = await yonetimKoru(req)
   if (red) return red
 
   try {
@@ -95,7 +84,7 @@ export async function GET() {
 // --- Ekleme ---
 
 export async function POST(req: Request) {
-  const red = await guard()
+  const red = await yonetimKoru(req)
   if (red) return red
 
   let form: FormData
@@ -196,7 +185,7 @@ export async function POST(req: Request) {
 // --- Düzenleme ---
 
 export async function PATCH(req: Request) {
-  const red = await guard()
+  const red = await yonetimKoru(req)
   if (red) return red
 
   const govde = (await req.json().catch(() => null)) as Record<string, unknown> | null
@@ -268,7 +257,7 @@ export async function PATCH(req: Request) {
 // --- Silme ---
 
 export async function DELETE(req: Request) {
-  const red = await guard()
+  const red = await yonetimKoru(req)
   if (red) return red
 
   const id = new URL(req.url).searchParams.get('id')?.trim()
