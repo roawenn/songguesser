@@ -22,6 +22,8 @@ export interface DuelRow {
   /** Yalnızca kapak düellosu: lobiyi kuranın Kolay mod tercihi. Diğerlerinde null. */
   kolay: boolean | null
   status: 'bekliyor' | 'oynaniyor' | 'bitti'
+  /** Rövanş lobisinin kodu — henüz istenmediyse `null`. */
+  tekrar_kod: string | null
   created_at: string
   started_at: string | null
   expires_at: string
@@ -151,6 +153,34 @@ export async function duelloKur(
     return { code, secret }
   }
   return null
+}
+
+/**
+ * Rövanş kodunu yazar — ÖNCE YAZAN KAZANIR.
+ *
+ * ⚠️ Yarış gerçek: bitiş ekranında iki oyuncu da aynı anda "Tekrar oyna"ya
+ * basabilir. `tekrar_kod=is.null` koşulu bunu veritabanında çözüyor; okuyup
+ * sonra yazmak iki ayrı lobi kurar ve oyuncular farklı odalarda birbirini
+ * beklerdi.
+ *
+ * Dönen değer GEÇERLİ olan koddur: yazma tutmadıysa rakibin kurduğu kod.
+ */
+export async function tekrarKodAyarla(code: string, yeniKod: string): Promise<string> {
+  const res = await rest(
+    `duels?code=eq.${encodeURIComponent(code)}&tekrar_kod=is.null`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ tekrar_kod: yeniKod }),
+    },
+  )
+  if (res.ok) {
+    const rows = (await res.json()) as DuelRow[]
+    if (rows.length === 1) return yeniKod
+  }
+  // Yazma tutmadı: araya giren yazmanın kodunu oku.
+  const mevcut = await duelloOku(code)
+  return mevcut?.tekrar_kod ?? yeniKod
 }
 
 export async function duelloOku(code: string): Promise<DuelRow | null> {

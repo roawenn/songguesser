@@ -48,6 +48,8 @@ interface Durum<T> {
   /** Sunucunun o anki saati — istemci saatindeki kaymayı ölçmek için. */
   sunucuZamani: string
   oyuncuSayisi: number
+  /** Rakip (ya da sen) rövanş istediyse yeni lobinin kodu. */
+  tekrarKod: string | null
   slot: 1 | 2 | null
   songs: T[] | null
   cevaplar: { slot: 1 | 2; song_index: number; won: boolean; maliyet: number; ikincil: number }[]
@@ -78,6 +80,10 @@ export interface DuelloApi<T> {
   /** Geri sayımda kalan saniye (3, 2, 1). */
   geriSayim: number
   cevapGonder: (r: { won: boolean; maliyet: number; ikincil: number }) => void
+  /** Rakip rövanş istediyse (ya da sen istediysen) yeni lobinin kodu. */
+  tekrarKod: string | null
+  /** Rövanş lobisini kurar ya da rakibinkine katılır; gidilecek kodu döner. */
+  tekrarIste: () => Promise<string | null>
 }
 
 export function useDuello<T extends { id: string }>(kod: string): DuelloApi<T> {
@@ -277,6 +283,28 @@ export function useDuello<T extends { id: string }>(kod: string): DuelloApi<T> {
   // Beş tur bitince lobi süresi dolsa da sonuç ekranı korunur (bkz. `yokla`).
   if (aktif >= DUELLO_TUR) bitmis.current = true
 
+  /**
+   * Rövanş isteği.
+   *
+   * ⚠️ Gizli anahtar DÖNERSE saklanır: o zaman yeni lobiyi biz kurduk ve 1.
+   * oyuncuyuz. Dönmezse rakip önce davranmış demektir; onun lobisine normal
+   * katılma yolundan gireceğiz (`anahtarYaz` yok).
+   */
+  const tekrarIste = useCallback(async (): Promise<string | null> => {
+    try {
+      const res = await fetch(`/api/duello/${kod}/tekrar`, {
+        method: 'POST',
+        headers: { 'x-duello-gizli': gizli.current ?? '' },
+      })
+      const d = (await res.json()) as { kod?: string; gizli?: string; error?: string }
+      if (!res.ok || !d.kod) return null
+      if (d.gizli) anahtarYaz(d.kod, d.gizli)
+      return d.kod
+    } catch {
+      return null
+    }
+  }, [kod])
+
   // `cevapGonder` çağrıldığı anda hangi sıradaydık — render'dan bağımsız tut.
   const gonderilenSira = useRef<number | null>(null)
   gonderilenSira.current = aktif < DUELLO_TUR ? aktif : null
@@ -394,5 +422,7 @@ export function useDuello<T extends { id: string }>(kod: string): DuelloApi<T> {
     sonuclar,
     geriSayim: Math.max(1, Math.ceil(geriSayimKalan / 1000)),
     cevapGonder,
+    tekrarKod: durum?.tekrarKod ?? null,
+    tekrarIste,
   }
 }

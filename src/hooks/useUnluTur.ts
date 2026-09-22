@@ -6,7 +6,7 @@ import { storagePublicUrlIstemci } from '@/lib/storageIstemci'
 import { MIN_PLAYABLE, type Difficulty } from '@/data/categories'
 import { unluGorselYolu, type Unlu } from '@/data/unlu'
 import { unluReducer, turIcinde, type UnluDurum } from '@/game/unluMachine'
-import { filterByTier, pickNext } from '@/game/select'
+import { filterByTier, pickNext, sonrakiDoluKademe } from '@/game/select'
 import { judgeGuess, type Verdict } from '@/text/match'
 import { buildIndex, type SearchIndex } from '@/text/autocomplete'
 import { useSettingsStore } from '@/store/useSettingsStore'
@@ -56,6 +56,8 @@ export interface UnluTurApi {
    * ⚠️ Bu bir UYARI, ENGEL DEĞİL. Önce engeldi ve yanlıştı — aşağıya bak.
    */
   azKisi: boolean
+  /** Boş ekranın sebebi — seçki mi boş, yalnızca kademe mi? */
+  bosSebep: 'secki' | 'kademe'
   index: SearchIndex<Unlu> | null
   yukleniyor: boolean
   /** Son tahmin belirsizse adaylar burada — hak tüketilmedi. */
@@ -155,36 +157,48 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
   const dizilim = opts?.dizilim
   const dizilimIndex = opts?.index ?? 0
 
-  const suzulmus = useMemo(() => filterByTier(havuz, kademe), [havuz, kademe])
+  /**
+   * ⚠️ KADEME TAM EŞLEŞİR — komşu kademelere genişleme YOK (`min: 0`).
+   *
+   * `filterByTier` normalde bir kademede `MIN_PLAYABLE` (8) kişiden azsa
+   * komşu kademeleri de katıyor. O kural 15 bin şarkılık havuz için yazıldı;
+   * ünlü havuzu bugün 6 kişi, yani HİÇBİR kademe 8'e ulaşmıyor ve süzgeç
+   * sonuna kadar genişleyip her kademede herkesi gösteriyordu. Küratör
+   * "Kolay" dediği kişiyi "Uzman"da görüyordu — etiketin anlamı kalmamıştı.
+   *
+   * Artık oyuncuya ne seçtiyse o gösteriliyor; kademe boşsa oyun bunu açıkça
+   * söylüyor (bkz. `bosSebep` ve `UnluShell`).
+   */
+  const suzulmus = useMemo(() => filterByTier(havuz, kademe, 0), [havuz, kademe])
 
   /**
-   * Kazanılırsa oynanacak kademenin havuzu.
-   *
-   * ⚠️ `turBaslat` bağımlılıksız bir `useCallback`; liste bu yüzden ref
-   * üzerinden okunuyor, yoksa kimliği değişince tur iki kez kurulurdu.
+   * Boş ekranın sebebi: seçkide hiç kimse yok mu, yoksa yalnızca bu kademe mi
+   * boş? İkisine verilecek öğüt farklı — biri kategori, diğeri zorluk değiştirmek.
    */
-  const ustListe = useMemo(
-    () => (kademe < 5 ? filterByTier(havuz, (kademe + 1) as Difficulty) : []),
-    [havuz, kademe],
-  )
+  const bosSebep: 'secki' | 'kademe' = havuz.length === 0 ? 'secki' : 'kademe'
+
+  /**
+   * ⚠️ ÜST KADEME ÖN YÜKLEMESİ KAPALI.
+   *
+   * Kazanınca bir üst kademenin adayı önden indiriliyordu. Bu, yalnızca
+   * süzgeç komşu kademeleri kattığı için işe yarıyordu: kişi o zaman oynanan
+   * listede de bulunuyordu. Tam eşleşmede üst kademedeki kişi `turBaslat`'ın
+   * "listede mi?" kontrolünden eleniyor — indirilen görsel doğrudan çöpe
+   * giderdi. Kademe zaten kendiliğinden yükselmiyor; oyuncu seçiyor.
+   */
+  const ustListe = useMemo<Unlu[]>(() => [], [])
   const ustListeRef = useRef<Unlu[]>([])
   ustListeRef.current = ustListe
   /*
-   * ⚠️ Bu ENGEL DEĞİL, yalnızca uyarı — ve bir zamanlar engeldi:
-   * `suzulmus.length < MIN_PLAYABLE` ise oyun "Bu zorlukta oynanacak kadar
-   * kişi yok, başka bir kademe dene" diyip kilitleniyordu.
+   * ⚠️ Bu ENGEL DEĞİL, yalnızca uyarı — ve bir zamanlar engeldi: oyun
+   * "Bu zorlukta oynanacak kadar kişi yok" deyip kilitleniyordu. Az kişiyle
+   * oyun gayet oynanır, sadece tekrar eder; kilitlemek oyuncudan oynayabileceği
+   * bir oyunu almaktı.
    *
-   * İki yönden de yanlıştı:
-   *   1. `filterByTier` kademeleri ZATEN sonuna kadar genişletiyor. Havuzda
-   *      5 kişi varsa hangi kademe seçilirse seçilsin beşi birden dönüyor,
-   *      yani sonuç her kademede `< 8` — oyun HİÇBİR kademede açılmıyordu.
-   *   2. Mesaj yapılması imkânsız bir şey öneriyordu: kademe değiştirmek
-   *      sonucu değiştirmiyor.
-   *
-   * `MIN_PLAYABLE` `filterByTier`'in genişleme eşiği; "oynanabilirlik"
-   * ölçütü değil. Beş kişiyle oyun gayet oynanır, sadece tekrar eder.
+   * `MIN_PLAYABLE` burada yalnızca "tekrar edebilir" eşiği. Kademe tam
+   * eşleştiği için (yukarı bkz.) sayı gerçekten o kademedeki kişi sayısıdır.
    */
-  const azKisi = havuz.length > 0 && suzulmus.length < MIN_PLAYABLE
+  const azKisi = suzulmus.length > 0 && suzulmus.length < MIN_PLAYABLE
 
   /**
    * Otomatik tamamlama evreni.
@@ -355,8 +369,8 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
      * rampası — kalıcı ayarına yazılmamalı.
      */
     if (dizilim) return
-    // Bildiyse bir üst kademeye çık; İmkansız'da (5) tavan.
-    const cikilan = durum.s === 'won' ? (Math.min(5, kademe + 1) as Difficulty) : kademe
+    // Bildiyse üstteki İLK DOLU kademeye çık; yukarısı boşsa burada kal.
+    const cikilan = durum.s === 'won' ? sonrakiDoluKademe(havuz, kademe) : kademe
     if (cikilan !== kademe) {
       /*
        * ⚠️ `setKademe` çağırıp DÖNÜYORUZ. Kademe değişince `suzulmus`
@@ -367,7 +381,7 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
       return
     }
     void turBaslat(suzulmus)
-  }, [durum, kademe, setKademe, suzulmus, turBaslat, dizilim])
+  }, [durum, havuz, kademe, setKademe, suzulmus, turBaslat, dizilim])
 
   const belirsizligiTemizle = useCallback(() => setBelirsiz(null), [])
   const onYanlis = useCallback((fn: () => void) => {
@@ -384,6 +398,7 @@ export function useUnluTur(opts?: DizilimOpts): UnluTurApi {
     havuz,
     suzulmus,
     azKisi,
+    bosSebep,
     index,
     yukleniyor,
     belirsiz,

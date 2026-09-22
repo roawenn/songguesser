@@ -49,6 +49,25 @@ export function filterByTier<T extends Secilebilir>(
   return out
 }
 
+/**
+ * Kazanınca çıkılacak kademe: ÜSTTEKİ İLK DOLU kademe.
+ *
+ * ⚠️ Yalnızca `kademe + 1` demek yetmiyor. Kademe tam eşleştiğinde (bkz.
+ * `filterByTier`'in `min: 0` kullanımı) bir üst kademe boş olabilir ve oyuncu
+ * kazandığı anda "bu zorlukta kimse yok" ekranına düşerdi — galibiyetin ödülü
+ * duvara çarpmak olurdu. Boş kademeler atlanıyor; yukarıda dolu kademe yoksa
+ * oyuncu bulunduğu kademede kalıyor.
+ */
+export function sonrakiDoluKademe<T extends Secilebilir>(
+  pool: readonly T[],
+  tier: Difficulty,
+): Difficulty {
+  for (let t = tier + 1; t <= 5; t++) {
+    if (pool.some((s) => s.d === t)) return t as Difficulty
+  }
+  return tier
+}
+
 export interface Pick<T extends Secilebilir = Secilebilir> {
   /** ⚠️ Alan adı `song` KALIYOR: çağrı yerleri değişmesin. */
   song: T

@@ -145,7 +145,17 @@ export function UnluShell() {
                 : 'Görsel açılamadı. Sayfayı yenilemeyi dene.'}
             </Uyari>
           ) : durum.s === 'empty' ? (
-            <Uyari>Bu seçkide henüz kimse yok. Başka bir kategori dene.</Uyari>
+            <Uyari>
+              {/*
+                ⚠️ İki ayrı boşluk, iki ayrı öğüt. Kademe tam eşleştiği için
+                (bkz. `useUnluTur`) artık "kimse yok" demek çoğu zaman
+                SEÇKİNİN değil o ZORLUĞUN boş olduğu anlamına geliyor —
+                oyuncuya kategori değiştirmesini söylemek yanlış yönlendirirdi.
+              */}
+              {tur.bosSebep === 'secki'
+                ? 'Bu seçkide henüz kimse yok. Başka bir kategori dene.'
+                : 'Bu zorlukta henüz kimse yok. Başka bir zorluk dene.'}
+            </Uyari>
           ) : turBitti(durum) ? (
             <div className="nk-sonuc">
             <UnluSonucPanel
@@ -189,7 +199,7 @@ export function UnluShell() {
                       color: '#6a7075',
                     }}
                   >
-                    bu seçkide {tur.suzulmus.length} kişi var · tekrar edebilir
+                    bu zorlukta {tur.suzulmus.length} kişi var · tekrar edebilir
                   </div>
                 )}
               </div>

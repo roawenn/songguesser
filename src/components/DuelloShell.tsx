@@ -170,7 +170,6 @@ export function DuelloShell({ kod }: { kod: string }) {
                   d={d}
                   satir={sarkiSatiri}
                   maliyetMetni={(n) => `${tr(Math.round(n * 10) / 10)} sn`}
-                  tekBasinaYol="/"
                 />
               ) : d.faz === 'bekleme' ? (
                 <SonBekleme d={d} birim="şarkı" />

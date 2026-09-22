@@ -87,6 +87,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ kod: string }> 
      */
     sunucuZamani: new Date().toISOString(),
     oyuncuSayisi: kisiler.length,
+    // Rakip rövanş istediyse kodu burada görünür (bkz. `api/duello/[kod]/tekrar`).
+    tekrarKod: duel.tekrar_kod,
     slot,
     // Öğeler yalnızca doğrulanmış oyuncuya.
     songs: ogeler,

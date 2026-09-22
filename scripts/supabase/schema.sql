@@ -136,6 +136,19 @@ create table if not exists public.duels (
 
 create index if not exists duels_expire_idx on public.duels (expires_at);
 
+/*
+ * Rövanş: biten bir düellodan kurulan YENİ lobinin kodu.
+ *
+ * ⚠️ Kolon eski lobilerde de olmalı (`create table if not exists` var olanı
+ * değiştirmez), o yüzden ayrıca ALTER'lanıyor.
+ *
+ * ⚠️ Tek alan yetiyor çünkü rövanş İSTEĞİ ile KABULÜ ayrı ayrı saklamaya gerek
+ * yok: ilk basan yeni lobiyi kurup kodunu buraya yazıyor, ikincisi o kodu
+ * görünce katılıyor. İkisi aynı anda basarsa "önce yazan kazanır" (bkz.
+ * `tekrarKodAyarla`) ve kaybeden taraf da aynı koda yönleniyor.
+ */
+alter table public.duels add column if not exists tekrar_kod text;
+
 create table if not exists public.duel_players (
   code       text    not null references public.duels(code) on delete cascade,
   slot       smallint not null check (slot in (1, 2)),

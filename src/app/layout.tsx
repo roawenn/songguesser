@@ -52,7 +52,7 @@ export const metadata: Metadata = {
    * `metadata`'sını export ediyor; buradaki yalnızca site geneli.
    */
   title: {
-    default: 'tahmin.in — Türkçe Tahmin Oyunları',
+    default: "tahmin.in | Türkiye'nin Tahmin Oyunu!",
     template: '%s · tahmin.in',
   },
   description:
@@ -69,12 +69,12 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'tr_TR',
     siteName: 'tahmin.in',
-    title: 'tahmin.in — Türkçe Tahmin Oyunları',
+    title: "tahmin.in | Türkiye'nin Tahmin Oyunu!",
     description: 'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'tahmin.in — Türkçe Tahmin Oyunları',
+    title: "tahmin.in | Türkiye'nin Tahmin Oyunu!",
     description: 'Yarım saniyeden şarkıyı bil, ünlüyü saçından tanı.',
   },
   robots: { index: true, follow: true },

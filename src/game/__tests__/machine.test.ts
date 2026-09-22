@@ -12,7 +12,7 @@ import {
   ipucuVerilebilir,
   type GameState,
 } from '../machine'
-import { pickNext, filterByTier } from '../select'
+import { pickNext, filterByTier, sonrakiDoluKademe } from '../select'
 import { previewIsLongEnough, MIN_CLIP_START } from '@/audio/envelope'
 import type { Song } from '@/data/schema'
 
@@ -361,6 +361,50 @@ describe('filterByTier — zorluk süzgeci', () => {
 
   it('boş havuzda boş döner', () => {
     expect(filterByTier([], 3)).toEqual([])
+  })
+
+  /**
+   * Ünlü oyunu bu biçimi kullanıyor (`useUnluTur`): küratörün verdiği kademe
+   * aynen geçerli olsun diye genişleme kapatılıyor. Havuz 6 kişiyken her kademe
+   * 8'in altında kaldığı için süzgeç sonuna kadar genişliyor ve "Kolay"
+   * işaretlenen kişi "Uzman"da da çıkıyordu.
+   */
+  it('min 0 ile genişleme YOK — kademe tam eşleşir', () => {
+    expect(filterByTier(pool, 5, 0).map((s) => s.id)).toEqual(['e'])
+    expect(filterByTier(pool, 1, 0).map((s) => s.id)).toEqual(['a', 'b'])
+    expect(filterByTier(pool, 3, 0).map((s) => s.id)).toEqual(['c', 'd'])
+  })
+
+  it('min 0 ile boş kademe BOŞ döner — komşudan doldurmaz', () => {
+    expect(filterByTier(pool, 2, 0)).toEqual([])
+    expect(filterByTier(pool, 4, 0)).toEqual([])
+  })
+})
+
+/**
+ * Ünlü oyunu kazanınca kademeyi kendiliğinden yükseltiyor. Kademe tam
+ * eşleştiği için üst kademe boş olabilir; boşu atlamazsak galibiyetin ödülü
+ * "bu zorlukta kimse yok" ekranı olurdu.
+ */
+describe('sonrakiDoluKademe', () => {
+  const pool = [
+    song({ id: 'a', d: 1 }), song({ id: 'b', d: 1 }),
+    song({ id: 'c', d: 3 }),
+    song({ id: 'e', d: 5 }),
+  ]
+
+  it('boş kademeleri atlar', () => {
+    expect(sonrakiDoluKademe(pool, 1)).toBe(3)
+    expect(sonrakiDoluKademe(pool, 3)).toBe(5)
+  })
+
+  it('yukarısı boşsa bulunduğu kademede kalır', () => {
+    expect(sonrakiDoluKademe(pool, 5)).toBe(5)
+    expect(sonrakiDoluKademe([song({ id: 'a', d: 2 })], 2)).toBe(2)
+  })
+
+  it('boş havuzda kademe değişmez', () => {
+    expect(sonrakiDoluKademe([], 1)).toBe(1)
   })
 
   /**

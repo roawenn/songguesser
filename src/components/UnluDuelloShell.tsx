@@ -142,7 +142,6 @@ export function UnluDuelloShell({ kod }: { kod: string }) {
                   d={d}
                   satir={(u: Unlu) => ({ ust: u.ad })}
                   maliyetMetni={(n) => `${n} şerit`}
-                  tekBasinaYol="/unlu"
                   birim="ünlüler"
                 />
               ) : d.faz === 'bekleme' ? (

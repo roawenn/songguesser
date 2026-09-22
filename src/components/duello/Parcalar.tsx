@@ -389,14 +389,12 @@ export function Bitis<T extends { id: string }>({
   d,
   satir,
   maliyetMetni,
-  tekBasinaYol,
   birim = 'şarkılar',
 }: {
   d: DuelloApi<T>
   /** Listedeki bir satır nasıl yazılır. */
   satir: (oge: T) => { ust: string; alt?: string }
   maliyetMetni: (n: number) => string
-  tekBasinaYol: string
   birim?: string
 }) {
   const baslik =
@@ -466,8 +464,57 @@ export function Bitis<T extends { id: string }>({
         </div>
       )}
 
-      <Link
-        href={tekBasinaYol}
+      <Rovans d={d} />
+    </div>
+  )
+}
+
+/**
+ * Bitiş ekranının alt bloğu: rövanş ve çıkış.
+ *
+ * ⚠️ Burada "Tek başına oyna" vardı ve arkadaşıyla oynamış birine tuhaf
+ * geliyordu: düello biter bitmez oyuncuyu tek kişilik oyuna yolluyordu.
+ *
+ * ⚠️ TEK EYLEM, İKİ ETİKET. İstek ve kabul ayrı uç noktalar değil: ilk basan
+ * yeni lobiyi kurar, ikincisi aynı koda katılır (bkz.
+ * `api/duello/[kod]/tekrar`). Bu yüzden düğme aynı işi yapıyor, yalnızca
+ * rakip önce davrandıysa metni değişiyor.
+ */
+function Rovans<T extends { id: string }>({ d }: { d: DuelloApi<T> }) {
+  const router = useRouter()
+  const [bekliyor, setBekliyor] = useState(false)
+  const [hata, setHata] = useState<string | null>(null)
+
+  const rakipIstedi = d.tekrarKod !== null
+
+  async function tekrar() {
+    setBekliyor(true)
+    setHata(null)
+    const yeni = await d.tekrarIste()
+    if (!yeni) {
+      setBekliyor(false)
+      setHata('Rövanş kurulamadı. Tekrar dene.')
+      return
+    }
+    /*
+     * ⚠️ `router.push` — `window.location` DEĞİL. Yeni lobinin gizli anahtarı
+     * `localStorage` engelliyse yalnızca bellekte duruyor; tam sayfa yüklemesi
+     * onu siler ve oyuncu kendi kurduğu lobiye yabancı olarak düşerdi
+     * (bkz. `lib/duelloAnahtar`).
+     */
+    router.push(`/duello/${yeni}`)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>
+      {rakipIstedi && (
+        <div style={{ fontSize: 13, color: '#8fc9a3' }}>Rakibin rövanş istiyor.</div>
+      )}
+
+      <button
+        type="button"
+        onClick={tekrar}
+        disabled={bekliyor}
         style={{
           padding: '13px 26px',
           borderRadius: 5,
@@ -476,10 +523,18 @@ export function Bitis<T extends { id: string }>({
           color: '#0a0c0e',
           fontWeight: 600,
           fontSize: 14,
+          cursor: bekliyor ? 'default' : 'pointer',
+          opacity: bekliyor ? 0.6 : 1,
         }}
       >
-        Tek başına oyna
+        {bekliyor ? 'Hazırlanıyor…' : rakipIstedi ? 'Kabul et, tekrar oyna' : 'Tekrar oyna'}
+      </button>
+
+      <Link href="/" style={{ fontSize: 13, color: '#8c9297', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+        Ana sayfaya dön
       </Link>
+
+      {hata && <div style={{ fontSize: 12.5, color: '#d09a9a' }}>{hata}</div>}
     </div>
   )
 }

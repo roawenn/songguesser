@@ -154,7 +154,6 @@ export function KapakDuelloShell({ kod }: { kod: string }) {
                   d={d}
                   satir={kapakSatiri}
                   maliyetMetni={(n) => `${n} adım`}
-                  tekBasinaYol="/kapak"
                   birim="albümler"
                 />
               ) : d.faz === 'bekleme' ? (
