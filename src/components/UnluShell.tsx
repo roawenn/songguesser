@@ -145,17 +145,31 @@ export function UnluShell() {
                 : 'Görsel açılamadı. Sayfayı yenilemeyi dene.'}
             </Uyari>
           ) : durum.s === 'empty' ? (
-            <Uyari>
+            <>
+              <Uyari>
+                {/*
+                  ⚠️ İki ayrı boşluk, iki ayrı öğüt. Kademe tam eşleştiği için
+                  (bkz. `useUnluTur`) artık "kimse yok" demek çoğu zaman
+                  SEÇKİNİN değil o ZORLUĞUN boş olduğu anlamına geliyor —
+                  oyuncuya kategori değiştirmesini söylemek yanlış yönlendirirdi.
+                */}
+                {tur.bosSebep === 'secki'
+                  ? 'Bu seçkide henüz kimse yok. Başka bir kategori dene.'
+                  : 'Bu zorlukta henüz kimse yok. Başka bir zorluk dene.'}
+              </Uyari>
               {/*
-                ⚠️ İki ayrı boşluk, iki ayrı öğüt. Kademe tam eşleştiği için
-                (bkz. `useUnluTur`) artık "kimse yok" demek çoğu zaman
-                SEÇKİNİN değil o ZORLUĞUN boş olduğu anlamına geliyor —
-                oyuncuya kategori değiştirmesini söylemek yanlış yönlendirirdi.
+                ⚠️ ZORLUK ŞERİDİ BU KOLDA DA ÇİZİLİR — kopya bilinçli.
+                Şeridin asıl kopyası aşağıda `.nk-unlu-izgara > .nk-unlu-kontrol`
+                içinde ve o ızgara bu kolda hiç basılmıyor. Tek kopya bırakılınca
+                ekran "başka bir zorluk dene" yazıp zorluğu değiştirecek aracı
+                ortadan kaldırıyordu: oyuncu boş kademede kilitli kalıyordu.
+                (Kategori çipleri etkilenmiyor; onlar `SahneCercevesi`'nde,
+                oyun durumunun tamamen dışında.)
               */}
-              {tur.bosSebep === 'secki'
-                ? 'Bu seçkide henüz kimse yok. Başka bir kategori dene.'
-                : 'Bu zorlukta henüz kimse yok. Başka bir zorluk dene.'}
-            </Uyari>
+              <div className="nk-kademe">
+                <TierStrip tier={kademe} onTier={setKademe} />
+              </div>
+            </>
           ) : turBitti(durum) ? (
             <div className="nk-sonuc">
             <UnluSonucPanel

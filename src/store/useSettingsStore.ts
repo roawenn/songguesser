@@ -2,11 +2,20 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { guvenliDepo } from './guvenliDepo'
 import {
-  CHIPS, TIERS, UNLU_CHIPS, type ChipId, type Difficulty, type UnluChipId,
+  CHIPS, TIERS, UNLU_CHIPS, VARSAYILAN_YIL, YILLAR,
+  type ChipId, type Difficulty, type UnluChipId, type YilId,
 } from '@/data/categories'
 
 export interface Settings {
   category: ChipId
+  /**
+   * Yıl eşiği — şarkı ve kapak oyunlarında ORTAK.
+   *
+   * ⚠️ Kategoriler oyun başına ayrı (`category` / `kapakCategory`) ama yıl
+   * ortak: "2020 sonrasını oynamak istiyorum" oyuna değil oyuncuya ait bir
+   * tercih, iki yerde ayrı ayrı ayarlatmanın karşılığı yok.
+   */
+  yil: YilId
   /** Şarkı zorluk kademesi (1 Kolay … 5 İmkansız). */
   tier: Difficulty
   /**
@@ -44,6 +53,7 @@ export interface Settings {
   reduce: boolean
 
   setCategory: (c: ChipId) => void
+  setYil: (y: YilId) => void
   setTier: (t: Difficulty) => void
   setUnluCategory: (c: UnluChipId) => void
   setUnluTier: (t: Difficulty) => void
@@ -64,7 +74,14 @@ function sanitize(v: unknown): Partial<Settings> {
   const raw = (v ?? {}) as Record<string, unknown>
   const out: Partial<Settings> = {}
 
+  /*
+   * ⚠️ Sürüm anahtarı ARTMADI, artmasına gerek de yok. Dönem çipleri
+   * (`eskiler`, `doksanlar`, `iki-binler`) `CHIPS`'ten kalktığı için diskte o
+   * değerleri taşıyan eski oyuncular bu süzgeçten geçemiyor ve varsayılan
+   * `karisik`'e iniyor — göç kodu yazmadan kendiliğinden iyileşiyor.
+   */
   if (CHIPS.some((c) => c.id === raw.category)) out.category = raw.category as ChipId
+  if (YILLAR.some((y) => y.id === raw.yil)) out.yil = raw.yil as YilId
   if (TIERS.some((t) => t.id === raw.tier)) out.tier = raw.tier as Difficulty
   if (UNLU_CHIPS.some((c) => c.id === raw.unluCategory)) {
     out.unluCategory = raw.unluCategory as UnluChipId
@@ -86,6 +103,7 @@ export const useSettingsStore = create<Settings>()(
   persist(
     (set) => ({
       category: 'karisik',
+      yil: VARSAYILAN_YIL,
       tier: 1,
       unluCategory: 'unlu-karisik',
       unluTier: 1,
@@ -97,6 +115,7 @@ export const useSettingsStore = create<Settings>()(
       reduce: false,
 
       setCategory: (category) => set({ category }),
+      setYil: (yil) => set({ yil }),
       setTier: (tier) => set({ tier }),
       setUnluCategory: (unluCategory) => set({ unluCategory }),
       setUnluTier: (unluTier) => set({ unluTier }),
@@ -113,6 +132,7 @@ export const useSettingsStore = create<Settings>()(
       storage: guvenliDepo,
       partialize: (s) => ({
         category: s.category,
+        yil: s.yil,
         tier: s.tier,
         unluCategory: s.unluCategory,
         unluTier: s.unluTier,

@@ -2,8 +2,9 @@
  * Kategori ve seviye modeli.
  *
  * Tasarım (theme/Nakarat.dc.html) tür ve dönemi TEK bir yatay şeritte
- * karıştırıyor. Bu dosya o şeridi tanımlar: tür çipleri kendi havuz
- * dosyasından, dönem çipleri tüm havuzların birleşiminden süzülerek beslenir.
+ * karıştırıyordu. Artık iki ayrı şerit var: üstte YIL (`YILLAR`), altta TÜR
+ * (`CHIPS`). Böylece ikisi birlikte seçilebiliyor; eskiden biri diğerini
+ * dışlıyordu.
  */
 
 // --- Havuz dosyaları (disk üzerindeki tür havuzları) ---
@@ -73,18 +74,64 @@ export const TIER_LABELS: Record<Difficulty, string> = {
 
 // --- Kategori şeridi ---
 
-export type ChipId =
-  | 'karisik'
-  | CategoryId
-  | 'eskiler'
-  | 'doksanlar'
-  | 'iki-binler'
+export type ChipId = 'karisik' | CategoryId
 
-/** Çip ya bir tür havuzundan ya da tüm havuzlardan + dönem süzgecinden beslenir. */
-export type ChipSource =
-  | { kind: 'all' }
-  | { kind: 'genre'; genre: CategoryId }
-  | { kind: 'eras'; eras: EraId[] }
+// --- Yıl şeridi ---
+//
+// ⚠️ Yıl, türün RAKİBİ değil DİK BOYUTUDUR. Eskiden "Eskiler / 90'lar /
+// 2000'ler" tür çipleriyle aynı şeritte KARDEŞ çiplerdi: oyuncu ya tür ya dönem
+// seçebiliyordu, ikisi birden değil. Yıl kendi şeridine çıkınca "2020 sonrası
+// rap" gibi kesişimler mümkün oldu.
+//
+// ⚠️ Eşikler KÜMÜLATİF ("ve sonrası"), tek bir on yıl değil. Ayrık on yıllar
+// canlı veride kullanılamaz hâlde: rap×80'ler 0 şarkı, rap×70'ler 2. Kümülatifte
+// en dar hücre bile (sanat 2020+) 127 şarkı.
+//
+// Tek istisna `yeni`: yalnızca havuzdaki EN YENİ yıl. Oyuncuların çoğu bugünün
+// şarkılarını oynamak istiyor, o yüzden varsayılan bu.
+
+export type YilId = 'yeni' | '2020' | '2010' | '2000' | '1990' | 'tumu'
+
+export interface YilSecenegi {
+  id: YilId
+  label: string
+  /**
+   * `number` → o yıl ve sonrası. `'yeni'` → yalnızca havuzun en yeni yılı.
+   * `null` → süzme yok.
+   *
+   * ⚠️ En yeni yıl SABİT YAZILMAZ. "2026" yazılsaydı seçenek önümüzdeki yıl
+   * sessizce "geçen yıl" olurdu; havuzdan türetiliyor (bkz. `enYeniYil`).
+   */
+  esik: number | 'yeni' | null
+}
+
+/** Şerit sırası ekrandaki sırayla aynı: en yeni SOLDA. */
+export const YILLAR: readonly YilSecenegi[] = [
+  { id: 'yeni', label: 'Bu yıl', esik: 'yeni' },
+  { id: '2020', label: '2020+', esik: 2020 },
+  { id: '2010', label: '2010+', esik: 2010 },
+  { id: '2000', label: '2000+', esik: 2000 },
+  { id: '1990', label: '90+', esik: 1990 },
+  { id: 'tumu', label: 'Tümü', esik: null },
+]
+
+export const VARSAYILAN_YIL: YilId = 'yeni'
+
+const YIL_BY_ID = new Map(YILLAR.map((y) => [y.id, y]))
+
+export function yilById(id: YilId): YilSecenegi {
+  return YIL_BY_ID.get(id) ?? YILLAR[0]!
+}
+
+/**
+ * Çip ya bir tür havuzundan ya da tüm havuzlardan beslenir.
+ *
+ * ⚠️ Üçüncü bir varyant (`{ kind: 'eras' }`) VARDI ve bilinçli olarak
+ * kaldırıldı: dönem artık çip değil, kendi şeridinde dik bir boyut
+ * (bkz. `YILLAR`). Varyantı tipten silmek, süzgeci sunucuda arayan eski
+ * dalların derleme hatası vermesini sağladı — sessizce ölü kalmalarını değil.
+ */
+export type ChipSource = { kind: 'all' } | { kind: 'genre'; genre: CategoryId }
 
 export interface Chip {
   id: ChipId
@@ -110,9 +157,6 @@ export const CHIPS: Chip[] = [
   { id: 'halk', label: 'Halk Müziği', hue: 145, source: { kind: 'genre', genre: 'halk' } },
   { id: 'sanat', label: 'Sanat Müziği', hue: 60, source: { kind: 'genre', genre: 'sanat' } },
   { id: 'fantezi', label: 'Fantezi', hue: 300, source: { kind: 'genre', genre: 'fantezi' } },
-  { id: 'eskiler', label: 'Eskiler', hue: 105, source: { kind: 'eras', eras: ['70', '80', '90'] } },
-  { id: 'doksanlar', label: '90’lar', hue: 265, source: { kind: 'eras', eras: ['90'] } },
-  { id: 'iki-binler', label: '2000’ler', hue: 175, source: { kind: 'eras', eras: ['00'] } },
 ]
 
 const CHIP_BY_ID = new Map(CHIPS.map((c) => [c.id, c]))

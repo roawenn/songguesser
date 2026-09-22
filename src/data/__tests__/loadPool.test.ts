@@ -48,7 +48,7 @@ describe('loadBaslangic', () => {
   it('paket şarkılarının alanlarını önbelleğe yazar — /api/sarki gerekmez', async () => {
     sahteFetch(() => ({ songs: [sarki('itunes:1', { p: 'bir.m4a', ar: 'kapak', u: 'magaza' })] }))
     const m = await taze()
-    const paket = await m.loadBaslangic('karisik', 3)
+    const paket = await m.loadBaslangic('karisik', 3, 'tumu')
     expect(paket).toHaveLength(1)
     expect(m.alanlarOnbellekten('itunes:1')).toEqual({ p: 'bir.m4a', ar: 'kapak', u: 'magaza' })
   })
@@ -56,7 +56,7 @@ describe('loadBaslangic', () => {
   it('önizlemesiz şarkıyı pakete almaz', async () => {
     sahteFetch(() => ({ songs: [sarki('itunes:1'), sarki('itunes:2', { p: 'iki.m4a' })] }))
     const m = await taze()
-    const paket = await m.loadBaslangic('pop', 1)
+    const paket = await m.loadBaslangic('pop', 1, 'tumu')
     expect(paket.map((s) => s.id)).toEqual(['itunes:2'])
   })
 
@@ -65,9 +65,9 @@ describe('loadBaslangic', () => {
       url.startsWith('/api/baslangic') ? { songs: [sarki('itunes:1', { p: 'bir.m4a' })] } : { songs: [], kaynak: 'supabase' },
     )
     const m = await taze()
-    m.havuzuIsit('karisik', 3)
-    await m.loadBaslangic('karisik', 3)
-    expect(cagrilar.filter((u) => u.startsWith('/api/baslangic'))).toEqual(['/api/baslangic/karisik?kademe=3'])
+    m.havuzuIsit('karisik', 3, 'tumu')
+    await m.loadBaslangic('karisik', 3, 'tumu')
+    expect(cagrilar.filter((u) => u.startsWith('/api/baslangic'))).toEqual(['/api/baslangic/karisik?kademe=3&yil=tumu'])
   })
 
   it('ağ hatasında REDDETMEZ, boş döner ve saklamaz', async () => {
@@ -79,9 +79,9 @@ describe('loadBaslangic', () => {
       return { ok: true, json: async () => ({ songs: [sarki('itunes:1', { p: 'bir.m4a' })] }) }
     }) as unknown as typeof fetch
     const m = await taze()
-    await expect(m.loadBaslangic('rap', 4)).resolves.toEqual([])
+    await expect(m.loadBaslangic('rap', 4, 'tumu')).resolves.toEqual([])
     dusur = false
-    await vi.waitFor(async () => expect(await m.loadBaslangic('rap', 4)).toHaveLength(1))
+    await vi.waitFor(async () => expect(await m.loadBaslangic('rap', 4, 'tumu')).toHaveLength(1))
     expect(cagrilar.length).toBe(2)
   })
 })

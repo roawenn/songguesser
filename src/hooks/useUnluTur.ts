@@ -42,8 +42,8 @@ export interface DizilimOpts {
 
 /** Ölü görselde art arda en fazla kaç kişi denenir. */
 const OLU_GORSEL_SINIR = 6
-/** `img.decode()` askıda kalırsa turu sonsuza kadar bekletmesin. */
-const DECODE_ZAMAN_ASIMI = 10_000
+/** Bu süre sonunda görsel hâlâ inmediyse tur YİNE açılır (bkz. `gorselHazirla`). */
+const ILK_KARE_BEKLEME = 4000
 
 export interface UnluTurApi {
   durum: UnluDurum
@@ -74,22 +74,34 @@ export interface UnluTurApi {
   onYanlis: (fn: () => void) => void
 }
 
-/** Görseli indirip çözer; başarısızsa `dead` döner. */
-async function gorselHazirla(url: string): Promise<'ready' | 'dead'> {
-  const img = new Image()
-  img.decoding = 'async'
-  // ⚠️ `src` ÖNCE atanmalı: bazı tarayıcılarda `decode()` kaynaksız çağrılınca
-  // reddediyor.
-  img.src = url
-  try {
-    await Promise.race([
-      img.decode(),
-      new Promise((_, red) => setTimeout(() => red(new Error('zaman aşımı')), DECODE_ZAMAN_ASIMI)),
-    ])
-    return 'ready'
-  } catch {
-    return 'dead'
-  }
+/**
+ * Görseli önbelleğe indirir.
+ *
+ * ⚠️ YAVAŞLIK ÖLÜM DEĞİL. Eskiden `img.decode()` 10 sn beklenip kişi "ölü"
+ * sayılıyordu: depolama küçük boyutları zaman zaman saniyelerce geç veriyor ve
+ * `decode()` arka plandaki sekmede askıda kalabiliyor. Altı kişi üst üste böyle
+ * düşünce ekranda "Görsel açılamadı" kalıyordu — oyuncunun gördüğü "çökme"
+ * buydu. Artık yalnızca KESİN hata (`onerror`: 404, bozuk dosya) ölüm; süre
+ * dolarsa `yavas` ve tur yine açılır.
+ *
+ * ⚠️ Bu, `useKapakTur`'da `f6f15b3` ile çözülmüş hatanın BİREBİR aynısıydı;
+ * iki yükleyici bilerek aynı şekilde duruyor. Birini değiştiren diğerine de
+ * baksın.
+ */
+function gorselHazirla(url: string): Promise<'ready' | 'dead' | 'yavas'> {
+  return new Promise((coz) => {
+    const img = new Image()
+    const zaman = setTimeout(() => coz('yavas'), ILK_KARE_BEKLEME)
+    img.onload = () => {
+      clearTimeout(zaman)
+      coz('ready')
+    }
+    img.onerror = () => {
+      clearTimeout(zaman)
+      coz('dead')
+    }
+    img.src = url
+  })
 }
 
 export function useUnluTur(opts?: DizilimOpts): UnluTurApi {

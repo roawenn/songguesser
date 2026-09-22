@@ -18,7 +18,6 @@ export async function songCount(chip: ChipId): Promise<number | null> {
   const source = chipById(chip).source
   const params = new URLSearchParams({ select: 'id', enabled: 'eq.true' })
   if (source.kind === 'genre') params.set('category', `eq.${source.genre}`)
-  else if (source.kind === 'eras') params.set('era', `in.(${source.eras.join(',')})`)
 
   try {
     const res = await fetch(restUrl(`songs?${params}`), {

@@ -29,8 +29,8 @@ export async function kapakSatirlari(chip: ChipId): Promise<KapakSatiri[]> {
     // Sayfalamanın tutarlı olması için sıra ŞART (bkz. `api/havuz`).
     order: 'id.asc',
   })
+  // Yıl süzgeci istemcide (bkz. `havuzSunucu`'daki aynı gerekçe).
   if (source.kind === 'genre') params.set('category', `eq.${source.genre}`)
-  else if (source.kind === 'eras') params.set('era', `in.(${source.eras.join(',')})`)
 
   return restTumSatirlar<KapakSatiri>(`songs?${params}`, {
     headers: restHeaders() as Record<string, string>,

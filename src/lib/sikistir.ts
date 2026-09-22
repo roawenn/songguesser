@@ -59,6 +59,36 @@ interface Kayit {
 
 const onbellek = new Map<string, Kayit>()
 
+/**
+ * Önbellekte en fazla kaç gövde tutulur.
+ *
+ * ⚠️ Bu sınır YIL ŞERİDİYLE BİRLİKTE geldi. Anahtar uzayı o güne kadar
+ * seçki × kademe (~48) ile sınırlıydı ve `Map` hiç tahliye edilmiyordu —
+ * sorun çıkarmıyordu çünkü tavan düşüktü. Yıl eklenince uzay seçki × kademe ×
+ * yıl'a (~250, kapakla birlikte ~500) çıkıyor ve her kayıt 40-190 KB: sınırsız
+ * bırakmak uzun ömürlü bir sunucu örneğinde yüzlerce MB demekti.
+ *
+ * `Map` ekleme SIRASINI koruduğu için en eski anahtar `keys().next()` ile
+ * bulunur; okunan kayıt sona taşınarak LRU'ya çevrilir.
+ */
+const EN_FAZLA_KAYIT = 96
+
+function tahliyeEt(): void {
+  while (onbellek.size > EN_FAZLA_KAYIT) {
+    const enEski = onbellek.keys().next()
+    if (enEski.done) return
+    // Tazelenmeyi bekleyen kaydı atma: arkadaki yazma onu geri koyardı.
+    if (onbellek.get(enEski.value)?.yenileniyor) return
+    onbellek.delete(enEski.value)
+  }
+}
+
+/** Kaydı LRU sırasında sona taşır. */
+function tazeleSira(anahtar: string, kayit: Kayit): void {
+  onbellek.delete(anahtar)
+  onbellek.set(anahtar, kayit)
+}
+
 async function uretVeYaz(anahtar: string, uret: () => Promise<unknown>): Promise<Kayit> {
   const ham = arrayBuffer(Buffer.from(JSON.stringify(await uret()), 'utf8'))
   const etag = `"${createHash('sha1').update(new Uint8Array(ham)).digest('base64url').slice(0, 20)}"`
@@ -68,7 +98,8 @@ async function uretVeYaz(anahtar: string, uret: () => Promise<unknown>): Promise
     onceki && onceki.etag === etag
       ? { ...onceki, zaman: Date.now(), yenileniyor: undefined }
       : { zaman: Date.now(), etag, ham }
-  onbellek.set(anahtar, kayit)
+  tazeleSira(anahtar, kayit)
+  tahliyeEt()
   return kayit
 }
 
@@ -86,7 +117,10 @@ async function kayitAl(anahtar: string, uret: () => Promise<unknown>, omur: Omur
   if (!eski) return uretVeYaz(anahtar, uret)
 
   const yas = Date.now() - eski.zaman
-  if (yas < tazeMs) return eski
+  if (yas < tazeMs) {
+    tazeleSira(anahtar, eski)
+    return eski
+  }
 
   if (yas < bayatMs) {
     // Bayat ama servis edilebilir: tazelemeyi arkada başlat, beklemeden dön.

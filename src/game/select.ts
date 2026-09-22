@@ -1,4 +1,4 @@
-import { MIN_PLAYABLE, type Difficulty } from '@/data/categories'
+import { MIN_PLAYABLE, yilById, type Difficulty, type YilId } from '@/data/categories'
 
 /**
  * Bu modülün havuzdan okuduğu TEK alanlar.
@@ -47,6 +47,48 @@ export function filterByTier<T extends Secilebilir>(
   }
 
   return out
+}
+
+/**
+ * Yıl boyutunun süzülebilir şekli — `Secilebilir` ile aynı gerekçeyle yapısal.
+ * Hem `Song` hem albüm kaydı `y` taşıyor.
+ */
+export interface Yillanabilir {
+  /** Orijinal çıkış yılı. */
+  y: number
+}
+
+/**
+ * Havuzu seçili yıl eşiğine göre süzer.
+ *
+ * ⚠️ `filterByTier`'DEN ÖNCE çağrılır. Sıra tersine dönerse kademe
+ * genişletmesi yıl dilimini AŞAR: "Bu yıl + Sanat Müziği" gibi ince bir
+ * hücrede `filterByTier` komşu kademeleri katarken 1970'lerden şarkı
+ * getirebilir ve oyuncunun açık seçimi sessizce çiğnenirdi. Doğru sıra
+ * `filterByTier(filterByYear(havuz, yil), kademe)`.
+ *
+ * ⚠️ Genişletme YOK — kasıtlı. Kademe boşsa komşusunu katmak makul
+ * (etiketler yakın), ama yılda öyle değil: "Bu yıl" diyen oyuncuya 2003
+ * vermek istediğinin tersi. İnce hücre kilitlemiyor, yalnızca tekrar
+ * ediyor ve arayüz bunu söylüyor.
+ */
+export function filterByYear<T extends Yillanabilir>(
+  pool: readonly T[],
+  yil: YilId,
+): T[] {
+  const esik = yilById(yil).esik
+  if (esik === null) return [...pool]
+
+  if (esik === 'yeni') {
+    // ⚠️ En yeni yıl havuzdan türetilir, sabit değil: takvim yılı geçtiğinde
+    // seçenek kendiliğinden kayar (bkz. `YILLAR`).
+    if (pool.length === 0) return []
+    let enYeni = -Infinity
+    for (const s of pool) if (s.y > enYeni) enYeni = s.y
+    return pool.filter((s) => s.y === enYeni)
+  }
+
+  return pool.filter((s) => s.y >= esik)
 }
 
 /**

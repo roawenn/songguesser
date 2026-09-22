@@ -100,8 +100,11 @@ export async function turleriSec(
   const res = await rest('rpc/duello_sec', {
     method: 'POST',
     body: JSON.stringify({
+      // ⚠️ Düello YIL SÜZGECİ ALMAZ: lobi kaydı yalnızca çip taşıyor, yıl için
+      // `duels` tablosuna yeni sütun gerekir. Kapsam dışı; iki oyuncu da aynı
+      // beş şarkıyı gördüğü sürece düello adil.
       p_kategori: source.kind === 'genre' ? source.genre : null,
-      p_donemler: source.kind === 'eras' ? source.eras : null,
+      p_donemler: null,
     }),
   })
   if (!res.ok) return null

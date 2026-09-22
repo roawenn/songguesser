@@ -37,6 +37,8 @@ export function KapakShell() {
   const setKategori = useSettingsStore((s) => s.setKapakCategory)
   const kademe = useSettingsStore((s) => s.kapakTier)
   const setKademe = useSettingsStore((s) => s.setKapakTier)
+  const yil = useSettingsStore((s) => s.yil)
+  const setYil = useSettingsStore((s) => s.setYil)
   const kaydet = useKapakStatsStore((s) => s.kaydet)
 
   const kare = useRef<KapakKareHandle>(null)
@@ -116,6 +118,7 @@ export function KapakShell() {
       cipler={CHIPS}
       secili={kategori}
       onSecki={(c) => setKategori(c as ChipId)}
+      yil={{ secili: yil, sec: setYil }}
       aktifOyun="kapak"
       atif="Albüm kapakları Apple Music / iTunes aracılığıyla sağlanmaktadır."
       sol={<KapakIstatistikKarti />}
@@ -148,7 +151,10 @@ export function KapakShell() {
               </div>
             </Uyari>
           ) : durum.s === 'empty' ? (
-            <Uyari>Bu seçkide henüz albüm yok. Başka bir seçki dene.</Uyari>
+            /* Yıl şeridi eklendiğinden beri boşluğun sebebi seçki DEĞİL yıl
+               olabiliyor; ikisi de `SahneCercevesi`'nde, oyun durumunun
+               dışında çizildiği için oyuncu buradan çıkabiliyor. */
+            <Uyari>Bu seçkide albüm yok. Yıl aralığını genişlet ya da başka bir seçki dene.</Uyari>
           ) : kapakTurBitti(durum) ? (
             <div className="nk-sonuc">
               <KapakSonucPanel

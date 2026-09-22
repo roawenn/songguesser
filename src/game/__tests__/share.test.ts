@@ -23,10 +23,27 @@ describe('paylaşım kodu', () => {
     expect(decodeShare(encodeShare(r))?.heardSeconds).toBe(0.5)
   })
 
-  it('tire içeren seçki kimliği bozulmaz', () => {
-    // ⚠️ `iki-binler` yüzünden ayırıcı `_`; tire kullanılsa kod parçalanırdı.
-    const r = { ...base, chip: 'iki-binler' as const }
-    expect(decodeShare(encodeShare(r))?.chip).toBe('iki-binler')
+  /*
+   * ⚠️ Ayırıcı `_` KALIYOR, tire değil. Tire içeren tek kimlik (`iki-binler`)
+   * dönem çipleriyle birlikte kalktı ama ayırıcıyı tireye çevirmek, ileride
+   * tireli bir seçki eklendiği gün kodları sessizce parçalardı.
+   */
+  it('ayırıcı tire değil alt çizgi', () => {
+    expect(encodeShare(base)).not.toContain('-')
+    expect(encodeShare(base)).toContain('_')
+  })
+
+  /*
+   * Kaldırılan dönem çiplerini taşıyan ESKİ paylaşım kodları hâlâ geliyor
+   * olabilir: çözülebilmeli, yalnızca seçki varsayılana düşmeli — çökme yok.
+   */
+  it('kaldırılmış seçki kimliği taşıyan eski kod çözülebilir', () => {
+    const eski = encodeShare({ ...base, chip: 'iki-binler' as unknown as typeof base.chip })
+    const cozum = decodeShare(eski)
+    expect(cozum).not.toBeNull()
+    expect(cozum!.won).toBe(base.won)
+    // Seçki adı süs: emekli kimlik varsayılana düşer, skor korunur.
+    expect(cozum!.chip).toBe('karisik')
   })
 
   it('kayıp tur kodlanabilir', () => {
@@ -127,7 +144,7 @@ describe('sonuç cümlesi', () => {
 
 describe('oklch → hex', () => {
   it('görselde kullanılabilir bir hex üretir', () => {
-    for (const chip of ['pop', 'rap', 'karisik', 'rock', 'doksanlar'] as const) {
+    for (const chip of ['pop', 'rap', 'karisik', 'rock', 'fantezi'] as const) {
       expect(accentHex(chip)).toMatch(/^#[0-9a-f]{6}$/)
     }
   })

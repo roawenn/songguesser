@@ -1,5 +1,5 @@
 import type { Song } from './schema'
-import type { ChipId, Difficulty } from './categories'
+import type { ChipId, Difficulty, YilId } from './categories'
 import { alanlariYaz } from './loadSongFields'
 import { isaret } from '@/lib/olcum'
 
@@ -22,14 +22,23 @@ const cache = new Map<string, Promise<Song[]>>()
  * üste binen iki çağrı (havuzu erken ısıtan çağrı ile turu kuran çağrı) iki
  * ayrı ağ isteği atıyordu.
  */
-export async function loadChip(id: ChipId, kademe?: Difficulty): Promise<Song[]> {
-  const anahtar = `${id}:${kademe ?? 'tam'}`
+export async function loadChip(id: ChipId, kademe?: Difficulty, yil?: YilId): Promise<Song[]> {
+  /*
+   * ⚠️ `yil` yalnızca DİLİMDE anahtara giriyor. Tam havuz (sanatçı ve yayıncı
+   * modu) yıla göre süzülmüyor: oraya yıl eklemek hem gereksiz hem de aynı
+   * gövdeyi altı kez indirtirdi.
+   */
+  const anahtar = kademe ? `${id}:${kademe}:${yil ?? 'yok'}` : `${id}:tam`
   const hit = cache.get(anahtar)
   if (hit) return hit
 
   const istek = (async () => {
     isaret(`havuz-istek:${anahtar}`)
-    const res = await fetch(kademe ? `/api/havuz/${id}?kademe=${kademe}` : `/api/havuz/${id}`)
+    const res = await fetch(
+      kademe
+        ? `/api/havuz/${id}?kademe=${kademe}${yil ? `&yil=${yil}` : ''}`
+        : `/api/havuz/${id}`,
+    )
     if (!res.ok) throw new Error(`Havuz yüklenemedi: ${anahtar}`)
 
     const data = (await res.json()) as { songs: Song[]; kaynak: string }
@@ -75,15 +84,15 @@ const paketler = new Map<string, { zaman: number; soz: Promise<Song[]> }>()
  * ⚠️ ASLA REDDETMEZ: paket bir hızlandırma, zorunluluk değil. Hata ya da boş
  * yanıtta `[]` döner ve oyun dilimi bekleyen eski yola düşer.
  */
-export function loadBaslangic(id: ChipId, kademe: Difficulty): Promise<Song[]> {
-  const anahtar = `${id}:${kademe}`
+export function loadBaslangic(id: ChipId, kademe: Difficulty, yil: YilId): Promise<Song[]> {
+  const anahtar = `${id}:${kademe}:${yil}`
   const kayit = paketler.get(anahtar)
   if (kayit && Date.now() - kayit.zaman < PAKET_OMRU_MS) return kayit.soz
 
   const soz = (async () => {
     try {
       isaret(`baslangic-istek:${anahtar}`)
-      const res = await fetch(`/api/baslangic/${id}?kademe=${kademe}`)
+      const res = await fetch(`/api/baslangic/${id}?kademe=${kademe}&yil=${yil}`)
       if (!res.ok) return []
       const data = (await res.json()) as { songs?: Song[] }
       const songs = (data.songs ?? []).filter((s) => s.off !== 1 && s.p)
@@ -115,9 +124,9 @@ export function loadBaslangic(id: ChipId, kademe: Difficulty): Promise<Song[]> {
  * yerine burada durmasının nedeni seçkinin `localStorage`'da yaşaması —
  * varsayılan dışında bir seçki kullanan oyuncuya yanlış havuzu indirtmez.
  */
-export function havuzuIsit(id: ChipId, kademe?: Difficulty): void {
-  void loadChip(id, kademe).catch(() => {
+export function havuzuIsit(id: ChipId, kademe?: Difficulty, yil?: YilId): void {
+  void loadChip(id, kademe, yil).catch(() => {
     // Gerçek hata, turu kuran çağrıda ele alınıyor.
   })
-  if (kademe) void loadBaslangic(id, kademe)
+  if (kademe && yil) void loadBaslangic(id, kademe, yil)
 }

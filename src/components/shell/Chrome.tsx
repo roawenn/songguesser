@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-import { CHIPS, TIERS, type ChipId, type Difficulty } from '@/data/categories'
+import { CHIPS, TIERS, YILLAR, type ChipId, type Difficulty, type YilId } from '@/data/categories'
 
 const MONO_CAPTION = {
   fontFamily: 'var(--font-mono)',
@@ -357,6 +357,82 @@ export function KategoriListesi<Id extends string>({
         }
       `}</style>
     </nav>
+  )
+}
+
+interface YilProps {
+  yil: YilId
+  onYil: (y: YilId) => void
+}
+
+/**
+ * Yıl şeridi — KATEGORİLERİN ÜSTÜNDE.
+ *
+ * ⚠️ Yıl eskiden tür ile AYNI şeritte kardeş çipti ("Eskiler", "90'lar",
+ * "2000'ler"): oyuncu ya tür ya dönem seçebiliyordu, ikisini birden değil.
+ * Kendi şeridine çıkınca "2020 sonrası rap" gibi kesişimler mümkün oldu.
+ *
+ * ⚠️ Kademe şeridinin aksine burada RENK YOK. Sahne rengi türden geliyor,
+ * kademe kendi rengini taşıyor; üçüncü bir renk ekseni eklemek üç bilgiyi de
+ * okunmaz yapardı. Yıl yalnızca seçili/seçili değil ayrımını gösteriyor.
+ *
+ * ⚠️ Etiket "Bu yıl" — "2026" YAZILMIYOR. Sabit bir yıl önümüzdeki sene
+ * sessizce yanlış olurdu; eşik zaten havuzdan türetiliyor (bkz. `filterByYear`).
+ */
+export function YearStrip({ yil, onYil }: YilProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}
+    >
+      <span style={STRIP_TITLE}>yıl</span>
+      <div
+        style={{
+          display: 'flex',
+          gap: 2,
+          padding: 3,
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 999,
+          background: 'rgba(255,255,255,0.02)',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
+        {YILLAR.map((y) => {
+          const on = y.id === yil
+          return (
+            <button
+              key={y.id}
+              type="button"
+              onClick={() => onYil(y.id)}
+              aria-pressed={on}
+              style={{
+                padding: '7px 12px',
+                border: 0,
+                borderRadius: 999,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10.5,
+                letterSpacing: '.1em',
+                textTransform: 'uppercase',
+                background: on ? 'rgba(255,255,255,0.09)' : 'transparent',
+                color: on ? '#e6e8ea' : '#767c81',
+                boxShadow: on ? 'inset 0 0 0 1px rgba(255,255,255,0.18)' : 'none',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                transition: 'color .15s ease, background .15s ease',
+              }}
+            >
+              {y.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

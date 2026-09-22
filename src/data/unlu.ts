@@ -48,7 +48,17 @@ export const UNLU_HAVUZ_SURUM = 1
  * dosyayı isteyebilirdi. `?v=` yalnızca tarayıcı önbelleğini kırmak için.
  */
 export function unluGorselYolu(u: Pick<Unlu, 'id' | 'v'>): string {
-  return `${u.id.slice('unlu:'.length)}.webp?v=${u.v}`
+  /*
+   * ⚠️ SAVUNMACI: bozuk ya da eksik `id` burada PATLAMAMALI. Bu fonksiyon
+   * `useUnluTur`'da SENKRON render yolunda çağrılıyor (`gorselUrl`), yani bir
+   * TypeError tüm React ağacını düşürüp sayfayı boşaltırdı. Üretilemeyen yol
+   * 404'e gider; görsel yükleyicisi onu zaten "ölü" sayıp sıradaki kişiye
+   * geçer — yani hata sessizce yutulmuyor, oyunun normal akışına düşüyor.
+   */
+  const onek = 'unlu:'
+  const id = typeof u?.id === 'string' ? u.id : ''
+  const ad = id.startsWith(onek) ? id.slice(onek.length) : ''
+  return `${ad}.webp?v=${u?.v ?? 0}`
 }
 
 /**

@@ -109,9 +109,9 @@ export function ClientGame() {
     const ayar = useSettingsStore.getState()
     if (sanatci) havuzuIsit('karisik')
     else {
-      havuzuIsit(ayar.category, ayar.tier)
+      havuzuIsit(ayar.category, ayar.tier, ayar.yil)
       // İlk şarkının sesi kabuk çizilmeden inmeye başlasın (bkz. `ilkTur`).
-      ilkTuruHazirla(ayar.category, ayar.tier)
+      ilkTuruHazirla(ayar.category, ayar.tier, ayar.yil)
     }
   }
   // Kayıtta hazırsa askıya almadan doğrudan çiz (bkz. `lib/kabukKayit`).

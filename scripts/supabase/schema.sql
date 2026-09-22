@@ -298,9 +298,26 @@ $$;
  * şarkıları görür. `where s.enabled` yine de yazıldı — yönetim anahtarıyla
  * çağrılırsa kapalı şarkı sızmasın.
  */
+/*
+ * ⚠️ `p_donemler` yerine YIL parametreleri geldi (dönem çipleri kalktı, yerine
+ * kendi şeridinde yıl eşiği var — bkz. `data/categories.YILLAR`).
+ *
+ * ⚠️ ESKİ İMZA BİLEREK DÜŞÜRÜLMÜYOR, ikisi yan yana yaşıyor. PostgREST aşırı
+ * yüklemeyi gövdedeki ANAHTAR KÜMESİNE göre çözüyor; `p_donemler` ile
+ * `p_min_yil`/`p_tek_yil` kümeleri kesişmediği için belirsizlik yok. Deploy
+ * sırası: önce bu migration, sonra kod. Eskisi erken düşürülürse aradaki
+ * pencerede `/api/baslangic` 404 alır ve oyun hızlı başlangıcı kaybeder
+ * (çalışır, sadece tam havuzu bekler). Kod canlıya çıktıktan SONRA:
+ *   drop function public.baslangic_sec(text, text[], int, int);
+ *
+ * `p_tek_yil` YALNIZCA "Bu yıl" seçeneği için: sabit bir yıl gömmek yerine
+ * sunucu havuzdaki en yeni yılı okuyup buraya geçiriyor (bkz. `enYeniYil`),
+ * böylece seçenek takvim ilerleyince kendiliğinden kayıyor.
+ */
 create or replace function public.baslangic_sec(
   p_kategori text default null,
-  p_donemler text[] default null,
+  p_min_yil int default null,
+  p_tek_yil int default null,
   p_kademe int default 3,
   p_adet int default 24
 ) returns setof public.songs language sql stable as $$
@@ -309,10 +326,19 @@ create or replace function public.baslangic_sec(
   where s.enabled
     and s.tier = p_kademe
     and (p_kategori is null or s.category = p_kategori)
-    and (p_donemler is null or s.era = any(p_donemler))
+    and (p_min_yil is null or s.year >= p_min_yil)
+    and (p_tek_yil is null or s.year = p_tek_yil)
   order by random()
   limit least(greatest(p_adet, 1), 40)
 $$;
+
+/*
+ * ⚠️ `year` üzerinde indeks: yıl süzgeci eklenene kadar bu kolon hiç
+ * süzülmüyordu (dönem için `era` vardı). 15 bin satırda sıralı tarama da
+ * hızlı ama `baslangic_sec` ilk turun kritik yolunda ve kademe + yıl birlikte
+ * süzülüyor.
+ */
+create index if not exists songs_year_tier_idx on public.songs (year, tier) where enabled;
 
 /*
  * Süresi dolmuş satırları toplar: lobiler, oturumlar, hız sınırı sayaçları.

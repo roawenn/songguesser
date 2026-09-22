@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { CHIPS, type ChipId } from '@/data/categories'
-import { kademeOku } from '@/lib/havuzDilim'
+import { CHIPS, VARSAYILAN_YIL, type ChipId } from '@/data/categories'
+import { kademeOku, yilOku } from '@/lib/havuzDilim'
 import { baslangicSec } from '@/lib/havuzSunucu'
 
 /**
@@ -23,10 +23,24 @@ export async function GET(
 ) {
   const { chip: raw } = await ctx.params
   const chip = CHIPS.find((c) => c.id === raw)?.id as ChipId | undefined
-  const kademe = kademeOku(new URL(req.url).searchParams.get('kademe'))
+  const sorgu = new URL(req.url).searchParams
+  const kademe = kademeOku(sorgu.get('kademe'))
   if (!chip || !kademe) return NextResponse.json({ songs: [] }, { status: 400 })
 
-  const songs = await baslangicSec(chip, kademe)
+  /*
+   * ⚠️ Yıl paketi DE süzmeli. Tam havuzdan gelen 24 rastgele şarkının
+   * varsayılan "Bu yıl" dilimine düşeni ortalama yarım tanedir (363/15.357);
+   * süzmeseydik paket pratikte hep boşa gider, oyuncu da hızlı başlangıcı
+   * kaybedip tam havuzu beklerdi.
+   *
+   * ⚠️ `yil` CDN anahtarına giriyor: varyant sayısı seçki × kademe × 6 oluyor.
+   * Supabase tarafı yine 30 sn'de bir tek RPC (24 satır) olduğu için egress'e
+   * etkisi ihmal edilebilir — tam havuz okumasını yıla göre bölmek olsaydı
+   * durum bambaşkaydı (bkz. `havuzSunucu.fromSupabase`).
+   */
+  const yil = yilOku(sorgu.get('yil')) ?? VARSAYILAN_YIL
+
+  const songs = await baslangicSec(chip, kademe, yil)
   return NextResponse.json(
     { songs },
     {

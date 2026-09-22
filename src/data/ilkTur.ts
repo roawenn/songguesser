@@ -1,4 +1,4 @@
-import type { ChipId, Difficulty } from './categories'
+import type { ChipId, Difficulty, YilId } from './categories'
 import type { Song } from './schema'
 import { loadBaslangic } from './loadPool'
 import { isaret } from '@/lib/olcum'
@@ -21,9 +21,11 @@ import { isaret } from '@/lib/olcum'
 
 let aday: { anahtar: string; song: Song } | null = null
 
-export function ilkTuruHazirla(id: ChipId, kademe: Difficulty): void {
-  const anahtar = `${id}:${kademe}`
-  void loadBaslangic(id, kademe).then(async (paket) => {
+export function ilkTuruHazirla(id: ChipId, kademe: Difficulty, yil: YilId): void {
+  // ⚠️ Anahtar yılı DA taşımalı: yıl değişince önden seçilen şarkı artık
+  // oyuncunun dilimine ait olmayabilir, `useRound` onu reddetmeli.
+  const anahtar = `${id}:${kademe}:${yil}`
+  void loadBaslangic(id, kademe, yil).then(async (paket) => {
     if (paket.length === 0) return
     const song = paket[Math.floor(Math.random() * paket.length)]!
     // ⚠️ SENKRON atanıyor: `useRound` aynı söze sonradan bağlanıyor ve onun
@@ -42,10 +44,10 @@ export function ilkTuruHazirla(id: ChipId, kademe: Difficulty): void {
 }
 
 /**
- * Önden seçilen şarkıyı TEK KEZ teslim eder; seçki/kademe tutmuyorsa `null`.
+ * Önden seçilen şarkıyı TEK KEZ teslim eder; seçki/kademe/yıl tutmuyorsa `null`.
  */
-export function ilkTurAdayiAl(id: ChipId, kademe: Difficulty): Song | null {
-  if (!aday || aday.anahtar !== `${id}:${kademe}`) return null
+export function ilkTurAdayiAl(id: ChipId, kademe: Difficulty, yil: YilId): Song | null {
+  if (!aday || aday.anahtar !== `${id}:${kademe}:${yil}`) return null
   const song = aday.song
   aday = null
   return song

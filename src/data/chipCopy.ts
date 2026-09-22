@@ -65,22 +65,4 @@ export const CHIP_COPY: Record<ChipId, ChipCopy> = {
     giris:
       'Doksanların ve iki binlerin fantezi repertuvarı. Klavye girişleri ve ritim kalıpları tanıdık; asıl zorluk birbirine çok benzeyen parçaları ayırmak.',
   },
-  eskiler: {
-    h1: 'Eski Türkçe Şarkı Tahmin Oyunu',
-    ozet: '70, 80 ve 90’lı yılların Türkçe şarkıları, tüm türlerden.',
-    giris:
-      'Yetmişlerden doksanların sonuna uzanan bir dönem seçkisi. Tür fark etmez — pop, rock, arabesk, halk müziği hepsi aynı havuzda, tek ortak noktaları eski olmaları.',
-  },
-  doksanlar: {
-    h1: '90’lar Türkçe Şarkı Tahmin Oyunu',
-    ozet: 'Doksanların Türkçe şarkıları — kaset kuşağının repertuvarı.',
-    giris:
-      'Doksanlar, Türkçe müziğin en çok dinlenen on yılı. Bu seçki yalnızca o dönemin parçalarından oluşuyor; nostaljin ne kadar keskin, burada belli olur.',
-  },
-  'iki-binler': {
-    h1: '2000’ler Türkçe Şarkı Tahmin Oyunu',
-    ozet: 'İki binlerin Türkçe şarkıları — klip kuşağının hitleri.',
-    giris:
-      'İki binlerin Türkçe müziği: müzik kanallarının, ilk MP3 çalarların ve cep telefonu zil seslerinin dönemi. Seçki yalnızca o on yıldan besleniyor.',
-  },
 }

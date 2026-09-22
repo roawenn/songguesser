@@ -7,7 +7,7 @@ import { loadBaslangic, loadChip } from '@/data/loadPool'
 import { ilkTurAdayiAl } from '@/data/ilkTur'
 import { alanlariAl, alanlariIsit, alanlarOnbellekten, birlestir } from '@/data/loadSongFields'
 import type { Song } from '@/data/schema'
-import { MIN_PLAYABLE, type ChipId, type Difficulty } from '@/data/categories'
+import { MIN_PLAYABLE, type ChipId, type Difficulty, type YilId } from '@/data/categories'
 import { gameReducer, canPlay, currentClipLength, type GameState } from '@/game/machine'
 import { STEPS } from '@/game/ladder'
 import { pickNext, filterByTier } from '@/game/select'
@@ -113,6 +113,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
   const sanatci = secenek?.sanatci ?? null
   const category = sanatci ? 'karisik' : ayarKategori
   const tier = useSettingsStore((s) => s.tier)
+  const yil = useSettingsStore((s) => s.yil)
   const easySearch = useSettingsStore((s) => s.easySearch)
   const volume = useSettingsStore((s) => s.volume)
   const setTier = useSettingsStore((s) => s.setTier)
@@ -201,9 +202,9 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
    * ⚠️ Yalnızca başka bir çivili aday yoksa: kazanınca seçilen üst kademe
    * adayının sesi zaten iniyor.
    */
-  const ondenSecileniCivile = (c: ChipId, k: Difficulty) => {
+  const ondenSecileniCivile = (c: ChipId, k: Difficulty, y: YilId) => {
     if (sabitAday.current || sequenceRef.current) return
-    const onden = ilkTurAdayiAl(c, k)
+    const onden = ilkTurAdayiAl(c, k, y)
     if (onden) sabitAday.current = onden
   }
 
@@ -268,7 +269,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
      * ve süzme sanatçıya göre yapılıyor. Havuz söz önbelleğinden geldiği için
      * kademe değişiminde yeniden yükleme ağa gitmiyor.
      */
-    loadChip(category, sanatci ? undefined : tier)
+    loadChip(category, sanatci ? undefined : tier, yil)
       .then((songs) => {
         if (cancelled) return
         dilimGeldi = true
@@ -285,7 +286,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       })
 
     if (paketIste) {
-      void loadBaslangic(category, tier).then((paket) => {
+      void loadBaslangic(category, tier, yil).then((paket) => {
         // Vazgeçildiyse (gecikti) tur dilimle kuruldu; alanlar yine önbellekte.
         if (cancelled || !paketBekleniyor.current) return
         if (paket.length === 0) {
@@ -302,7 +303,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
          */
         baslangicTuru.current = !dilimGeldi
         isaret('tur-paketten')
-        ondenSecileniCivile(category, tier)
+        ondenSecileniCivile(category, tier, yil)
         void startRound(paket, ladder)
       })
     }
@@ -312,7 +313,9 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       clearTimeout(zamanlayici)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, sanatci, tier])
+    // ⚠️ `yil` de bağımlılık: yıl şeridinden seçim değişince dilim, başlangıç
+    // paketi ve tur YENİDEN kurulmalı, yoksa oyuncu eski yılın havuzunda kalır.
+  }, [category, sanatci, tier, yil])
 
   // Sanatçı modunda havuz önce sanatçıya daraltılır.
   const sanatciHavuzu = useMemo(
@@ -360,10 +363,10 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
   const turHazir = state.s === 'ready'
   useEffect(() => {
     if (!turHazir || sanatci || duello || tier >= 5) return
-    const anahtar = `${category}:${tier}`
+    const anahtar = `${category}:${tier}:${yil}`
     if (ustIstek.current === anahtar) return
     ustIstek.current = anahtar
-    loadChip(category, (tier + 1) as Difficulty)
+    loadChip(category, (tier + 1) as Difficulty, yil)
       .then((songs) => {
         if (ustIstek.current === anahtar) setUstDilim(songs)
       })
@@ -371,7 +374,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
         // Bir sonraki hazır turda yeniden denensin.
         if (ustIstek.current === anahtar) ustIstek.current = null
       })
-  }, [turHazir, category, tier, sanatci, duello])
+  }, [turHazir, category, tier, yil, sanatci, duello])
 
   /*
    * Üst kademe listesi tur kurulduktan SONRA geldiyse adayı şimdi seç.
@@ -652,7 +655,7 @@ export function useRound(dizilim?: DizilimOpts, secenek?: RoundSecenek): RoundAp
       if (state.s !== 'error' && state.s !== 'empty' && state.s !== 'booting') return
     }
     // Paket gecikip dilimle kurulursa da önden inen şarkı kullanılsın.
-    if (!sanatci) ondenSecileniCivile(category, tier)
+    if (!sanatci) ondenSecileniCivile(category, tier, yil)
     void startRound(filtered, ladder)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered, ladder, loading, sequence, seqIndex, forcedSong, paketTetik])

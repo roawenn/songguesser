@@ -1,7 +1,14 @@
 import 'server-only'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { chipById, CATEGORY_IDS, type ChipId, type Difficulty } from '@/data/categories'
+import {
+  chipById,
+  CATEGORY_IDS,
+  yilById,
+  type ChipId,
+  type Difficulty,
+  type YilId,
+} from '@/data/categories'
 import type { Pool, Song } from '@/data/schema'
 import { BASLANGIC_ADET, seckiParametreleri } from '@/lib/havuzDilim'
 import {
@@ -87,11 +94,7 @@ function fallbackFromDisk(chip: ChipId): Song[] {
 
   const source = chipById(chip).source
   if (source.kind === 'genre') return readCat(source.genre)
-
-  const all = CATEGORY_IDS.flatMap(readCat)
-  if (source.kind === 'all') return all
-  const eras = new Set<string>(source.eras)
-  return all.filter((s) => eras.has(s.e))
+  return CATEGORY_IDS.flatMap(readCat)
 }
 
 async function fromSupabase(chip: ChipId): Promise<Song[]> {
@@ -105,8 +108,15 @@ async function fromSupabase(chip: ChipId): Promise<Song[]> {
   })
 
   if (source.kind === 'genre') params.set('category', `eq.${source.genre}`)
-  else if (source.kind === 'eras') params.set('era', `in.(${source.eras.join(',')})`)
 
+  /*
+   * ⚠️ YIL SÜZGECİ BURADA YOK ve olmamalı. `POOL_COLUMNS` zaten `year` çekiyor,
+   * yani yıl istemcide `Song.y` olarak mevcut ve süzgeç orada çalışıyor
+   * (`filterByYear`). Yılı buraya taşımak havuz önbelleğini 8 varyanttan 48'e
+   * çıkarır: her tür × her yıl eşiği ayrı bir Supabase okuması ve ayrı bir
+   * önbellek anahtarı demek. Egress'i iki katına çıkaran tam da bu tür
+   * çarpımlardı.
+   */
   const rows = await restTumSatirlar<SongRow>(`songs?${params}`, {
     headers: restHeaders() as Record<string, string>,
     // Next'in veri önbelleği: etiketle geçersizleştirilebilir.
@@ -185,13 +195,50 @@ export async function havuzSatirlari(chip: ChipId): Promise<HavuzSonucu> {
  * tur kurulabilsin diye var. Hata ya da yapılandırma eksikliğinde boş dizi:
  * istemci o zaman kademe dilimini bekler.
  */
-export async function baslangicSec(chip: ChipId, kademe: Difficulty): Promise<Song[]> {
+/**
+ * Havuzdaki EN YENİ çıkış yılı — "Bu yıl" seçeneğinin eşiği.
+ *
+ * ⚠️ Sabit yazılamaz. "2026" gömülseydi seçenek önümüzdeki yıl sessizce
+ * "geçen yıl" olurdu ve kimse fark etmezdi. Tek satır okunuyor (`limit=1`),
+ * havuzla aynı `havuz` etiketinde önbellekte: panelden yeni yıl eklenince
+ * kendiliğinden tazeleniyor.
+ */
+export async function enYeniYil(): Promise<number | null> {
+  if (!supabaseReady) return null
+  try {
+    const res = await fetch(
+      restUrl('songs?select=year&enabled=eq.true&order=year.desc&limit=1'),
+      {
+        headers: restHeaders(),
+        next: { revalidate: SUPABASE_TAZELE, tags: ['havuz'] },
+      },
+    )
+    if (!res.ok) return null
+    const satirlar = (await res.json()) as { year: number }[]
+    const y = satirlar[0]?.year
+    return typeof y === 'number' && Number.isFinite(y) ? y : null
+  } catch {
+    return null
+  }
+}
+
+export async function baslangicSec(
+  chip: ChipId,
+  kademe: Difficulty,
+  yil: YilId,
+): Promise<Song[]> {
   if (!supabaseReady) return []
   try {
+    // ⚠️ Yalnızca "Bu yıl" seçiliyken okunuyor; diğer eşikler sabit sayı.
+    const enYeni = yilById(yil).esik === 'yeni' ? await enYeniYil() : null
     const res = await fetch(restUrl('rpc/baslangic_sec'), {
       method: 'POST',
       headers: restHeaders(),
-      body: JSON.stringify({ ...seckiParametreleri(chip), p_kademe: kademe, p_adet: BASLANGIC_ADET }),
+      body: JSON.stringify({
+        ...seckiParametreleri(chip, yil, enYeni),
+        p_kademe: kademe,
+        p_adet: BASLANGIC_ADET,
+      }),
       cache: 'no-store',
     })
     if (!res.ok) return []

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { CHIPS, chipById, ERA_LABELS, type ChipId, type EraId } from '@/data/categories'
+import { CHIPS, chipById, type ChipId } from '@/data/categories'
 import { CHIP_COPY } from '@/data/chipCopy'
 import { seedsFor } from '@/data/seeds'
 import { STEPS, tr } from '@/game/ladder'
@@ -51,7 +51,6 @@ export default async function SeckiPage({ params }: Props) {
   const sayi = await songCount(chip)
   const source = bilgi.source
   const sanatcilar = source.kind === 'genre' ? seedsFor(source.genre).slice(0, 18) : []
-  const donemler: EraId[] = source.kind === 'eras' ? source.eras : []
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-14">
@@ -83,15 +82,6 @@ export default async function SeckiPage({ params }: Props) {
           </div>
         )}
 
-        {donemler.length > 0 && (
-          <div>
-            <dt className="font-semibold text-ink-0">Hangi yıllar?</dt>
-            <dd className="mt-1.5 leading-relaxed text-ink-2">
-              {donemler.map((e) => ERA_LABELS[e]).join(', ')} — tür fark etmeksizin tüm
-              havuzdan.
-            </dd>
-          </div>
-        )}
 
         {sanatcilar.length > 0 && (
           <div>

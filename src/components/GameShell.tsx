@@ -200,6 +200,9 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
         if (sanatci) sanatcidenCik()
         settings.setCategory(c as typeof settings.category)
       }}
+      // ⚠️ Sanatçı modunda yıl şeridi YOK: o mod tam havuzdan sanatçıya
+      // süzüyor, yıl dilimi orada zaten uygulanmıyor (bkz. `loadChip`).
+      yil={sanatci ? undefined : { secili: settings.yil, sec: settings.setYil }}
       aktifOyun="sarki"
       sanatciModu={sanatci ? { ad: sanatciAdi ?? sanatci, kapat: sanatcidenCik } : undefined}
       sol={<StatsCard />}
@@ -253,6 +256,34 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
               <div className="nk-kademe">
                 <TierStrip tier={settings.tier} onTier={settings.setTier} />
               </div>
+
+              {/*
+                ⚠️ Bu uyarı YIL ŞERİDİYLE BİRLİKTE anlam kazandı. `tooNarrow`
+                uzun süre hesaplanıp hiç gösterilmiyordu, çünkü en küçük tür
+                bile 1595 şarkıydı ve eşiğin altına düşmek imkânsızdı. Yıl dik
+                bir boyut olarak eklenince kesişimler inceldi (ör. Sanat
+                Müziği + Bu yıl = 5 şarkı), yani durum artık gerçekten
+                oluşuyor ve oyuncuya söylenmesi gerekiyor.
+
+                ENGEL DEĞİL: 5 şarkılık bir seçki gayet oynanır, sadece
+                tekrar eder. Kilitlemek oyuncudan oynayabileceği bir oyunu
+                almak olurdu (bkz. `useRound.tooNarrow`).
+              */}
+              {round.tooNarrow && (
+                <div
+                  className="nk-ipucu"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    letterSpacing: '.14em',
+                    textTransform: 'uppercase',
+                    color: '#6a7075',
+                    marginTop: 10,
+                  }}
+                >
+                  bu seçkide {round.filtered.length} şarkı var · tekrar edebilir
+                </div>
+              )}
 
               {/*
                 ⚠️ Çubuk, kademeyi çalma kontrollerinden ayıran aralığın
@@ -325,7 +356,7 @@ export function GameShell({ sanatci: ilkSanatci = null }: { sanatci?: string | n
                     Bu seçkide oynanacak şarkı yok.
                   </p>
                   <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#8c9297' }}>
-                    Başka bir seçki dene.
+                    Yıl aralığını genişlet ya da başka bir seçki dene.
                   </p>
                 </Notice>
               ) : state.s === 'empty' ? (

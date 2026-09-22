@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { enKisaTon } from '@/lib/renk'
 import { Backdrop } from '../stage/Backdrop'
 import { HesapDugmesi } from '../hesap/HesapDugmesi'
-import { Header, CategoryStrip, KategoriListesi, Footer } from './Chrome'
+import { Header, CategoryStrip, KategoriListesi, YearStrip, Footer } from './Chrome'
+import type { YilId } from '@/data/categories'
 import { MobilMenu } from './MobilMenu'
 import { OyunSeridi, gecisGirisiTuket, gecisGirisiVar, type OyunId } from './OyunSeridi'
 import { useOlcek } from './useOlcek'
@@ -44,6 +45,15 @@ interface Props {
   secili?: string
   onSecki?: (id: string) => void
 
+  /**
+   * Yıl şeridi — kategorilerin ÜSTÜNDE, onlarla aynı iki yerde çizilir.
+   *
+   * ⚠️ Yalnızca şarkı ve kapak oyunları veriyor. Ünlü Bilmece'de dönem
+   * boyutu yok ("90'ların ünlüsü" diye tahmin eden yok), Günlük'te de herkes
+   * aynı seti oynuyor. Verilmezse hiç çizilmez.
+   */
+  yil?: { secili: YilId; sec: (y: YilId) => void }
+
   /** Sol sütun, kategori listesinin ALTINDA: istatistik. */
   sol: ReactNode
   /** Orta sütun — kendi `<main className="nk-stage">`'ini içermeli. */
@@ -69,6 +79,7 @@ export function SahneCercevesi({
   cipler,
   secili,
   onSecki,
+  yil,
   sol,
   orta,
   sag,
@@ -233,6 +244,11 @@ export function SahneCercevesi({
                 </button>
               </div>
             )}
+            {yil && (
+              <div style={{ marginBottom: 12 }}>
+                <YearStrip yil={yil.secili} onYil={yil.sec} />
+              </div>
+            )}
             {cipler && <CategoryStrip chips={cipler} category={secili ?? ''} onCategory={seckiSec} />}
           </div>
         </div>
@@ -247,6 +263,11 @@ export function SahneCercevesi({
             {/* Üç sütun: kategoriler + istatistik · sahne · ayarlar + kurallar. */}
             <div className="nk-stage-grid">
               <div className="nk-side">
+                {yil && (
+                  <div style={{ marginBottom: 18 }}>
+                    <YearStrip yil={yil.secili} onYil={yil.sec} />
+                  </div>
+                )}
                 {cipler && (
                   <KategoriListesi
                     chips={cipler}

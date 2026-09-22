@@ -7,7 +7,7 @@ import { loadKapakChip } from '@/data/loadKapakPool'
 import { alanlariAl } from '@/data/loadSongFields'
 import { artworkAt } from '@/data/schema'
 import { kapakReducer, kapakTurIcinde, type KapakDurum } from '@/game/kapakMachine'
-import { filterByTier, pickNext } from '@/game/select'
+import { filterByTier, filterByYear, pickNext } from '@/game/select'
 import { buildIndex, type SearchIndex } from '@/text/autocomplete'
 import { judgeGuess, type Verdict } from '@/text/match'
 import { useSettingsStore } from '@/store/useSettingsStore'
@@ -111,6 +111,7 @@ export function useKapakTur(opts?: KapakDizilimOpts): KapakTurApi {
   const kademe = useSettingsStore((s) => s.kapakTier)
   const ayarKolay = useSettingsStore((s) => s.kapakKolay)
   const easySearch = useSettingsStore((s) => s.easySearch)
+  const yil = useSettingsStore((s) => s.yil)
   const setKademe = useSettingsStore((s) => s.setKapakTier)
 
   const dizilim = opts?.dizilim
@@ -153,7 +154,18 @@ export function useKapakTur(opts?: KapakDizilimOpts): KapakTurApi {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kategori])
 
-  const suzulmus = useMemo(() => filterByTier(havuz, kademe), [havuz, kademe])
+  /*
+   * ⚠️ SIRA: önce YIL, sonra KADEME — `api/havuz`'daki aynı gerekçe. Kademe
+   * dilimi önce alınıp sonra yıla süzülseydi, `filterByTier`'in genişletmesi
+   * yıl süzgecinden önce "yeterli" der ve hiç devreye girmezdi: ince hücreler
+   * (ör. Sanat Müziği + Bu yıl) boş ekrana düşerdi.
+   *
+   * ⚠️ Şarkının aksine burada SUNUCU dilimlemiyor: kapak havuzu tam geliyor,
+   * iki süzgeç de istemcide. Yani yıl kapak tarafında hiçbir yeni önbellek
+   * anahtarı ya da istek üretmiyor.
+   */
+  const yilDilimi = useMemo(() => filterByYear(havuz, yil), [havuz, yil])
+  const suzulmus = useMemo(() => filterByTier(yilDilimi, kademe), [yilDilimi, kademe])
 
   /**
    * Otomatik tamamlama ve eşleştirme evreni — kolay moda göre anahtarlanmış.

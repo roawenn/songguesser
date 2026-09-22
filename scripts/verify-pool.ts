@@ -81,11 +81,6 @@ for (const chip of CHIPS) {
     case 'genre':
       n = readPool(chip.source.genre).length
       break
-    case 'eras': {
-      const set = new Set<string>(chip.source.eras)
-      n = all.filter((s) => set.has(s.e)).length
-      break
-    }
   }
   const flag = n < MIN_PLAYABLE ? '  << ZAYIF' : ''
   if (n < MIN_PLAYABLE) thin++

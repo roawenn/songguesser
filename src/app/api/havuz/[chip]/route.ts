@@ -1,6 +1,6 @@
-import { CHIPS, type ChipId } from '@/data/categories'
-import { filterByTier } from '@/game/select'
-import { kademeOku } from '@/lib/havuzDilim'
+import { CHIPS, VARSAYILAN_YIL, type ChipId } from '@/data/categories'
+import { filterByTier, filterByYear } from '@/game/select'
+import { kademeOku, yilOku } from '@/lib/havuzDilim'
 import { havuzSatirlari } from '@/lib/havuzSunucu'
 import { sikistirilmisJson } from '@/lib/sikistir'
 
@@ -34,7 +34,9 @@ export async function GET(
 ) {
   const { chip: raw } = await ctx.params
   const chip = (CHIPS.find((c) => c.id === raw)?.id ?? 'karisik') as ChipId
-  const kademe = kademeOku(new URL(req.url).searchParams.get('kademe'))
+  const sorgu = new URL(req.url).searchParams
+  const kademe = kademeOku(sorgu.get('kademe'))
+  const yil = yilOku(sorgu.get('yil')) ?? VARSAYILAN_YIL
 
   /*
    * ⚠️ Gövde TEMBEL: yalnızca sıkıştırma önbelleği soğukken üretiliyor.
@@ -43,11 +45,26 @@ export async function GET(
    */
   return sikistirilmisJson(
     req,
-    kademe ? `havuz:${chip}:${kademe}` : `havuz:${chip}`,
+    kademe ? `havuz:${chip}:${kademe}:${yil}` : `havuz:${chip}`,
     async () => {
       const { songs, kaynak } = await havuzSatirlari(chip)
+      /*
+       * ⚠️ SIRA: önce YIL, sonra KADEME. Tersi sessizce yanlış: `filterByTier`
+       * ince kademede komşu kademeleri katıyor ve bu genişletme tüm seçki
+       * üzerinde yapılırsa yıl dilimi dışından şarkı getirir. Daha kötüsü,
+       * kademe dilimi önce alınıp sonra yıla süzülürse ince hücreler
+       * (ör. Sanat Müziği + Bu yıl) neredeyse hep BOŞ çıkar: genişletme
+       * yıl süzgecinden önce "yeterli" dediği için hiç devreye girmez.
+       * Doğru sırada 5 şarkılık bir hücre bile tüm kademeler birleşerek
+       * oynanabilir kalıyor.
+       *
+       * ⚠️ Yıl anahtara giriyor ama SUPABASE OKUMASINA girmiyor:
+       * `havuzSatirlari(chip)` hâlâ seçki başına tek okuma ve kendi
+       * önbelleğinde. Çoğalan tek şey sıkıştırılmış gövde sayısı — onun da
+       * artık üst sınırı var (bkz. `sikistir`).
+       */
       return kademe
-        ? { chip, kademe, kaynak, songs: filterByTier(songs, kademe) }
+        ? { chip, kademe, yil, kaynak, songs: filterByTier(filterByYear(songs, yil), kademe) }
         : { chip, kaynak, songs }
     },
     {

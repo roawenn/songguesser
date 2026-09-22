@@ -166,7 +166,7 @@ export function gecisGirisiTuket(): void {
 function isit(id: OyunId) {
   const ayar = useSettingsStore.getState()
   void kabukYukle(id).catch(() => {})
-  if (id === 'sarki') havuzuIsit(ayar.category, ayar.tier)
+  if (id === 'sarki') havuzuIsit(ayar.category, ayar.tier, ayar.yil)
   else if (id === 'unlu') unluHavuzuIsit(ayar.unluCategory)
   else if (id === 'kapak') kapakHavuzuIsit(ayar.kapakCategory)
   // Günlük: havuz ISITILMAZ — sayfa tur türüne göre kendisi indiriyor.

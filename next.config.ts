@@ -65,6 +65,23 @@ const nextConfig: NextConfig = {
    * içinde gömülü adres o (betik indirilip doğrulandı). Betik `data-host-url`
    * ile `/u`'ya yönlendiriliyor, `/u/api/send` de buraya düşüyor.
    */
+  /**
+   * Kaldırılan dönem seçkilerinin giriş sayfaları.
+   *
+   * ⚠️ 404 DEĞİL, kalıcı yönlendirme. `eskiler`, `doksanlar` ve `iki-binler`
+   * çipleri kalktı (dönem artık yıl şeridinde), yani `/seckiler/<çip>`
+   * sayfaları da üretilmiyor. Bu adresler dizine girmiş ve dış bağlantıları
+   * olabilir; 301 hem oyuncuyu çalışan bir sayfaya taşır hem de birikmiş
+   * sıralama değerini ana sayfaya aktarır.
+   */
+  async redirects() {
+    return ['eskiler', 'doksanlar', 'iki-binler'].map((eski) => ({
+      source: `/seckiler/${eski}`,
+      destination: '/',
+      permanent: true,
+    }))
+  },
+
   async rewrites() {
     return [
       { source: '/u/s.js', destination: 'https://cloud.umami.is/script.js' },

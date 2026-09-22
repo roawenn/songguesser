@@ -87,7 +87,22 @@ export function decodeShare(kod: string): ShareResult | null {
   ]
   if (sarki !== undefined && !/^\d+$/.test(sarki)) return null
 
-  if (!CHIPS.some((c) => c.id === chip)) return null
+  /*
+   * ⚠️ Kaldırılmış dönem çipleri BURADA hâlâ kabul ediliyor.
+   *
+   * `eskiler`, `doksanlar` ve `iki-binler` `CHIPS`'ten çıktı (dönem artık yıl
+   * şeridinde). Ama bu kodlar sosyal medyada paylaşılmış linklerin içinde
+   * yaşıyor ve tek satırlık bir kimlik kontrolü onları TAMAMEN çözülemez
+   * yapıyordu: `/paylas/<kod>` skoru da, kutuları da göstermeyip "geçersiz
+   * kod" diyordu. Seçki adı paylaşımın süsü, skoru ise özü — süs için özü
+   * çöpe atmak yanlış. Eskiler `karisik` olarak çözülüyor.
+   *
+   * ⚠️ Doğrulama GEVŞETİLMEDİ: bilinmeyen rastgele bir metin yine reddedilir,
+   * yalnızca bu üç kimlik açıkça tanınıyor.
+   */
+  const EMEKLI_CIPLER = new Set(['eskiler', 'doksanlar', 'iki-binler'])
+  const emekli = EMEKLI_CIPLER.has(chip)
+  if (!emekli && !CHIPS.some((c) => c.id === chip)) return null
   if (letters.length !== ATTEMPTS) return null
 
   const marks: Mark[] = []
@@ -103,7 +118,7 @@ export function decodeShare(kod: string): ShareResult | null {
   if (!Number.isFinite(n) || n < 0 || n > 999) return null
 
   return {
-    chip: chip as ChipId,
+    chip: (emekli ? 'karisik' : chip) as ChipId,
     marks,
     won: marks.includes('dogru'),
     heardSeconds: tenths / 10,
